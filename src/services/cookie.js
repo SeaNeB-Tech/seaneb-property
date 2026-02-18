@@ -1,11 +1,37 @@
 // Simple cookie helper for storing JSON and string values
 const isBrowser = typeof window !== "undefined";
 
+const envCookiePath = process.env.NEXT_PUBLIC_COOKIE_PATH || "/";
+const envCookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
+const envSameSite = process.env.NEXT_PUBLIC_COOKIE_SAMESITE || "Lax";
+
+const normalizePath = (path) => {
+  if (!path || typeof path !== "string") return "/";
+  return path.startsWith("/") ? path : `/${path}`;
+};
+
+const resolveCookieOptions = (options = {}) => {
+  const path = normalizePath(options.path || envCookiePath);
+  const domain = options.domain ?? envCookieDomain;
+  const sameSite = options.sameSite ?? envSameSite;
+  const secure =
+    typeof options.secure === "boolean"
+      ? options.secure
+      : (isBrowser && window.location.protocol === "https:");
+
+  return { ...options, path, domain, sameSite, secure };
+};
+
 export const setCookie = (name, value, options = {}) => {
   if (!isBrowser) return;
-  const { maxAge } = options; // seconds
-  let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; path=/`;
+  const { maxAge, path, domain, sameSite, secure } = resolveCookieOptions(options);
+
+  let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; path=${path}`;
   if (typeof maxAge === "number") cookie += `; max-age=${maxAge}`;
+  if (domain) cookie += `; domain=${domain}`;
+  if (sameSite) cookie += `; SameSite=${sameSite}`;
+  if (secure) cookie += "; Secure";
+
   document.cookie = cookie;
 };
 
@@ -24,9 +50,14 @@ export const getCookie = (name) => {
   return null;
 };
 
-export const removeCookie = (name) => {
+export const removeCookie = (name, options = {}) => {
   if (!isBrowser) return;
-  document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0`;
+  const { path, domain, sameSite, secure } = resolveCookieOptions(options);
+  let cookie = `${encodeURIComponent(name)}=; path=${path}; max-age=0`;
+  if (domain) cookie += `; domain=${domain}`;
+  if (sameSite) cookie += `; SameSite=${sameSite}`;
+  if (secure) cookie += "; Secure";
+  document.cookie = cookie;
 };
 
 export const setJsonCookie = (name, obj, options = {}) => {

@@ -95,7 +95,7 @@
       {
         "title": "Partner Onboarding",
         "description": "Structured onboarding flow for agencies and brokers.",
-        "href": "/auth/business-option"
+        "href": "/partner"
       }
     ],
     "process": [
@@ -279,7 +279,7 @@
     ],
     "cta": {
       "label": "Start Partner Onboarding",
-      "href": "/auth/business-option"
+      "href": "/partner"
     }
   },
   {
@@ -361,3 +361,4 @@
     }
   }
 ]
+

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import BrandLogo from "./BrandLogo";
+import { getCookie } from "@/services/cookie";
 
 const footerGroups = [
   {
@@ -10,7 +12,7 @@ const footerGroups = [
     links: [
       { label: "Home", href: "/home" },
       { label: "Browse India", href: "/in" },
-      { label: "Login", href: "/auth/login" },
+      { label: "Login", href: "/dashboard" },
       { label: "Dashboard", href: "/dashboard" },
     ],
   },
@@ -47,6 +49,22 @@ const socialLinks = [
 export default function GlobalFooter() {
   const pathname = usePathname();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
+  const isAuthenticated = useSyncExternalStore(
+    () => () => {},
+    () =>
+      getCookie("profile_completed") === "true" ||
+      Boolean(getCookie("access_token")) ||
+      Boolean(getCookie("session_start_time")),
+    () => false
+  );
+
+  const visibleFooterGroups = footerGroups.map((group) => ({
+    ...group,
+    links: group.links.filter((link) => {
+      if (!link.href.startsWith("/dashboard")) return true;
+      return isAuthenticated;
+    }),
+  }));
 
   return (
     <footer className={`mt-12 border-t border-slate-200 bg-gradient-to-b from-slate-950 to-slate-900 text-slate-200 ${isDashboardRoute ? "lg:pl-64" : ""}`}>
@@ -77,7 +95,7 @@ export default function GlobalFooter() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-7">
-          {footerGroups.map((group) => (
+          {visibleFooterGroups.map((group) => (
             <div key={group.title}>
               <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">{group.title}</h4>
               <ul className="space-y-2.5">
@@ -100,3 +118,4 @@ export default function GlobalFooter() {
     </footer>
   );
 }
+

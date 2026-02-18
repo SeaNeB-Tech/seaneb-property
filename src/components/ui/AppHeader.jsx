@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import BrandLogo from "./BrandLogo";
+import { removeCookie } from "@/services/cookie";
 
 export default function AppHeader({ showLogout = true }) {
   const router = useRouter();
@@ -12,12 +13,9 @@ export default function AppHeader({ showLogout = true }) {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      // Clear cookies/tokens
-      document.cookie = "access_token=; max-age=0; path=/;";
-      document.cookie = "refresh_token=; max-age=0; path=/;";
-      document.cookie = "mobile_verified=; max-age=0; path=/;";
-      document.cookie = "otp_mobile=; max-age=0; path=/;";
-      document.cookie = "otp_cc=; max-age=0; path=/;";
+      // Clear session cookies
+      removeCookie("access_token");
+      removeCookie("refresh_token");
       
       router.push("/");
     } catch (err) {

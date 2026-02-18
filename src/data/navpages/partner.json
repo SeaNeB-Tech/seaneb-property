@@ -27,7 +27,8 @@
   "cta": {
     "title": "Start onboarding in minutes",
     "description": "Create your SeaNeB partner profile and publish high-quality listings.",
-    "primary": { "label": "Register as Partner", "href": "/auth/business-option" },
+    "primary": { "label": "Register as Partner", "href": "/partner" },
     "secondary": { "label": "Talk to Sales", "href": "/contact" }
   }
 }
+

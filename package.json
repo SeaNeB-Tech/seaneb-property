@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:about-images": "powershell -ExecutionPolicy Bypass -File scripts/generate-about-anime-images.ps1"
   },
   "dependencies": {
     "axios": "^1.13.4",

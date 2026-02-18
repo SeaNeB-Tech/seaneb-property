@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { getProducts } from "@/services/pro.service";
-import { authStore } from "@/services/store/authStore";
 
 const UserDashboard = () => {
   const [products, setProducts] = useState([]);
@@ -16,12 +15,6 @@ const UserDashboard = () => {
       try {
         setLoading(true);
         setError(null);
-        const token = authStore.getAccessToken();
-
-        if (!token) {
-          setError("Authentication required. Please log in again.");
-          return;
-        }
 
         const data = await getProducts();
         setProducts(data || []);

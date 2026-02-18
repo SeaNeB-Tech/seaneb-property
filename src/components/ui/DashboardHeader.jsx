@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCookie, getJsonCookie } from "@/services/cookie";
+import { getCookie, removeCookie } from "@/services/cookie";
 import {
   DASHBOARD_MODE_BUSINESS,
   DASHBOARD_MODE_USER,
@@ -11,6 +12,7 @@ import {
   isBusinessRegistered,
   setDashboardMode,
 } from "@/services/dashboardMode.service";
+import { getAccessTokenFromCookie, getMyProfile } from "@/services/profile.service";
 import BrandLogo from "./BrandLogo";
 
 export default function DashboardHeader({ showLogout = true }) {
@@ -19,13 +21,38 @@ export default function DashboardHeader({ showLogout = true }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [dashboardMode, setDashboardModeState] = useState(DASHBOARD_MODE_USER);
   const [hasBusiness, setHasBusiness] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const dropdownRef = useRef(null);
 
-  const userEmail = useMemo(() => getLoggedInEmail(), []);
+  const fallbackEmail = useMemo(() => getLoggedInEmail(), []);
+  const userEmail = profile?.email || fallbackEmail;
+  const userDisplayName = profile?.full_name || userEmail;
 
   useEffect(() => {
     setDashboardModeState(getDashboardMode());
     setHasBusiness(isBusinessRegistered());
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchProfile = async () => {
+      if (!getAccessTokenFromCookie()) return;
+      try {
+        const data = await getMyProfile();
+        if (!active || !data) return;
+        setProfile(data);
+      } catch (_) {
+        // keep cookie/token fallback if request fails
+      }
+    };
+
+    fetchProfile();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -44,30 +71,17 @@ export default function DashboardHeader({ showLogout = true }) {
     const keys = [
       "access_token",
       "refresh_token",
-      "mobile_verified",
-      "otp_mobile",
-      "otp_cc",
-      "profile_completed",
-      "verified_email",
-      "verified_business_email",
-      "verified_business_mobile",
-      "business_mobile_otp_until",
-      "otp_context",
-      "reg_form_draft",
+      "user_email",
       "csrf_token",
-      "session_start_time",
-      "access_token_issued_time",
+      "csrf-token",
+      "XSRF-TOKEN",
+      "xsrf-token",
+      "_csrf",
       "dashboard_mode",
-      "business_registered",
-      "business_id",
-      "branch_id",
-      "business_name",
-      "business_type",
-      "business_location",
     ];
 
     for (const key of keys) {
-      document.cookie = `${key}=; max-age=0; path=/;`;
+      removeCookie(key);
     }
   };
 
@@ -75,7 +89,7 @@ export default function DashboardHeader({ showLogout = true }) {
     try {
       setIsLoading(true);
       clearAuthCookies();
-      router.push("/auth/login");
+      router.push("/dashboard");
     } catch (err) {
       console.error("Switch account error:", err);
     } finally {
@@ -97,6 +111,8 @@ export default function DashboardHeader({ showLogout = true }) {
   };
 
   const handleModeSwitch = () => {
+    setIsProfileOpen(false);
+
     if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
       setDashboardMode(DASHBOARD_MODE_USER);
       setDashboardModeState(DASHBOARD_MODE_USER);
@@ -105,7 +121,7 @@ export default function DashboardHeader({ showLogout = true }) {
     }
 
     if (!hasBusiness) {
-      router.push("/auth/business-option");
+      router.push("/partner");
       return;
     }
 
@@ -141,60 +157,70 @@ export default function DashboardHeader({ showLogout = true }) {
 
           <button
             type="button"
-            onClick={handleModeSwitch}
-            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-100"
-          >
-            <span className="hidden sm:inline">
-              {dashboardMode === DASHBOARD_MODE_BUSINESS ? "Switch to User Dashboard" : "Switch to Business Dashboard"}
-            </span>
-            <span className="sm:hidden">{dashboardMode === DASHBOARD_MODE_BUSINESS ? "User" : "Business"}</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setIsProfileOpen((open) => !open)}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-              {getEmailInitials(userEmail)}
-            </span>
+            {profile?.profile_photo && !avatarLoadFailed ? (
+              <Image
+                src={profile.profile_photo}
+                alt={userDisplayName || "Profile"}
+                onError={() => setAvatarLoadFailed(true)}
+                className="h-7 w-7 rounded-full object-cover"
+                width={28}
+                height={28}
+              />
+            ) : (
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-sm">
+                {"\u{1F464}"}
+              </span>
+            )}
             <span className="hidden sm:inline">Profile</span>
+            <span className="text-xs text-gray-400">{isProfileOpen ? "^" : "v"}</span>
           </button>
-
-          {showLogout && (
-            <button
-              onClick={handleLogout}
-              disabled={isLoading}
-              className="rounded-lg px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-100 hover:text-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? "Logging out..." : "Logout"}
-            </button>
-          )}
 
           {isProfileOpen && (
             <div className="absolute right-4 top-14 w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-xl sm:right-6 lg:right-8">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Logged in as</p>
-              <p className="mt-1 truncate text-sm font-semibold text-gray-900">{userEmail}</p>
+              <p className="mt-1 truncate text-sm font-semibold text-gray-900">{userDisplayName}</p>
+              {profile?.seaneb_id && (
+                <p className="mt-1 truncate text-xs font-medium text-gray-500">{profile.seaneb_id}</p>
+              )}
+              <p className="mt-1 truncate text-xs text-gray-600">{userEmail}</p>
+              <button
+                type="button"
+                onClick={handleModeSwitch}
+                className="mt-4 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+              >
+                {dashboardMode === DASHBOARD_MODE_BUSINESS
+                  ? "Switch to User Dashboard"
+                  : hasBusiness
+                    ? "Switch to Business Dashboard"
+                    : "Business Register"}
+              </button>
               <button
                 type="button"
                 disabled={isLoading}
                 onClick={handleSwitchAccount}
-                className="mt-4 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50"
+                className="mt-3 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50"
               >
                 Switch Account
               </button>
+              {showLogout && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={handleLogout}
+                  className="mt-3 w-full rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-50"
+                >
+                  {isLoading ? "Logging out..." : "Logout"}
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
     </header>
   );
-}
-
-function getEmailInitials(email) {
-  if (!email || typeof email !== "string") return "U";
-  const first = email.trim().charAt(0).toUpperCase();
-  return first || "U";
 }
 
 function decodeJwtEmail(token) {
@@ -212,11 +238,7 @@ function decodeJwtEmail(token) {
 }
 
 function getLoggedInEmail() {
-  const direct =
-    getCookie("verified_email") ||
-    getCookie("user_email") ||
-    getJsonCookie("reg_form_draft")?.email ||
-    getJsonCookie("otp_context")?.email;
+  const direct = getCookie("verified_email") || getCookie("user_email");
 
   if (direct) return direct;
 

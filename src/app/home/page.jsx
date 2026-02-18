@@ -1,4 +1,5 @@
 import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell";
+import Image from "next/image";
 import PropertySearchWidget from "@/components/marketing/home/PropertySearchWidget";
 import CountriesSection from "@/components/marketing/home/CountriesSection";
 import DownloadAppSection from "@/components/marketing/home/DownloadAppSection";
@@ -18,6 +19,10 @@ export const metadata = {
 
 export default async function HomePage() {
   const data = await getHomePageData();
+  const heroImage = data?.hero?.image || "/assets/home/home-hero.jpg";
+  const heroImageAlt = data?.hero?.imageAlt || "Property discovery experience";
+  const isHeroSvg = heroImage.endsWith(".svg");
+  const isSquareHero = heroImage.includes("Gemini_Generated_Image_jnqk9ajnqk9ajnqk.png");
   const selectedCountries = data.countriesSection?.countries || [];
   const countriesToShow = selectedCountries.length
     ? countries.filter((country) => selectedCountries.includes(country.name))
@@ -25,13 +30,25 @@ export default async function HomePage() {
 
   return (
     <MarketingPageShell>
-      <section className="bg-[radial-gradient(circle_at_12%_18%,rgba(45,212,191,0.22),transparent_34%),radial-gradient(circle_at_88%_8%,rgba(99,102,241,0.2),transparent_38%),linear-gradient(to_right,#020617,#0b1226,#172554)] text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <section className="relative overflow-hidden text-white">
+        <Image
+          src={heroImage}
+          alt={heroImageAlt}
+          fill
+          priority
+          fetchPriority="high"
+          unoptimized={isHeroSvg}
+          className="object-cover object-center"
+          style={isSquareHero ? { objectPosition: "center 62%" } : undefined}
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-slate-950/55" />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">Home</p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
+          <h1 className="mt-3 max-w-4xl text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
           <p className="mt-4 max-w-3xl text-sm text-slate-200 sm:text-lg">{data.hero.description}</p>
 
-          <div className="mt-10 w-full">
+          <div className="mt-10 w-full rounded-3xl border border-white/20 bg-black/35 p-2 shadow-2xl backdrop-blur-[2px]">
             <PropertySearchWidget searchSection={data.searchSection} />
           </div>
         </div>

@@ -2,7 +2,19 @@
   "hero": {
     "eyebrow": "About SeaNeB",
     "title": "A Modern Trust Layer for Real Estate Discovery",
-    "description": "SeaNeB helps property seekers and businesses connect with verified, structured, and local-first experiences."
+    "description": "SeaNeB helps property seekers and businesses connect with verified, structured, and local-first experiences.",
+    "image": "/about-images/about-image-3.jpg",
+    "imageAlt": "SeaNeB platform view over a connected city"
+  },
+  "media": {
+    "storyImage": "/about-images/about-image-6.jpg",
+    "storyImageAlt": "Market analytics and listing performance insights",
+    "trustImage": "/about-images/about-image-2.jpg",
+    "trustImageAlt": "Digital trust and verification protection layer",
+    "discoveryImage": "/about-images/about-image-4.jpg",
+    "discoveryImageAlt": "Location-based property discovery across a city",
+    "marketImage": "/about-images/about-image-5.jpg",
+    "marketImageAlt": "City market pulse and growth trends at sunset"
   },
   "mission": "Make real estate discovery transparent, location-aware, and action-oriented for every user.",
   "vision": "Become the most trusted property platform where verified data and faster connections drive better decisions.",

@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import BrandLogo from "./BrandLogo";
+import TempUserAvatar from "./TempUserAvatar";
 import navbarLinks from "@/data/navbarLinks.json";
+import { getCookie, removeCookie } from "@/services/cookie";
+import { getAccessTokenFromCookie } from "@/services/profile.service";
 
 function NavbarItem({ item }) {
   const isExternal = item.href.startsWith("http");
@@ -31,6 +35,36 @@ function NavbarItem({ item }) {
 }
 
 export default function MainNavbar() {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const isAuthenticated = useSyncExternalStore(
+    () => () => {},
+    () => Boolean(getAccessTokenFromCookie()),
+    () => false
+  );
+  const userEmail = getCookie("verified_email") || getCookie("user_email") || "";
+  const userLabel = userEmail || "Guest User";
+
+  useEffect(() => {
+    const onClickOutside = (event) => {
+      if (!dropdownRef.current) return;
+      if (!dropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    removeCookie("access_token");
+    removeCookie("refresh_token");
+    removeCookie("session_start_time");
+    removeCookie("profile_completed");
+    setIsProfileOpen(false);
+  };
+
   return (
     <header className="relative z-50 bg-black border-b border-gray-800 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -46,7 +80,7 @@ export default function MainNavbar() {
               size={48}
               titleClass="text-white text-lg font-bold"
               subtitleClass="text-gray-400 text-xs"
-              textWrapperClass="hidden md:block"
+              textWrapperClass="block"
               compact
             />
           </Link>
@@ -77,7 +111,7 @@ export default function MainNavbar() {
         </nav>
 
         {/* ================= RIGHT: CTA ================= */}
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3" ref={dropdownRef}>
           <Link
             href="#download"
             className="hidden sm:inline-block bg-white text-black px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition"
@@ -85,14 +119,77 @@ export default function MainNavbar() {
             Get the App
           </Link>
 
-          <Link
-            href="/auth/login"
-            className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition"
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen((open) => !open)}
+            className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-900 px-2 py-1 text-white transition hover:border-gray-600 hover:bg-gray-800"
+            aria-label="Profile menu"
           >
-            Login
-          </Link>
+            <TempUserAvatar size="sm" />
+            <span className="hidden pr-1 text-xs font-semibold sm:inline">
+              {isAuthenticated ? "Account" : "Sign In"}
+            </span>
+          </button>
+
+          {isProfileOpen && (
+            <div className="absolute right-0 top-14 z-50 w-[21rem] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.25)]">
+              {isAuthenticated ? (
+                <>
+                  <div className="bg-gradient-to-r from-sky-50 to-indigo-50 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <TempUserAvatar size="lg" />
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-bold text-slate-900">{userLabel}</p>
+                        <p className="truncate text-xs text-slate-500">{userEmail || "Signed in user"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+                    >
+                      <span>My Account</span>
+                      <span className="text-slate-400">{"\u203A"}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                    >
+                      <span>Sign Out</span>
+                      <span className="text-rose-300">{"\u203A"}</span>
+                    </button>
+                    <p className="px-3 pb-1 pt-2 text-[11px] font-medium text-slate-400">Temporary profile logo enabled</p>
+                  </div>
+                </>
+              ) : (
+                <div className="p-4">
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                    <TempUserAvatar size="lg" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900">Welcome to SeaNeB</p>
+                      <p className="text-xs text-slate-500">Access your account to continue</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="mt-3 block rounded-xl bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    Sign In
+                  </Link>
+                  <p className="mt-2 text-center text-[11px] text-slate-400">
+                    Temporary person logo is shown until user photo is added
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
+

@@ -1,143 +1,139 @@
-// api.js
 import axios from "axios";
-import { authStore } from "./store/authStore";
-import { refreshAccessToken } from "./authservice";
+import { getCookie, removeCookie, setCookie } from "./cookie";
+
+const API_BASE = "https://dev.seaneb.com/api/v1";
+const REFRESH_PATH = "/auth/refresh";
+const PRODUCT_KEY_FALLBACK = "property";
+
+const getAccessToken = () => String(getCookie("access_token") || "").trim();
+const getRefreshToken = () => String(getCookie("refresh_token") || "").trim();
+const getProductKey = () => String(getCookie("product_key") || PRODUCT_KEY_FALLBACK).trim();
+
+const getCsrfToken = () =>
+  String(
+    getCookie("csrf_token") ||
+      getCookie("csrf-token") ||
+      getCookie("XSRF-TOKEN") ||
+      getCookie("xsrf-token") ||
+      getCookie("_csrf") ||
+      ""
+  ).trim();
+
+const setAccessToken = (token) => {
+  if (!token) return;
+  setCookie("access_token", token, { maxAge: 15 * 60, path: "/" });
+};
+
+const setCsrfToken = (token) => {
+  if (!token) return;
+  const options = { maxAge: 6 * 60 * 60, path: "/" };
+  setCookie("csrf_token", token, options);
+  setCookie("csrf-token", token, options);
+  setCookie("XSRF-TOKEN", token, options);
+};
+
+const clearSessionCookies = () => {
+  [
+    "access_token",
+    "refresh_token",
+    "csrf_token",
+    "csrf-token",
+    "XSRF-TOKEN",
+    "xsrf-token",
+    "_csrf",
+  ].forEach((key) => removeCookie(key, { path: "/" }));
+};
 
 const api = axios.create({
-  baseURL: "https://dev.seaneb.com/api/v1", //  unchanged
+  baseURL: API_BASE,
   withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
-  const token = authStore.getAccessToken();
-  const csrfToken = authStore.getCsrfToken();
-  config.headers = config.headers || {};
+  const headers = config.headers || {};
+  const accessToken = getAccessToken();
+  const csrfToken = getCsrfToken();
 
-  console.log(`\n [api-request] ${config.method?.toUpperCase()} ${config.url}`);
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    console.log(`    Authorization: Bearer ${token.substring(0, 20)}...`);
-  } else {
-    console.warn(`    NO ACCESS TOKEN - continuing (public endpoint or bootstrap state)`);
-  }
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  if (csrfToken) headers["x-csrf-token"] = csrfToken;
 
-  if (csrfToken) {
-    config.headers["x-csrf-token"] = csrfToken;
-    console.log(`    x-csrf-token: ${csrfToken.substring(0, 20)}...`);
-  } else {
-    console.warn(`    NO CSRF TOKEN - Request may fail if endpoint requires csrf`);
-  }
-
-  if (config.params) {
-    console.log(`   Params:`, config.params);
-  }
-
+  config.headers = headers;
   return config;
 });
 
-let isRefreshing = false;
 let refreshPromise = null;
+
+const refreshAccessToken = async () => {
+  const csrfToken = getCsrfToken();
+  if (!csrfToken) {
+    throw new Error("Missing CSRF token for refresh");
+  }
+
+  const payload = {
+    product_key: getProductKey() || PRODUCT_KEY_FALLBACK,
+  };
+
+  const refreshToken = getRefreshToken();
+  if (refreshToken) payload.refresh_token = refreshToken;
+
+  const response = await axios.post(`${API_BASE}${REFRESH_PATH}`, payload, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+      "x-csrf-token": csrfToken,
+    },
+  });
+
+  const newAccessToken = String(response?.data?.access_token || "").trim();
+  if (!newAccessToken) {
+    throw new Error("Refresh succeeded without access token");
+  }
+
+  setAccessToken(newAccessToken);
+
+  const newCsrfToken =
+    response?.data?.csrf_token ||
+    response?.headers?.["x-csrf-token"] ||
+    response?.headers?.["csrf-token"];
+
+  if (newCsrfToken) setCsrfToken(String(newCsrfToken));
+
+  return newAccessToken;
+};
 
 api.interceptors.response.use(
   (res) => {
-    // Capture CSRF or auth-related headers set by backend so we can
-    // initialize client-side auth state (cookies or tokens) as needed.
-    try {
-      authStore.initFromResponseHeaders(res.headers);
-    } catch (e) {
-      // ignore
-    }
-
-    console.log(`\n [api-response] ${res.status} ${res.config.url}`);
-    console.log(`   Response received successfully`);
+    const csrfFromResponse =
+      res?.headers?.["x-csrf-token"] || res?.headers?.["csrf-token"] || res?.data?.csrf_token;
+    if (csrfFromResponse) setCsrfToken(String(csrfFromResponse));
     return res;
   },
   async (error) => {
-    const originalRequest = error.config;
-    const status = error.response?.status;
-    const errorCode = error.response?.data?.error?.code;
-    const errorMsg = error.response?.data?.error?.message || error.response?.data?.message;
+    const originalRequest = error?.config || {};
+    const status = Number(error?.response?.status || 0);
+    const requestUrl = String(originalRequest?.url || "");
 
-    console.error(`\n [api-response] ${status} ${error.config?.url}`);
-    console.error(`   Error Code: ${errorCode}`);
-    console.error(`   Error Message: ${errorMsg}`);
-
-    if (status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        refreshPromise = (async () => {
-          try {
-            console.log("\n [api-interceptor] 401 detected - access token expired, attempting refresh...");
-            console.log(`   Original request: ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`);
-
-            // Use centralized refresh implementation which knows how to call
-            // the backend refresh endpoint (sends HttpOnly cookie + CSRF)
-            const newAccessToken = await refreshAccessToken();
-
-            authStore.setAccessToken(newAccessToken);
-            console.log(" [api-interceptor] Access token refreshed successfully");
-            console.log("   Retrying original request with new token...");
-
-            return newAccessToken;
-          } catch (err) {
-            console.error("\n [api-interceptor] Token refresh failed:", err?.message || err);
-            console.error(`   Status: ${err?.response?.status}`);
-            console.error(`   Error: ${err?.response?.data?.error?.message || err?.response?.data?.message}`);
-
-            // Check if this is a session expiry (after 6 hours)
-            const isSessionExpired = 
-              err?.response?.status === 401 &&
-              (err?.response?.data?.reason === "SESSION_EXPIRED" ||
-               err?.response?.data?.message?.includes("SESSION_EXPIRED"));
-
-            if (isSessionExpired) {
-              console.error("\n⏰ [api-interceptor] SESSION_EXPIRED detected - 6 hour session has ended");
-            } else {
-              console.error("   → Token refresh failed, clearing session");
-            }
-
-            // Clear local session state but DO NOT perform a global redirect here.
-            // Let the page-level logic decide whether to navigate to login so
-            // we avoid unexpected flashes/redirects during bootstrap.
-            try {
-              authStore.clearAll();
-            } catch (e) {
-              console.warn("[api-interceptor] authStore.clearAll() failed:", e);
-            }
-
-            // Emit an event so interested components/pages can react if needed.
-            if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
-              try {
-                window.dispatchEvent(new CustomEvent("auth:refresh-failed", { detail: { error: err, isSessionExpired } }));
-              } catch (e) {
-                // older browsers may not support CustomEvent constructor
-                try {
-                  const ev = document.createEvent("Event");
-                  ev.initEvent("auth:refresh-failed", true, true);
-                  window.dispatchEvent(ev);
-                } catch (ee) {
-                  // ignore
-                }
-              }
-            }
-
-            throw err;
-          } finally {
-            isRefreshing = false;
-          }
-        })();
-      }
-
-      const newToken = await refreshPromise;
-      originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      return api(originalRequest);
+    if (status !== 401 || originalRequest._retry || requestUrl.includes(REFRESH_PATH)) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    originalRequest._retry = true;
+
+    try {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+
+      const newAccessToken = await refreshPromise;
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      clearSessionCookies();
+      return Promise.reject(refreshError);
+    }
   }
 );
 

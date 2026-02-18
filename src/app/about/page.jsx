@@ -1,4 +1,5 @@
 import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell";
+import Image from "next/image";
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import StatsGrid from "@/components/marketing/shared/StatsGrid";
 import CTASection from "@/components/marketing/shared/CTASection";
@@ -17,14 +18,40 @@ export const metadata = {
 
 export default async function AboutPage() {
   const data = await getAboutPageData();
+  const heroImage = data?.hero?.image || "/about-images/about-image-3.jpg";
+  const heroImageAlt = data?.hero?.imageAlt || "SeaNeB real estate showcase";
+  const storyImage = data?.media?.storyImage || "/about-images/about-image-6.jpg";
+  const storyImageAlt = data?.media?.storyImageAlt || "SeaNeB team collaboration";
+  const trustImage = data?.media?.trustImage || "/about-images/about-image-2.jpg";
+  const trustImageAlt = data?.media?.trustImageAlt || "Trusted property review process";
+  const discoveryImage = data?.media?.discoveryImage || "/about-images/about-image-4.jpg";
+  const discoveryImageAlt = data?.media?.discoveryImageAlt || "Property discovery experience";
+  const marketImage = data?.media?.marketImage || "/about-images/about-image-5.jpg";
+  const marketImageAlt = data?.media?.marketImageAlt || "Local market trend highlights";
 
   return (
     <MarketingPageShell>
       <section className="bg-gradient-to-r from-rose-900 via-rose-800 to-orange-700 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-200">{data.hero.eyebrow}</p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
-          <p className="mt-4 max-w-3xl text-sm text-rose-100 sm:text-lg">{data.hero.description}</p>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-2 lg:items-center lg:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-200">{data.hero.eyebrow}</p>
+            <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
+            <p className="mt-4 max-w-3xl text-sm text-rose-100 sm:text-lg">{data.hero.description}</p>
+          </div>
+          <div className="relative overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
+            <Image
+              src={heroImage}
+              alt={heroImageAlt}
+              width={1600}
+              height={900}
+              priority
+              className="h-[260px] w-full object-cover sm:h-[320px]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+            <p className="absolute bottom-4 left-4 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-slate-900">
+              Verified. Local. Actionable.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -55,17 +82,63 @@ export default async function AboutPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="Verification"
-          title="How We Build Trust"
-          description="Verification is embedded into listing quality and partner reliability."
-        />
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {data.verification.map((item) => (
-            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-              {item}
-            </p>
-          ))}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div>
+            <SectionHeading
+              eyebrow="Verification"
+              title="How We Build Trust"
+              description="Verification is embedded into listing quality and partner reliability."
+            />
+            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-1">
+              {data.verification.map((item) => (
+                <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                  {item}
+                </p>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <Image
+                src={storyImage}
+                alt={storyImageAlt}
+                width={1200}
+                height={900}
+                className="h-44 w-full object-cover"
+              />
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Team and operations</p>
+            </article>
+            <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <Image
+                src={trustImage}
+                alt={trustImageAlt}
+                width={1200}
+                height={900}
+                className="h-44 w-full object-cover"
+              />
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Quality and trust workflow</p>
+            </article>
+            <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <Image
+                src={discoveryImage}
+                alt={discoveryImageAlt}
+                width={1200}
+                height={900}
+                className="h-44 w-full object-cover"
+              />
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Property discovery</p>
+            </article>
+            <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <Image
+                src={marketImage}
+                alt={marketImageAlt}
+                width={1200}
+                height={900}
+                className="h-44 w-full object-cover"
+              />
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Market pulse</p>
+            </article>
+          </div>
         </div>
       </section>
 

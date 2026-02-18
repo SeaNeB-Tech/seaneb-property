@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 
 /**
@@ -6,6 +7,12 @@ import SectionHeading from "@/components/marketing/shared/SectionHeading";
  */
 export default function CountriesSection({ countries = [], title, description }) {
   if (!countries.length) return null;
+
+  const getCountryHref = (country) => {
+    const code = String(country?.code || "").toLowerCase();
+    if (code === "in") return "/in";
+    return code ? `/in/${code}` : "/in";
+  };
 
   const sortedCountries = [...countries].sort((a, b) => {
     if (a.name === "India") return -1;
@@ -23,8 +30,9 @@ export default function CountriesSection({ countries = [], title, description })
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {sortedCountries.map((country) => (
-          <article
+          <Link
             key={`${country.name}-${country.code}`}
+            href={getCountryHref(country)}
             className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50"
           >
             <Image
@@ -35,7 +43,7 @@ export default function CountriesSection({ countries = [], title, description })
               className="h-5 w-7 rounded-[2px] object-cover"
             />
             <p className="truncate text-xs font-semibold text-slate-900">{country.name}</p>
-          </article>
+          </Link>
         ))}
       </div>
     </section>

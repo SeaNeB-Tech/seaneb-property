@@ -16,6 +16,20 @@ export default function AutoComplete({
   const wrapperRef = useRef(null);
 
   const debouncedValue = useDebounce(value, 300);
+  const dedupeCities = (items = []) => {
+    const map = new Map();
+    (Array.isArray(items) ? items : []).forEach((city) => {
+      const cityName = String(city?.city_name || city?.name || "").trim().toLowerCase();
+      const stateName = String(city?.state_name || "").trim().toLowerCase();
+      const countryName = String(city?.country_name || "").trim().toLowerCase();
+      const placeId = String(city?.place_id || city?.city_id || "").trim();
+      const key = placeId || `${cityName}|${stateName}|${countryName}`;
+      if (!map.has(key)) {
+        map.set(key, city);
+      }
+    });
+    return Array.from(map.values());
+  };
 
 
   useEffect(() => {
@@ -29,16 +43,16 @@ export default function AutoComplete({
       return;
     }
 
-    setOpen(true);
-
     const fetchCities = async () => {
       try {
         setLoading(true);
+        setOpen(true);
         const list = await getCities(query);
 
         if (!active) return;
 
-        setCities(Array.isArray(list) ? list : []);
+        const uniqueCities = dedupeCities(list);
+        setCities(uniqueCities);
       } catch {
         if (active) setCities([]);
       } finally {
@@ -78,7 +92,7 @@ export default function AutoComplete({
           onChange(e.target.value);
           onSelect?.(null); // clear placeId when typing
         }}
-        onFocus={() => value && value.trim().length >= 2 && setOpen(true)}
+        onFocus={() => value && value.trim().length >= 2 && (cities.length > 0 || loading) && setOpen(true)}
       />
 
       {open && (
