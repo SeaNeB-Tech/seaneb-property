@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 8877",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 8877",
+    "start": "next start",
     "lint": "eslint",
     "generate:about-images": "powershell -ExecutionPolicy Bypass -File scripts/generate-about-anime-images.ps1"
   },
