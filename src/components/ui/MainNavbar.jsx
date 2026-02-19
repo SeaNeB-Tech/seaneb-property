@@ -49,7 +49,8 @@ export default function MainNavbar() {
   );
   const userEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const userLabel = userEmail || "Guest User";
-  const authDashboardUrl = getAuthAppUrl("/dashboard");
+  const dashboardUrl = "/dashboard";
+  const loginUrl = getAuthAppUrl("/auth/login");
 
   useEffect(() => {
     const onClickOutside = (event) => {
@@ -135,7 +136,7 @@ export default function MainNavbar() {
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 top-14 z-50 w-[21rem] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.25)]">
+            <div className="absolute right-0 top-14 z-50 w-[min(92vw,21rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.25)]">
               {isAuthenticated ? (
                 <>
                   <div className="bg-gradient-to-r from-sky-50 to-indigo-50 px-5 py-4">
@@ -149,7 +150,7 @@ export default function MainNavbar() {
                   </div>
                   <div className="p-2">
                     <Link
-                      href={authDashboardUrl}
+                      href={dashboardUrl}
                       onClick={() => setIsProfileOpen(false)}
                       className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
                     >
@@ -177,7 +178,7 @@ export default function MainNavbar() {
                     </div>
                   </div>
                   <Link
-                    href={authDashboardUrl}
+                    href={loginUrl}
                     onClick={() => setIsProfileOpen(false)}
                     className="mt-3 block rounded-xl bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
                   >

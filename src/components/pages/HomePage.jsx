@@ -62,8 +62,9 @@ export default function HomePage({ data }) {
   const [countryList, setCountryList] = useState([]);
 
   const isAuthenticated = useAuthState();
-  const authDashboardUrl = getAuthAppUrl("/dashboard");
-  const authBusinessDashboardUrl = getAuthAppUrl("/dashboard/broker");
+  const dashboardUrl = "/dashboard";
+  const businessDashboardUrl = "/dashboard/broker";
+  const authLoginUrl = getAuthAppUrl("/auth/login");
   const fallbackEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const userEmail = profile?.email || fallbackEmail;
   const userLabel = profile?.full_name || userEmail || "Guest User";
@@ -234,21 +235,21 @@ export default function HomePage({ data }) {
     setIsProfileOpen(false);
 
     if (!hasBusiness) {
-      router.push("/partner");
+      router.push(getAuthAppUrl("/auth/business-register"));
       return;
     }
 
     if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
       setDashboardMode(DASHBOARD_MODE_USER);
       setDashboardModeState(DASHBOARD_MODE_USER);
-      window.location.assign(authDashboardUrl);
+      router.push(dashboardUrl);
       return;
     }
 
     setDashboardMode(DASHBOARD_MODE_BUSINESS);
     setDashboardModeState(DASHBOARD_MODE_BUSINESS);
-    window.location.assign(authBusinessDashboardUrl);
-  }, [authBusinessDashboardUrl, authDashboardUrl, dashboardMode, hasBusiness, router]);
+    router.push(businessDashboardUrl);
+  }, [businessDashboardUrl, dashboardMode, dashboardUrl, hasBusiness, router]);
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[#0b1220] text-slate-100" : "bg-[#eef4ff] text-slate-900"}`}>
@@ -335,7 +336,7 @@ export default function HomePage({ data }) {
                 id="profile-menu"
                 role="menu"
                 aria-label="Profile options"
-                className="absolute right-0 top-14 z-50 w-[21rem] overflow-hidden rounded-2xl border border-blue-200 bg-[#f4f8ff] text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.20)]"
+                className="absolute right-0 top-14 z-50 w-[min(92vw,21rem)] overflow-hidden rounded-2xl border border-blue-200 bg-[#f4f8ff] text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.20)]"
               >
                 {isAuthenticated ? (
                   <>
@@ -359,7 +360,7 @@ export default function HomePage({ data }) {
                     </div>
                     <div className="p-2">
                       <Link
-                        href={authDashboardUrl}
+                        href={dashboardUrl}
                         onClick={() => setIsProfileOpen(false)}
                         className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
                       >
@@ -400,7 +401,7 @@ export default function HomePage({ data }) {
                       </div>
                     </div>
                     <Link
-                      href={authDashboardUrl}
+                      href={authLoginUrl}
                       onClick={() => setIsProfileOpen(false)}
                       className="mt-3 block rounded-xl bg-blue-700 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-blue-800"
                     >

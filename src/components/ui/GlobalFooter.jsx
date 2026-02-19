@@ -7,8 +7,7 @@ import BrandLogo from "./BrandLogo";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { isAuthenticatedByCookies, subscribeAuthState } from "@/services/authSession.service";
 
-const authDashboardUrl = getAuthAppUrl("/dashboard");
-const authHelpUrl = getAuthAppUrl("/dashboard/help");
+const loginUrl = getAuthAppUrl("/auth/login");
 
 const footerGroups = [
   {
@@ -16,8 +15,8 @@ const footerGroups = [
     links: [
       { label: "Home", href: "/home" },
       { label: "Browse India", href: "/in" },
-      { label: "Login", href: authDashboardUrl },
-      { label: "Dashboard", href: authDashboardUrl },
+      { label: "Login", href: loginUrl },
+      { label: "Dashboard", href: "/dashboard" },
     ],
   },
   {
@@ -33,7 +32,7 @@ const footerGroups = [
   {
     title: "Support",
     links: [
-      { label: "Help Center", href: authHelpUrl },
+      { label: "Help Center", href: "/dashboard/help" },
       { label: "Contact", href: "/contact" },
       { label: "Privacy Policy", href: "#" },
       { label: "Terms & Conditions", href: "#" },

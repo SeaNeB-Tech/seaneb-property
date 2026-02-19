@@ -1,16 +1,9 @@
-import axios from "axios";
+import api from "./api";
 import { getDefaultProductKey } from "./pro.service";
-import { API_BASE_URL } from "@/lib/apiBaseUrl";
 
 const LOCATION_PRODUCT_PREFIX = "seaneb_";
-const LOCATION_API_BASE = API_BASE_URL;
 const CACHE_TTL_MS = 5 * 60 * 1000;
-
-const locationApi = axios.create({
-  baseURL: LOCATION_API_BASE,
-  withCredentials: false,
-  timeout: 8000,
-});
+const locationApi = api;
 
 const memoryCache = new Map();
 const inflightRequests = new Map();
@@ -173,7 +166,7 @@ const fetchLocationPath = async (path) => {
   }
 
   const requestPromise = locationApi
-    .get(path)
+    .get(path, { timeout: 8000 })
     .then((response) => {
       const normalized = normalizeList(response?.data);
       setCachedData(path, normalized);
@@ -198,6 +191,46 @@ const requestLocation = async (pathFactory) => {
       return { productKey, data };
     } catch (error) {
       // Fallback between product_key variants (property vs seaneb_property).
+      lastError = error;
+    }
+  }
+
+  throw lastError;
+};
+
+const fetchLocationRawPath = async (path) => {
+  const cached = getCachedData(path);
+  if (cached) return cached;
+
+  if (inflightRequests.has(path)) {
+    return inflightRequests.get(path);
+  }
+
+  const requestPromise = locationApi
+    .get(path, { timeout: 8000 })
+    .then((response) => {
+      const payload = response?.data ?? null;
+      setCachedData(path, payload);
+      return payload;
+    })
+    .finally(() => {
+      inflightRequests.delete(path);
+    });
+
+  inflightRequests.set(path, requestPromise);
+  return requestPromise;
+};
+
+const requestLocationRaw = async (pathFactory) => {
+  const productKeys = getProductKeyCandidates();
+  let lastError = null;
+
+  for (const productKey of productKeys) {
+    try {
+      const path = pathFactory(productKey);
+      const data = await fetchLocationRawPath(path);
+      return { productKey, data };
+    } catch (error) {
       lastError = error;
     }
   }
@@ -287,4 +320,23 @@ export const getBusinessesByArea = async (countrySlug, stateSlug, citySlug, area
   );
 
   return result.data.map(normalizeBusiness);
+};
+
+const normalizeBusinessDetailPayload = (payload) => {
+  if (!payload) return null;
+  if (payload?.data?.data) return payload.data.data;
+  if (payload?.data) return payload.data;
+  return payload;
+};
+
+export const getBusinessDetailsBySeanebId = async (seanebId) => {
+  const id = toText(seanebId);
+  if (!id) return null;
+
+  const result = await requestLocationRaw(
+    (productKey) => `/location/${productKey}/business/${encodeURIComponent(id)}`
+  );
+
+  const first = normalizeBusinessDetailPayload(result?.data);
+  return first || null;
 };

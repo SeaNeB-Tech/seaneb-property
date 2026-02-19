@@ -5,8 +5,8 @@ export default function FinalCtaSection({ isDark }) {
     <section className={`relative py-20 sm:py-28 ${isDark ? "bg-[#0e1628]" : "bg-gradient-to-br from-[#10386f] via-[#124c97] to-[#1f4fb8]"}`}>
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6">
-        <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Ready to Find Your Next Property?</h2>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
+        <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">Ready to Find Your Next Property?</h2>
+        <p className="mx-auto mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           Join thousands of users on SeaNeB and discover verified opportunities in your preferred location.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">

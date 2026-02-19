@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import {
   DASHBOARD_MODE_BUSINESS,
   getDashboardMode,
-  isBusinessRegistered,
 } from "@/services/dashboardMode.service";
 import "../styles/sidebar-colors.css";
 
@@ -14,10 +13,14 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const dashboardMode = getDashboardMode();
-  const hasBusiness = isBusinessRegistered();
+  const isBusinessPath =
+    pathname === "/dashboard/broker" ||
+    pathname?.startsWith("/dashboard/listings") ||
+    pathname?.startsWith("/dashboard/analytics");
+  const isBusinessContext = isBusinessPath || dashboardMode === DASHBOARD_MODE_BUSINESS;
 
   const menuItems = useMemo(() => {
-    if (hasBusiness && dashboardMode === DASHBOARD_MODE_BUSINESS) {
+    if (isBusinessContext) {
       return [
         { label: "Business Home", href: "/dashboard/broker", icon: "BH" },
         { label: "Listings", href: "/dashboard/listings", icon: "LS" },
@@ -34,7 +37,7 @@ export default function Sidebar() {
       { label: "Settings", href: "/dashboard/settings", icon: "ST" },
       { label: "Help", href: "/dashboard/help", icon: "HP" },
     ];
-  }, [dashboardMode, hasBusiness]);
+  }, [isBusinessContext]);
 
   const isActive = (href) => {
     if (href === "/dashboard") return pathname === "/dashboard";

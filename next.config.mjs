@@ -7,10 +7,11 @@ const authAppBaseUrl = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://159.65.1
   /\/+$/,
   ""
 );
-const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://dev.seaneb.com/api/v1").replace(
-  /\/+$/,
-  ""
-);
+const apiBaseUrl = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://dev.seaneb.com/api/v1"
+).replace(/\/+$/, "");
 const apiHostname = new URL(apiBaseUrl).hostname;
 
 /** @type {import('next').NextConfig} */
@@ -28,15 +29,14 @@ const nextConfig = {
         protocol: "https",
         hostname: apiHostname,
       },
+      {
+        protocol: "https",
+        hostname: "img.icons8.com",
+      },
     ],
   },
   async redirects() {
     return [
-      {
-        source: "/dashboard/:path*",
-        destination: `${authAppBaseUrl}/dashboard/:path*`,
-        permanent: false,
-      },
       {
         source: "/auth/:path*",
         destination: `${authAppBaseUrl}/auth/:path*`,

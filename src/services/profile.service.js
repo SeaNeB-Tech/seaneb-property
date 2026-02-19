@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { ensureAccessToken } from "./api";
 import { getCookie, setCookie } from "./cookie";
 import { getDefaultProductKey } from "./pro.service";
 
@@ -9,6 +9,7 @@ const resolveProductKey = () => {
 };
 
 export const getMyProfile = async () => {
+  await ensureAccessToken();
   const accessToken = getAccessTokenFromCookie();
   const headers = {
     "x-product-key": resolveProductKey(),
@@ -18,11 +19,35 @@ export const getMyProfile = async () => {
 
   headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await api.get("/profile/me", { headers });
+  const res = await api.get("/profile/me", { headers, skipAuthRedirect: true });
   return res?.data?.data || null;
 };
 
-export const getAccessTokenFromCookie = () => String(getCookie("access_token") || "").trim();
+const getCookieEntries = () => {
+  if (typeof document === "undefined") return [];
+  const entries = document.cookie ? document.cookie.split("; ") : [];
+  return entries
+    .map((entry) => {
+      const idx = entry.indexOf("=");
+      if (idx < 0) return null;
+      return {
+        key: decodeURIComponent(entry.slice(0, idx)).toLowerCase(),
+        value: decodeURIComponent(entry.slice(idx + 1)),
+      };
+    })
+    .filter(Boolean);
+};
+
+export const getAccessTokenFromCookie = () => {
+  const direct = String(getCookie("access_token") || "").trim();
+  if (direct) return direct;
+
+  const prefixed = getCookieEntries().find(
+    ({ key, value }) => (key === "access_token" || key.startsWith("access_token_")) && String(value || "").trim()
+  );
+
+  return String(prefixed?.value || "").trim();
+};
 
 export const hasBusinessFromProfile = (profile) => {
   const data = profile || {};
