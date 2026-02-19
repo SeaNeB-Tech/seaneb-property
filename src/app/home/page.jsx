@@ -4,8 +4,8 @@ import PropertySearchWidget from "@/components/marketing/home/PropertySearchWidg
 import CountriesSection from "@/components/marketing/home/CountriesSection";
 import DownloadAppSection from "@/components/marketing/home/DownloadAppSection";
 import { getHomePageData } from "@/lib/marketing/getMarketingPageData";
-import countries from "@/data/navpages/countries.json";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { getCountries } from "@/services/location.service";
 
 export const metadata = {
   title: "SeaNeB Home | Verified Real Estate Discovery",
@@ -24,10 +24,52 @@ export default async function HomePage() {
   const heroImageAlt = data?.hero?.imageAlt || "Property discovery experience";
   const isHeroSvg = heroImage.endsWith(".svg");
   const isSquareHero = heroImage.includes("Gemini_Generated_Image_jnqk9ajnqk9ajnqk.png");
-  const selectedCountries = data.countriesSection?.countries || [];
-  const countriesToShow = selectedCountries.length
-    ? countries.filter((country) => selectedCountries.includes(country.name))
-    : countries;
+  const selectedCountries = Array.isArray(data.countriesSection?.countries)
+    ? data.countriesSection.countries
+    : [];
+  const selectedSet = new Set(
+    selectedCountries.map((countryName) => String(countryName || "").trim().toLowerCase())
+  );
+
+  let countriesToShow = selectedCountries.map((countryName) => ({
+    name: countryName,
+    code: String(countryName || "").trim().toLowerCase() === "india" ? "in" : "",
+    flag: "/assets/countries/flags/in.png",
+  }));
+
+  try {
+    const apiCountries = await getCountries();
+    const normalized = (apiCountries || []).map((country) => {
+      const code = String(
+        country?.slug ||
+          country?.raw?.code ||
+          country?.raw?.iso2 ||
+          country?.raw?.iso_code ||
+          ""
+      )
+        .trim()
+        .toLowerCase();
+
+      return {
+        name: country?.name || "",
+        code,
+        flag:
+          country?.raw?.flag ||
+          country?.raw?.flag_url ||
+          (code ? `https://flagcdn.com/w40/${code}.png` : "/assets/countries/flags/in.png"),
+      };
+    });
+
+    const filtered = selectedSet.size
+      ? normalized.filter((country) => selectedSet.has(country.name.toLowerCase()))
+      : normalized;
+
+    if (filtered.length) {
+      countriesToShow = filtered;
+    }
+  } catch {
+    // Keep fallback countries when API call fails.
+  }
 
   return (
     <MarketingPageShell>

@@ -7,6 +7,13 @@ export default function CountriesShowcaseSection({
   getCountryHref,
   phoneCodeByName,
 }) {
+  const normalizedCountries = (countryList || [])
+    .map((country) => {
+      if (typeof country === "string") return { name: country };
+      return country;
+    })
+    .filter((country) => country?.name);
+
   return (
     <section className={`py-20 sm:py-24 ${isDark ? "bg-[#111c31]" : "bg-[#d4e4ff]"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -28,14 +35,21 @@ export default function CountriesShowcaseSection({
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
-          {countryList.map((name) => {
+          {normalizedCountries.map((country) => {
+            const name = country.name;
             const info = phoneCodeByName.get(name) || {};
-            const flag = info.flag || `/icons/${name.toLowerCase().replace(/[^a-z]/g, "")}.svg`;
-            const href = getCountryHref(name, flag);
+            const flag =
+              country.flag ||
+              country.flagUrl ||
+              country.raw?.flag ||
+              country.raw?.flag_url ||
+              info.flag ||
+              `/icons/${name.toLowerCase().replace(/[^a-z]/g, "")}.svg`;
+            const href = getCountryHref(country);
 
             return (
               <Link
-                key={name}
+                key={`${country.slug || country.code || name}`}
                 href={href}
                 className={`flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${isDark ? "bg-slate-900 border border-slate-800 text-slate-100 hover:border-cyan-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-900/10" : "bg-[#eaf2ff] border border-blue-200/90 text-[#173f7a] hover:border-blue-400 hover:bg-[#dce9ff] hover:shadow-lg hover:shadow-blue-200/70"}`}
               >

@@ -3,7 +3,7 @@ import Link from "next/link";
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 
 /**
- * Renders India plus all countries using locally stored flag images from /public.
+ * Renders countries returned by location APIs.
  */
 export default function CountriesSection({ countries = [], title, description }) {
   if (!countries.length) return null;

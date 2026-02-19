@@ -25,6 +25,7 @@ import {
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { clearAuthSessionCookies } from "@/services/authSession.service";
 import NextSearchExperience from "@/components/marketing/home/NextSearchExperience";
+import { getCountries } from "@/services/location.service";
 
 const PropertyCategoriesSection = dynamic(() => import("./home/PropertyCategoriesSection"));
 const CountriesShowcaseSection = dynamic(() => import("./home/CountriesShowcaseSection"));
@@ -51,7 +52,14 @@ export default function HomePage({ data }) {
   const heroImage = data?.hero?.image || "/assets/home/home-hero.jpg";
   const heroImageAlt = data?.hero?.imageAlt || "Real estate cityscape";
   const isSquareHero = heroImage.includes("Gemini_Generated_Image_jnqk9ajnqk9ajnqk.png");
-  const countryList = data?.countriesSection?.countries || ["India"];
+  const requestedCountries = useMemo(() => {
+    const selected = data?.countriesSection?.countries;
+    if (!Array.isArray(selected)) return [];
+    return selected
+      .map((name) => String(name || "").trim())
+      .filter(Boolean);
+  }, [data?.countriesSection?.countries]);
+  const [countryList, setCountryList] = useState([]);
 
   const isAuthenticated = useAuthState();
   const authDashboardUrl = getAuthAppUrl("/dashboard");
@@ -95,6 +103,64 @@ export default function HomePage({ data }) {
       active = false;
     };
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fallbackCountries = requestedCountries.length
+      ? requestedCountries.map((name) => ({
+          name,
+          slug: name.toLowerCase() === "india" ? "in" : "",
+        }))
+      : [{ name: "India", slug: "in" }];
+
+    const requestedSet = new Set(requestedCountries.map((name) => name.toLowerCase()));
+
+    const loadCountries = async () => {
+      try {
+        const apiCountries = await getCountries();
+        if (!active) return;
+
+        const normalized = (apiCountries || []).map((country) => {
+          const code = String(
+            country?.slug ||
+              country?.raw?.code ||
+              country?.raw?.iso2 ||
+              country?.raw?.iso_code ||
+              ""
+          )
+            .trim()
+            .toLowerCase();
+
+          return {
+            name: country?.name || "",
+            slug: code,
+            code,
+            flag:
+              country?.raw?.flag ||
+              country?.raw?.flag_url ||
+              (code ? `https://flagcdn.com/w40/${code}.png` : ""),
+            raw: country?.raw || {},
+          };
+        });
+
+        const filtered = requestedSet.size
+          ? normalized.filter((country) => requestedSet.has(country.name.toLowerCase()))
+          : normalized;
+
+        setCountryList(filtered.length ? filtered : fallbackCountries);
+      } catch {
+        if (!active) return;
+        setCountryList(fallbackCountries);
+      }
+    };
+
+    loadCountries();
+
+    return () => {
+      active = false;
+    };
+  }, [requestedCountries]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
@@ -148,15 +214,15 @@ export default function HomePage({ data }) {
     }
   }, [installPrompt]);
 
-  const getCountryHref = useCallback((name, flag) => {
-    const normalizedName = String(name || "").trim().toLowerCase();
+  const getCountryHref = useCallback((country) => {
+    const normalizedName = String(country?.name || "")
+      .trim()
+      .toLowerCase();
     if (normalizedName === "india") return "/in";
-
-    const codeFromFlag = String(flag || "")
-      .toLowerCase()
-      .match(/\/([a-z]{2})\.png(?:\?|$)/)?.[1];
-
-    return codeFromFlag ? `/in/${codeFromFlag}` : "/in";
+    const slug = String(country?.slug || country?.code || "")
+      .trim()
+      .toLowerCase();
+    return slug ? `/in/${slug}` : "/in";
   }, []);
 
   const handleLogout = useCallback(() => {
