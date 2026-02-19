@@ -1,4 +1,4 @@
-const RAW_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:1001";
+const RAW_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://159.65.154.221:1001";
 
 export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, "");
 

@@ -33,11 +33,11 @@ export default function NextSearchExperience({ isDark = true }) {
     router.push(`/in?${params.toString()}`);
   };
 
-  const panelClass = isDark ? "border-slate-700 bg-slate-900" : "border-blue-200 bg-[#eff5ff]/95";
+  const panelClass = isDark ? "border-slate-700 bg-slate-900" : "border-blue-200 bg-[var(--home-search-panel-light)]";
   const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600";
   const inputClass = isDark
     ? "border-slate-700 bg-slate-900/80 text-slate-100 placeholder:text-slate-500"
-    : "border-blue-200 bg-[#f6f9ff] text-slate-900 placeholder:text-slate-400";
+    : "border-blue-200 bg-[var(--home-search-input-light)] text-slate-900 placeholder:text-slate-400";
 
   return (
     <div className="w-full space-y-3">

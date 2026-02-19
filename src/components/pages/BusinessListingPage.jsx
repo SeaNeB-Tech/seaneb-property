@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import styles from "@/styles/dynamic-pages.module.css";
 
 const PROPERTY_IMAGE = "/assets/propertyimages/image.png";
 
@@ -13,8 +12,8 @@ function formatPrice(value) {
 
 export default function BusinessListingPage({ title, subtitle, businesses = [] }) {
   return (
-    <section className={styles.wrapper} aria-labelledby="property-listing-title">
-      <header className={styles.header}>
+    <section className="dp-wrapper" aria-labelledby="property-listing-title">
+      <header className="dp-header">
         <h2 id="property-listing-title">{title || "Properties Near You"}</h2>
 
         <p>
@@ -23,38 +22,38 @@ export default function BusinessListingPage({ title, subtitle, businesses = [] }
         </p>
       </header>
 
-      <div className={styles.grid}>
+      <div className="dp-grid">
         {businesses.length === 0 ? (
-          <p className={styles.sectionDesc}>No businesses found for this location.</p>
+          <p className="dp-sectionDesc">No businesses found for this location.</p>
         ) : (
           businesses.map((business) => (
             <Link
               key={business.id}
               href={`/${business.slug}`}
-              className={styles.card}
+              className="dp-card"
               aria-label={`View details of ${business.title}`}
             >
-              <div className={styles.imageWrap}>
+              <div className="dp-imageWrap">
                 <Image
                   src={business.image || PROPERTY_IMAGE}
                   alt={`${business.title} image`}
                   fill
-                  className={styles.image}
+                  className="dp-image"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
 
-                <span className={styles.badge}>{business.type || "Property"}</span>
+                <span className="dp-badge">{business.type || "Property"}</span>
               </div>
 
-              <div className={styles.body}>
-                <h3 className={styles.title}>{business.title}</h3>
+              <div className="dp-body">
+                <h3 className="dp-title">{business.title}</h3>
 
-                <p className={styles.location}>{business.location || "Location not available"}</p>
+                <p className="dp-location">{business.location || "Location not available"}</p>
 
-                <div className={styles.footer}>
-                  <span className={styles.price}>{formatPrice(business.price)}</span>
+                <div className="dp-footer">
+                  <span className="dp-price">{formatPrice(business.price)}</span>
 
-                  <span className={styles.action}>View Details</span>
+                  <span className="dp-action">View Details</span>
                 </div>
               </div>
             </Link>

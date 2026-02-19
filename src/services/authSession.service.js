@@ -1,4 +1,5 @@
 import { getCookie, removeCookie } from "./cookie";
+import api from "@/services/api";
 
 const AUTH_CHANGE_EVENT = "seaneb:auth-changed";
 
@@ -16,9 +17,58 @@ const AUTH_COOKIE_KEYS = [
   "session_start_time",
   "dashboard_mode",
   "business_registered",
+  "business_name",
+  "business_type",
+  "business_location",
+  "business_id",
+  "branch_id",
   "user_email",
   "verified_email",
+  "verified_business_email",
+  "verified_mobile",
+  "verified_business_mobile",
+  "verified_pan",
+  "verified_gstin",
+  "mobile_verified",
+  "otp_mobile",
+  "otp_cc",
+  "otp_context",
+  "email_otp_until",
+  "mobile_otp_until",
+  "business_mobile_otp_until",
+  "reg_form_draft",
 ];
+
+const STORAGE_KEYS = [
+  "access_token",
+  "refresh_token",
+  "csrf_token",
+  "csrf-token",
+  "XSRF-TOKEN",
+  "xsrf-token",
+  "session_start_time",
+  "profile_completed",
+];
+
+const clearCookieVariants = (name) => {
+  if (typeof document === "undefined") return;
+
+  const key = encodeURIComponent(name);
+  const expires = "Thu, 01 Jan 1970 00:00:00 GMT";
+  const paths = ["/", "/api", "/api/v1"];
+  const host = typeof window !== "undefined" ? String(window.location.hostname || "").trim() : "";
+  const domains = ["", host, host ? `.${host}` : ""].filter(Boolean);
+
+  paths.forEach((path) => {
+    // Host-only cookie
+    document.cookie = `${key}=; Expires=${expires}; Max-Age=0; Path=${path}`;
+
+    // Domain-scoped cookies
+    domains.forEach((domain) => {
+      document.cookie = `${key}=; Expires=${expires}; Max-Age=0; Path=${path}; Domain=${domain}`;
+    });
+  });
+};
 
 const getCookieEntries = () => {
   if (typeof document === "undefined") return [];
@@ -44,15 +94,14 @@ const hasCookieByPrefixes = (prefixes = []) => {
 };
 
 export const isAuthenticatedByCookies = () => {
-  const hasAccessToken = Boolean(getCookie("access_token")) || hasCookieByPrefixes(["access_token"]);
-  const hasRefreshToken = Boolean(getCookie("refresh_token")) || hasCookieByPrefixes(["refresh_token"]);
-
-  // Token presence determines session state. CSRF/profile flags alone are not auth state.
-  return hasAccessToken || hasRefreshToken;
+  return Boolean(getCookie("access_token")) || hasCookieByPrefixes(["access_token"]);
 };
 
 export const clearAuthSessionCookies = () => {
-  AUTH_COOKIE_KEYS.forEach((key) => removeCookie(key));
+  AUTH_COOKIE_KEYS.forEach((key) => {
+    removeCookie(key);
+    clearCookieVariants(key);
+  });
   const dynamicKeys = getCookieEntries()
     .map(({ key }) => key)
     .filter((key) => {
@@ -65,8 +114,32 @@ export const clearAuthSessionCookies = () => {
         lower.startsWith("xsrf-token_")
       );
     });
-  dynamicKeys.forEach((key) => removeCookie(key));
+  dynamicKeys.forEach((key) => {
+    removeCookie(key);
+    clearCookieVariants(key);
+  });
+  if (typeof window !== "undefined") {
+    STORAGE_KEYS.forEach((key) => {
+      try {
+        window.localStorage.removeItem(key);
+      } catch {}
+      try {
+        window.sessionStorage.removeItem(key);
+      } catch {}
+    });
+  }
   notifyAuthChanged();
+};
+
+export const logoutAndClearAuthSession = async () => {
+  clearAuthSessionCookies();
+  try {
+    await api.post("/auth/logout", {}, { withCredentials: true });
+  } catch {
+    // Always clear local auth state even when server logout fails.
+  } finally {
+    clearAuthSessionCookies();
+  }
 };
 
 export const notifyAuthChanged = () => {

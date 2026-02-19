@@ -95,7 +95,7 @@ export default function RootLayout({ children }) {
           </Script>
         )}
       </head>
-      <body className="min-h-screen bg-[#f8f9fb]">
+      <body className="min-h-screen bg-[var(--layout-body-bg)]">
         <div className="min-h-screen flex flex-col">
           <main className="flex-1">{children}</main>
           <GlobalFooter />

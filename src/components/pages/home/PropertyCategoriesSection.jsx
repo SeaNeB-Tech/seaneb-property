@@ -9,13 +9,13 @@ const PROPERTY_CATEGORIES = [
 
 export default function PropertyCategoriesSection({ isDark }) {
   return (
-    <section className={`py-20 sm:py-24 ${isDark ? "bg-[#0e1628]" : "bg-[#dce9ff]"}`}>
+    <section className={`py-20 sm:py-24 ${isDark ? "bg-[var(--home-download-bg-dark)]" : "bg-[var(--home-property-bg-light)]"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-14 max-w-2xl text-center mx-auto">
-          <h2 className={`text-3xl font-bold sm:text-4xl leading-tight ${isDark ? "text-white" : "text-[#12366f]"}`}>
+          <h2 className={`text-3xl font-bold sm:text-4xl leading-tight ${isDark ? "text-white" : "text-[var(--home-property-title-light)]"}`}>
             Browse by Property Type
           </h2>
-          <p className={`mt-4 text-lg ${isDark ? "text-slate-400" : "text-[#2b4a7a]"}`}>
+          <p className={`mt-4 text-lg ${isDark ? "text-slate-400" : "text-[var(--home-property-text-light)]"}`}>
             Choose the format that fits your buying goals from our verified listings.
           </p>
         </div>
@@ -24,9 +24,9 @@ export default function PropertyCategoriesSection({ isDark }) {
           {PROPERTY_CATEGORIES.map((cat) => (
             <button
               key={cat.label}
-              className={`group relative overflow-hidden rounded-3xl p-6 text-center transition-all duration-300 hover:-translate-y-2 ${isDark ? "bg-slate-900 hover:bg-slate-800" : "border border-blue-200/80 bg-[#eaf2ff] hover:bg-[#dde9ff] hover:shadow-xl hover:shadow-blue-200/60"}`}
+              className={`group relative overflow-hidden rounded-3xl p-6 text-center transition-all duration-300 hover:-translate-y-2 ${isDark ? "bg-slate-900 hover:bg-slate-800" : "border border-blue-200/80 bg-[var(--home-property-card-light-bg)] hover:bg-[var(--home-property-card-light-hover)] hover:shadow-xl hover:shadow-blue-200/60"}`}
             >
-              <div className={`mb-6 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl transition-colors duration-300 ${isDark ? "bg-slate-800 group-hover:bg-cyan-500/10" : "bg-[#f3f8ff] shadow-sm group-hover:bg-blue-200/70"}`}>
+              <div className={`mb-6 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl transition-colors duration-300 ${isDark ? "bg-slate-800 group-hover:bg-cyan-500/10" : "bg-[var(--home-property-icon-light-bg)] shadow-sm group-hover:bg-blue-200/70"}`}>
                 <Image
                   src={cat.icon}
                   alt={cat.label}
@@ -35,8 +35,8 @@ export default function PropertyCategoriesSection({ isDark }) {
                   className="h-8 w-8 transition-transform duration-300 group-hover:scale-110"
                 />
               </div>
-              <h3 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-[#173f7a]"}`}>{cat.label}</h3>
-              <p className={`mt-1 text-xs font-medium ${isDark ? "text-slate-500" : "text-[#486896]"}`}>{cat.count}</p>
+              <h3 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-[var(--home-property-name-light)]"}`}>{cat.label}</h3>
+              <p className={`mt-1 text-xs font-medium ${isDark ? "text-slate-500" : "text-[var(--home-property-count-light)]"}`}>{cat.count}</p>
               <div className={`absolute bottom-0 left-0 h-1 w-full scale-x-0 transition-transform duration-300 group-hover:scale-x-100 ${isDark ? "bg-cyan-500" : "bg-blue-600"}`} />
             </button>
           ))}

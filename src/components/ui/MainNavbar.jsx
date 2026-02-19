@@ -8,8 +8,8 @@ import navbarLinks from "@/data/navbarLinks.json";
 import { getCookie } from "@/services/cookie";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import {
-  clearAuthSessionCookies,
   isAuthenticatedByCookies,
+  logoutAndClearAuthSession,
   subscribeAuthState,
 } from "@/services/authSession.service";
 
@@ -64,9 +64,12 @@ export default function MainNavbar() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    clearAuthSessionCookies();
-    setIsProfileOpen(false);
+  const handleLogout = async () => {
+    try {
+      await logoutAndClearAuthSession();
+    } finally {
+      setIsProfileOpen(false);
+    }
   };
 
   return (

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
-import styles from "@/styles/dynamic-pages.module.css";
 import { getAreas, getCities, getCountries, getStates } from "@/services/location.service";
 
 function toTitle(slug) {
@@ -127,28 +126,28 @@ export default function CityPage({ countrySlug = "in", stateSlug, citySlug }) {
     <>
       <MainNavbar />
 
-      <section className={styles.heroDarkFull}>
-        <div className={styles.heroInner}>
-          <p className={styles.breadcrumb}>
+      <section className="dp-heroDarkFull">
+        <div className="dp-heroInner">
+          <p className="dp-breadcrumb">
             Home / {countryName} / {stateName} / {cityName}
           </p>
 
-          <h1 className={styles.heroTitle}>Properties in {cityName}</h1>
+          <h1 className="dp-heroTitle">Properties in {cityName}</h1>
 
-          <p className={styles.heroDesc}>
+          <p className="dp-heroDesc">
             Explore verified residential and commercial properties across {cityName}. Buy, rent,
             or invest with confidence.
           </p>
         </div>
       </section>
 
-      <main className={styles.dynamicContainer}>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Areas in {cityName}</h2>
+      <main className="dp-dynamicContainer">
+        <section className="dp-section">
+          <h2 className="dp-sectionTitle">Areas in {cityName}</h2>
 
-          <div className={styles.pillGrid}>
+          <div className="dp-pillGrid">
             {areas.length === 0 ? (
-              <p className={styles.sectionDesc}>No area data available for this city.</p>
+              <p className="dp-sectionDesc">No area data available for this city.</p>
             ) : (
               areas.map((area) => (
                 <Link
@@ -159,7 +158,7 @@ export default function CityPage({ countrySlug = "in", stateSlug, citySlug }) {
                     citySeoSlug,
                     toSeoSlug(area.name || area.slug)
                   )}
-                  className={styles.cityPill}
+                  className="dp-cityPill"
                 >
                   {area.name}
                 </Link>
@@ -168,10 +167,10 @@ export default function CityPage({ countrySlug = "in", stateSlug, citySlug }) {
           </div>
         </section>
 
-        <section className={styles.sectionLight}>
-          <h3 className={styles.sectionSubTitle}>Why Buy Property in {cityName}?</h3>
+        <section className="dp-sectionLight">
+          <h3 className="dp-sectionSubTitle">Why Buy Property in {cityName}?</h3>
 
-          <ul className={styles.list}>
+          <ul className="dp-list">
             <li>Verified listings only</li>
             <li>Trusted local agents</li>
             <li>Smart area-based search</li>
@@ -179,18 +178,18 @@ export default function CityPage({ countrySlug = "in", stateSlug, citySlug }) {
           </ul>
         </section>
 
-        <section className={styles.cityCtaBanner}>
+        <section className="dp-cityCtaBanner">
           <div>
-            <h3 className={styles.ctaTitle}>List Your Property in {cityName}</h3>
-            <p className={styles.ctaDesc}>Reach verified buyers and renters in your city.</p>
+            <h3 className="dp-ctaTitle">List Your Property in {cityName}</h3>
+            <p className="dp-ctaDesc">Reach verified buyers and renters in your city.</p>
           </div>
 
-          <Link href="/partner" className={styles.ctaBtn}>
+          <Link href="/partner" className="dp-ctaBtn">
             Partner With Us
           </Link>
         </section>
 
-        <div className={styles.backLink}>
+        <div className="dp-backLink">
           <Link href={buildStateHref(normalizedCountrySlug, stateSeoSlug)}>
             Back to {stateName}
           </Link>

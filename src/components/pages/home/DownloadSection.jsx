@@ -4,11 +4,11 @@ const DOWNLOAD_FEATURES = ["Instant Alerts", "Saved Searches", "Verified Leads"]
 
 export default function DownloadSection({ isDark }) {
   return (
-    <section id="download" className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 ${isDark ? "bg-[#0e1628]" : "bg-[#d0e2ff]"}`}>
+    <section id="download" className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 ${isDark ? "bg-[var(--home-download-bg-dark)]" : "bg-[var(--home-download-bg-light)]"}`}>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.1),transparent_50%)]" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
-        <div className={`relative grid grid-cols-1 gap-8 overflow-hidden rounded-[2rem] px-4 py-8 shadow-2xl sm:rounded-[2.5rem] sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:rounded-[3rem] lg:px-16 lg:py-20 ${isDark ? "bg-gradient-to-br from-[#15233f] via-[#13233b] to-[#0e1a30] border border-slate-700" : "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800"}`}>
+        <div className={`relative grid grid-cols-1 gap-8 overflow-hidden rounded-[2rem] px-4 py-8 shadow-2xl sm:rounded-[2.5rem] sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:rounded-[3rem] lg:px-16 lg:py-20 ${isDark ? "bg-gradient-to-br from-[var(--home-download-grad-dark-from)] via-[var(--home-download-grad-dark-via)] to-[var(--home-download-grad-dark-to)] border border-slate-700" : "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800"}`}>
           <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-white/5 blur-3xl" />
           <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-white/5 blur-3xl" />
 
@@ -38,8 +38,8 @@ export default function DownloadSection({ isDark }) {
 
           <div className="relative flex items-center justify-center lg:justify-end">
             <div className="relative h-[360px] w-[220px] rotate-[-4deg] transform transition-transform duration-700 hover:rotate-0 sm:h-[420px] sm:w-[250px] lg:h-[480px] lg:w-[280px] lg:rotate-[-6deg]">
-              <div className={`absolute inset-0 rounded-[2.5rem] bg-[#0f1a2d] shadow-2xl border-[8px] ${isDark ? "border-slate-700" : "border-slate-900"}`}>
-                <div className="absolute top-0 left-1/2 z-20 h-6 w-32 -translate-x-1/2 rounded-b-xl bg-[#0f1a2d]" />
+              <div className={`absolute inset-0 rounded-[2.5rem] bg-[var(--home-device-shell-bg)] shadow-2xl border-[8px] ${isDark ? "border-slate-700" : "border-slate-900"}`}>
+                <div className="absolute top-0 left-1/2 z-20 h-6 w-32 -translate-x-1/2 rounded-b-xl bg-[var(--home-device-shell-bg)]" />
                 <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-slate-800">
                   <Image
                     src="/assets/propertyimages/image.png"

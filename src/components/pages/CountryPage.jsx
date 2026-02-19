@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import MainNavbar from "@/components/ui/MainNavbar";
-import styles from "@/styles/dynamic-pages.module.css";
 import { getCountries, getStates } from "@/services/location.service";
 
 function toTitle(slug) {
@@ -73,34 +72,34 @@ export default function CountryPage({ countrySlug = "in" }) {
     <>
       <MainNavbar />
 
-      <section className={styles.countryHero}>
-        <div className={styles.countryHeroInner}>
-          <p className={styles.countryBreadcrumb}>Home / Countries / {countryName}</p>
+      <section className="dp-countryHero">
+        <div className="dp-countryHeroInner">
+          <p className="dp-countryBreadcrumb">Home / Countries / {countryName}</p>
 
-          <h1 className={styles.countryHeroTitle}>Properties in {countryName}</h1>
+          <h1 className="dp-countryHeroTitle">Properties in {countryName}</h1>
 
-          <p className={styles.countryHeroDesc}>
+          <p className="dp-countryHeroDesc">
             Discover verified residential and commercial properties across {countryName}. Buy,
             rent, or invest with confidence on SeaNeB.
           </p>
         </div>
       </section>
 
-      <section className={styles.countrySection}>
-        <div className={styles.dynamicContainer}>
-          <h2 className={styles.countrySectionTitle}>Browse States in {countryName}</h2>
+      <section className="dp-countrySection">
+        <div className="dp-dynamicContainer">
+          <h2 className="dp-countrySectionTitle">Browse States in {countryName}</h2>
 
-          <p className={styles.countrySectionDesc}>Explore real estate opportunities by state</p>
+          <p className="dp-countrySectionDesc">Explore real estate opportunities by state</p>
 
-          <div className={styles.countryGrid}>
+          <div className="dp-countryGrid">
             {!loading && states.length === 0 ? (
-              <p className={styles.sectionDesc}>No states available right now.</p>
+              <p className="dp-sectionDesc">No states available right now.</p>
             ) : (
               states.map((state) => (
                 <Link
                   key={state.slug}
                   href={buildStateHref(normalizedCountrySlug, toSeoSlug(state.name || state.slug))}
-                  className={styles.countryCard}
+                  className="dp-countryCard"
                 >
                   {state.name}
                 </Link>
@@ -110,15 +109,15 @@ export default function CountryPage({ countrySlug = "in" }) {
         </div>
       </section>
 
-      <section className={styles.countryCta}>
-        <div className={styles.countryCtaInner}>
-          <h2 className={styles.countryCtaTitle}>Want to List Your Property in {countryName}?</h2>
+      <section className="dp-countryCta">
+        <div className="dp-countryCtaInner">
+          <h2 className="dp-countryCtaTitle">Want to List Your Property in {countryName}?</h2>
 
-          <p className={styles.countryCtaDesc}>
+          <p className="dp-countryCtaDesc">
             Reach verified buyers and renters across the country.
           </p>
 
-          <Link href="/partner" className={styles.countryCtaBtn}>
+          <Link href="/partner" className="dp-countryCtaBtn">
             Partner With SeaNeB
           </Link>
         </div>

@@ -15,14 +15,14 @@ export default function CountriesShowcaseSection({
     .filter((country) => country?.name);
 
   return (
-    <section className={`py-20 sm:py-24 ${isDark ? "bg-[#111c31]" : "bg-[#d4e4ff]"}`}>
+    <section className={`py-20 sm:py-24 ${isDark ? "bg-[var(--home-country-bg-dark)]" : "bg-[var(--home-country-bg-light)]"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <h2 className={`text-3xl font-bold sm:text-4xl ${isDark ? "text-white" : "text-[#12366f]"}`}>
+            <h2 className={`text-3xl font-bold sm:text-4xl ${isDark ? "text-white" : "text-[var(--home-country-title-light)]"}`}>
               Available Location
             </h2>
-            <p className={`mt-3 ${isDark ? "text-slate-400" : "text-[#2b4a7a]"}`}>
+            <p className={`mt-3 ${isDark ? "text-slate-400" : "text-[var(--home-country-text-light)]"}`}>
               Explore listings across India.
             </p>
           </div>
@@ -51,7 +51,7 @@ export default function CountriesShowcaseSection({
               <Link
                 key={`${country.slug || country.code || name}`}
                 href={href}
-                className={`flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${isDark ? "bg-slate-900 border border-slate-800 text-slate-100 hover:border-cyan-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-900/10" : "bg-[#eaf2ff] border border-blue-200/90 text-[#173f7a] hover:border-blue-400 hover:bg-[#dce9ff] hover:shadow-lg hover:shadow-blue-200/70"}`}
+                className={`flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${isDark ? "bg-slate-900 border border-slate-800 text-slate-100 hover:border-cyan-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-900/10" : "bg-[var(--home-country-card-light-bg)] border border-blue-200/90 text-[var(--home-country-card-text-light)] hover:border-blue-400 hover:bg-[var(--home-country-card-light-hover)] hover:shadow-lg hover:shadow-blue-200/70"}`}
               >
                 <div className="relative h-8 w-10 shrink-0 overflow-hidden rounded-md shadow-sm">
                   <Image src={flag} alt={`${name} flag`} fill className="object-cover" />

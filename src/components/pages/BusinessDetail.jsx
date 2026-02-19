@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import MainNavbar from "@/components/ui/MainNavbar";
-import pageStyles from "@/styles/dynamic-pages.module.css";
-import styles from "@/styles/business-detail.module.css";
 import { getBusinessDetailsBySeanebId } from "@/services/location.service";
 
 export default function BusinessDetail({ businessSlug }) {
@@ -95,25 +93,25 @@ export default function BusinessDetail({ businessSlug }) {
   return (
     <>
       <MainNavbar />
-      <div className={styles.wrapper}>
-        <div className={pageStyles.dynamicContainer}>
-          <div className={styles.container}>
-            <p className={styles.breadcrumb}>
+      <div className="bd-wrapper">
+        <div className="dp-dynamicContainer">
+          <div className="bd-container">
+            <p className="bd-breadcrumb">
               <Link href="/in">Home</Link> / <Link href="/in">Areas</Link> / {businessName}
             </p>
-            <h1 className={styles.title}>{businessName}</h1>
-            <p className={styles.desc}>
+            <h1 className="bd-title">{businessName}</h1>
+            <p className="bd-desc">
               {details?.about_branch || `Business detail page for ${businessName}.`}
             </p>
 
-            {loading && <p className={styles.desc}>Loading business details...</p>}
-            {!loading && error && <p className={styles.desc}>{error}</p>}
+            {loading && <p className="bd-desc">Loading business details...</p>}
+            {!loading && error && <p className="bd-desc">{error}</p>}
 
             {!loading && !error && (
               <>
-                <div className={styles["rating-row"]}>
-                  <div className={styles.rating}>
-                    <span className={styles["rating-value"]}>Location Hierarchy</span>
+                <div className="bd-rating-row">
+                  <div className="bd-rating">
+                    <span className="bd-rating-value">Location Hierarchy</span>
                   </div>
                   <div>
                     {[area?.area_name, city?.city_name, state?.state_name, country?.country_name]
@@ -124,13 +122,13 @@ export default function BusinessDetail({ businessSlug }) {
 
                 <h3>Business Information</h3>
                 {detailRows.map(([label, value]) => (
-                  <p key={label} className={styles.desc}>
+                  <p key={label} className="bd-desc">
                     <strong>{label}:</strong> {String(value ?? "-")}
                   </p>
                 ))}
 
                 <h3 className="mt-4">Area / City / State / Country</h3>
-                <ul className={styles.features}>
+                <ul className="bd-features">
                   <li>
                     Area: {area?.area_name || "-"} ({area?.area_id || "-"})
                   </li>
@@ -146,7 +144,7 @@ export default function BusinessDetail({ businessSlug }) {
                 </ul>
 
                 {details?.primary_number && (
-                  <a href={`tel:${details.primary_number}`} className={styles["contact-btn"]}>
+                  <a href={`tel:${details.primary_number}`} className="bd-contact-btn">
                     Contact Now
                   </a>
                 )}

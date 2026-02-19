@@ -51,8 +51,22 @@ export const getAccessTokenFromCookie = () => {
 
 export const hasBusinessFromProfile = (profile) => {
   const data = profile || {};
+  const toBool = (value) => {
+    if (value === true) return true;
+    if (value === false || value == null) return false;
+    const normalized = String(value).trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  };
 
-  if (data.has_business === true || data.business_registered === true || data.is_business === true) {
+  // Primary API contract
+  if (toBool(data.is_business_registered)) return true;
+
+  // Backward-compatible fallbacks
+  if (
+    toBool(data.has_business) ||
+    toBool(data.business_registered) ||
+    toBool(data.is_business)
+  ) {
     return true;
   }
 

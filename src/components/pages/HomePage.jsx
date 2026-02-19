@@ -23,7 +23,7 @@ import {
   syncBusinessRegistrationCookie,
 } from "@/services/profile.service";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
-import { clearAuthSessionCookies } from "@/services/authSession.service";
+import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import NextSearchExperience from "@/components/marketing/home/NextSearchExperience";
 import { getCountries } from "@/services/location.service";
 
@@ -226,9 +226,15 @@ export default function HomePage({ data }) {
     return slug ? `/in/${slug}` : "/in";
   }, []);
 
-  const handleLogout = useCallback(() => {
-    clearAuthSessionCookies();
-    setIsProfileOpen(false);
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutAndClearAuthSession();
+    } finally {
+      setProfile(null);
+      setHasBusiness(false);
+      setDashboardModeState(DASHBOARD_MODE_USER);
+      setIsProfileOpen(false);
+    }
   }, []);
 
   const handleBusinessAction = useCallback(() => {
@@ -252,11 +258,11 @@ export default function HomePage({ data }) {
   }, [businessDashboardUrl, dashboardMode, dashboardUrl, hasBusiness, router]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[#0b1220] text-slate-100" : "bg-[#eef4ff] text-slate-900"}`}>
+    <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[var(--home-page-bg-dark)] text-slate-100" : "bg-[var(--home-page-bg-light)] text-slate-900"}`}>
       <header
         className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
           hasScrolled
-            ? "border-blue-200/90 bg-[#dbe8ff]/95 shadow-md backdrop-blur-md"
+            ? "border-blue-200/90 bg-[var(--home-header-scrolled-bg)] shadow-md backdrop-blur-md"
             : "border-white/20 bg-transparent backdrop-blur-[2px]"
         }`}
       >
@@ -336,7 +342,7 @@ export default function HomePage({ data }) {
                 id="profile-menu"
                 role="menu"
                 aria-label="Profile options"
-                className="absolute right-0 top-14 z-50 w-[min(92vw,21rem)] overflow-hidden rounded-2xl border border-blue-200 bg-[#f4f8ff] text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.20)]"
+                className="absolute right-0 top-14 z-50 w-[min(92vw,21rem)] overflow-hidden rounded-2xl border border-blue-200 bg-[var(--home-profile-menu-bg)] text-slate-900 shadow-[0_22px_50px_var(--home-profile-shadow)]"
               >
                 {isAuthenticated ? (
                   <>
@@ -417,7 +423,7 @@ export default function HomePage({ data }) {
         {isMobileMenuOpen && (
           <div
             id="mobile-nav"
-            className={`border-t px-4 py-4 lg:hidden ${hasScrolled ? "border-blue-200 bg-[#dbe8ff]/95" : "border-white/20 bg-black/55"}`}
+            className={`border-t px-4 py-4 lg:hidden ${hasScrolled ? "border-blue-200 bg-[var(--home-header-scrolled-bg)]" : "border-white/20 bg-black/55"}`}
           >
             <div className="flex flex-col gap-2">
               {navbarLinks.map((link) => (
@@ -449,7 +455,7 @@ export default function HomePage({ data }) {
           sizes="100vw"
         />
         <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/45 to-transparent" aria-hidden="true" />
-        <div className={`absolute inset-0 ${isDark ? "bg-slate-900/14" : "bg-[#dbe8fb]/4"}`} aria-hidden="true" />
+        <div className={`absolute inset-0 ${isDark ? "bg-slate-900/14" : "bg-[var(--home-overlay-light)]"}`} aria-hidden="true" />
 
         <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center gap-4 px-4 pb-7 pt-28 text-center sm:px-6 lg:px-8 lg:pb-8 lg:pt-32">
           <div className="flex w-full max-w-3xl flex-col items-center space-y-5 animate-slide-in-up">

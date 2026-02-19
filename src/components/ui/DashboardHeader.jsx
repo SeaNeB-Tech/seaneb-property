@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,10 +12,11 @@ import {
   isBusinessRegistered,
   setDashboardMode,
 } from "@/services/dashboardMode.service";
-import { getMyProfile } from "@/services/profile.service";
+import { getMyProfile, syncBusinessRegistrationCookie } from "@/services/profile.service";
 import BrandLogo from "./BrandLogo";
-import { clearAuthSessionCookies } from "@/services/authSession.service";
+import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
+import { getDefaultProductName } from "@/services/pro.service";
 
 export default function DashboardHeader({ showLogout = true }) {
   const router = useRouter();
@@ -29,6 +31,7 @@ export default function DashboardHeader({ showLogout = true }) {
   const fallbackEmail = useMemo(() => getLoggedInEmail(), []);
   const userEmail = profile?.email || fallbackEmail;
   const userDisplayName = profile?.full_name || userEmail;
+  const productName = getDefaultProductName();
 
   useEffect(() => {
     setDashboardModeState(getDashboardMode());
@@ -43,8 +46,11 @@ export default function DashboardHeader({ showLogout = true }) {
         const data = await getMyProfile();
         if (!active || !data) return;
         setProfile(data);
+        setHasBusiness(syncBusinessRegistrationCookie(data));
       } catch (_) {
         // keep cookie/token fallback if request fails
+        if (!active) return;
+        setHasBusiness(isBusinessRegistered());
       }
     };
 
@@ -70,8 +76,8 @@ export default function DashboardHeader({ showLogout = true }) {
   const handleSwitchAccount = async () => {
     try {
       setIsLoading(true);
-      clearAuthSessionCookies();
-      router.push("/dashboard");
+      await logoutAndClearAuthSession();
+      router.push("/");
     } catch (err) {
       console.error("Switch account error:", err);
     } finally {
@@ -83,12 +89,13 @@ export default function DashboardHeader({ showLogout = true }) {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      clearAuthSessionCookies();
+      await logoutAndClearAuthSession();
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
       setIsLoading(false);
+      setIsProfileOpen(false);
     }
   };
 
@@ -143,15 +150,16 @@ export default function DashboardHeader({ showLogout = true }) {
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
             {profile?.profile_photo && !avatarLoadFailed ? (
-              <img
+              <Image
                 src={profile.profile_photo}
                 alt={userDisplayName || "Profile"}
                 onError={() => setAvatarLoadFailed(true)}
                 className="h-7 w-7 rounded-full object-cover"
-                width="28"
-                height="28"
+                width={28}
+                height={28}
                 loading="lazy"
                 referrerPolicy="no-referrer"
+                unoptimized
               />
             ) : (
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-sm">
@@ -166,9 +174,7 @@ export default function DashboardHeader({ showLogout = true }) {
             <div className="absolute right-0 top-14 w-[min(92vw,18rem)] rounded-xl border border-gray-200 bg-white p-4 shadow-xl sm:right-6 lg:right-8">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Logged in as</p>
               <p className="mt-1 truncate text-sm font-semibold text-gray-900">{userDisplayName}</p>
-              {profile?.seaneb_id && (
-                <p className="mt-1 truncate text-xs font-medium text-gray-500">{profile.seaneb_id}</p>
-              )}
+              <p className="mt-1 truncate text-xs font-medium text-gray-500">{productName}</p>
               <p className="mt-1 truncate text-xs text-gray-600">{userEmail}</p>
               <button
                 type="button"
@@ -215,16 +221,22 @@ function decodeJwtEmail(token) {
     const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
     const payload = JSON.parse(atob(padded));
-    return payload?.email || payload?.user_email || payload?.sub || null;
+    const candidate =
+      payload?.email ||
+      payload?.user_email ||
+      payload?.sub ||
+      null;
+    const normalized = String(candidate || "").trim();
+    return normalized.includes("@") ? normalized : null;
   } catch {
     return null;
   }
 }
 
 function getLoggedInEmail() {
-  const direct = getCookie("verified_email") || getCookie("user_email");
+  const direct = String(getCookie("verified_email") || getCookie("user_email") || "").trim();
 
-  if (direct) return direct;
+  if (direct.includes("@")) return direct;
 
   const fromAccessToken = decodeJwtEmail(getCookie("access_token"));
   if (fromAccessToken) return fromAccessToken;

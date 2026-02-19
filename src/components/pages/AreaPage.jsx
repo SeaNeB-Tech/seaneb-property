@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
 import BusinessListingPage from "./BusinessListingPage";
-import styles from "@/styles/dynamic-pages.module.css";
 import {
   getAreas,
   getBusinessesByArea,
@@ -185,26 +184,26 @@ export default function AreaPage({ countrySlug = "in", stateSlug, citySlug, area
     <>
       <MainNavbar />
 
-      <section className={styles.heroDarkFull}>
-        <div className={styles.heroInner}>
-          <p className={styles.breadcrumb}>
+      <section className="dp-heroDarkFull">
+        <div className="dp-heroInner">
+          <p className="dp-breadcrumb">
             Home / {countryName} / {stateName} / {cityName} / {areaName}
           </p>
 
-          <h1 className={styles.heroTitle}>Properties in {areaName}</h1>
+          <h1 className="dp-heroTitle">Properties in {areaName}</h1>
 
-          <p className={styles.heroDesc}>
+          <p className="dp-heroDesc">
             Explore verified residential and commercial properties in {areaName}, {cityName}. Buy,
             rent, or invest confidently.
           </p>
         </div>
       </section>
 
-      <main className={styles.dynamicContainer}>
-        <section className={styles.sectionLight}>
-          <h3 className={styles.sectionSubTitle}>Why Buy Property in {areaName}?</h3>
+      <main className="dp-dynamicContainer">
+        <section className="dp-sectionLight">
+          <h3 className="dp-sectionSubTitle">Why Buy Property in {areaName}?</h3>
 
-          <ul className={styles.list}>
+          <ul className="dp-list">
             <li>Premium residential locality</li>
             <li>Excellent connectivity</li>
             <li>Trusted local agents</li>
@@ -218,18 +217,18 @@ export default function AreaPage({ countrySlug = "in", stateSlug, citySlug, area
           businesses={businesses}
         />
 
-        <section className={styles.cityCtaBanner}>
+        <section className="dp-cityCtaBanner">
           <div>
-            <h3 className={styles.ctaTitle}>List Your Property in {areaName}</h3>
-            <p className={styles.ctaDesc}>Reach serious buyers and renters in {cityName}.</p>
+            <h3 className="dp-ctaTitle">List Your Property in {areaName}</h3>
+            <p className="dp-ctaDesc">Reach serious buyers and renters in {cityName}.</p>
           </div>
 
-          <Link href="/partner" className={styles.ctaBtn}>
+          <Link href="/partner" className="dp-ctaBtn">
             Partner With Us
           </Link>
         </section>
 
-        <div className={styles.backLink}>
+        <div className="dp-backLink">
           <Link href={buildCityHref(normalizedCountrySlug, stateApiSlug, citySeoSlug)}>
             Back to {cityName}
           </Link>

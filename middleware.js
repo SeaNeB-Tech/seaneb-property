@@ -1,28 +1,35 @@
 import { NextResponse } from "next/server";
 
-const AUTH_APP_BASE_URL = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://localhost:1002").replace(
-  /\/+$/,
-  ""
+const normalizeUrl = (value) => String(value || "").replace(/\/+$/, "");
+const normalizeAuthAppUrl = (value) => {
+  const normalized = normalizeUrl(value);
+  if (!normalized) return normalized;
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.port === "3000" || parsed.port === "1001") {
+      parsed.port = "1002";
+      return normalizeUrl(parsed.toString());
+    }
+  } catch {
+    return normalized;
+  }
+  return normalized;
+};
+
+const AUTH_APP_BASE_URL = normalizeAuthAppUrl(
+  process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://159.65.154.221:1002"
 );
-const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
 
 const hasSessionCookie = (request) => {
   const cookies = request.cookies.getAll();
   return cookies.some((cookie) => {
     const name = String(cookie?.name || "").toLowerCase();
     if (!name) return false;
-    return name === "access_token" || name === "refresh_token" || name.startsWith("access_token_") || name.startsWith("refresh_token_");
+    return name === "access_token" || name.startsWith("access_token_");
   });
 };
 
 export function middleware(request) {
-  // In local multi-app dev (localhost:1002 + localhost:1001), auth cookies can be
-  // scoped in ways that are available to /api refresh calls but not reliably visible
-  // at page middleware time. Avoid hard redirect loops to auth app in dev.
-  if (IS_DEVELOPMENT) {
-    return NextResponse.next();
-  }
-
   if (hasSessionCookie(request)) {
     return NextResponse.next();
   }

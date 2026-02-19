@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore } from "react";
 import BrandLogo from "./BrandLogo";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
-import { isAuthenticatedByCookies, subscribeAuthState } from "@/services/authSession.service";
+import { useAuthState } from "@/hooks/useAuthState";
 
 const loginUrl = getAuthAppUrl("/auth/login");
 
@@ -100,11 +99,7 @@ const socialLinks = [
 export default function GlobalFooter() {
   const pathname = usePathname();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
-  const isAuthenticated = useSyncExternalStore(
-    subscribeAuthState,
-    isAuthenticatedByCookies,
-    () => false
-  );
+  const isAuthenticated = useAuthState();
 
   const visibleFooterGroups = footerGroups.map((group) => ({
     ...group,

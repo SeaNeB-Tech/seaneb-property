@@ -2,17 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  DASHBOARD_MODE_USER,
   DASHBOARD_MODE_BUSINESS,
   getDashboardMode,
 } from "@/services/dashboardMode.service";
-import "../styles/sidebar-colors.css";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const dashboardMode = getDashboardMode();
+  const [dashboardMode, setDashboardMode] = useState(DASHBOARD_MODE_USER);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setDashboardMode(getDashboardMode());
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
   const isBusinessPath =
     pathname === "/dashboard/broker" ||
     pathname?.startsWith("/dashboard/listings") ||
