@@ -51,8 +51,7 @@ export default function HomePage({ data }) {
   const heroImage = data?.hero?.image || "/assets/home/home-hero.jpg";
   const heroImageAlt = data?.hero?.imageAlt || "Real estate cityscape";
   const isSquareHero = heroImage.includes("Gemini_Generated_Image_jnqk9ajnqk9ajnqk.png");
-  const countryList =
-    data?.countriesSection?.countries || ["India", "United States", "Australia", "Singapore"];
+  const countryList = data?.countriesSection?.countries || ["India"];
 
   const isAuthenticated = useAuthState();
   const authDashboardUrl = getAuthAppUrl("/dashboard");

@@ -23,9 +23,9 @@ export default function CountriesSection({ countries = [], title, description })
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <SectionHeading
-        eyebrow="Countries"
-        title={title || "India and All Countries"}
-        description={description || "Discover properties across India and global markets."}
+        eyebrow="India"
+        title={title || "Available Location"}
+        description={description || "Explore listings across India."}
       />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

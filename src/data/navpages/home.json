@@ -84,9 +84,9 @@
     }
   },
   "countriesSection": {
-    "title": "Available Countries",
-    "description": "Explore listings across multiple regions.",
-    "countries": ["India", "United States", "Australia", "Singapore"]
+    "title": "Available Location",
+    "description": "Explore listings across India.",
+    "countries": ["India"]
   },
   "homeInfoSection": {
     "eyebrow": "SeaNeB",
@@ -94,7 +94,7 @@
     "description": "Search, compare, and connect with confidence using a clean real-estate workflow built for users and partners.",
     "points": [
       "Verified business-first listings with structured details.",
-      "Fast discovery across cities, states, and countries.",
+      "Fast discovery across cities and states across India.",
       "Simple connect flow for buyers, renters, and brokers."
     ]
   },

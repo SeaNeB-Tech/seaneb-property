@@ -13,17 +13,17 @@ export default function CountriesShowcaseSection({
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <h2 className={`text-3xl font-bold sm:text-4xl ${isDark ? "text-white" : "text-[#12366f]"}`}>
-              Available Countries
+              Available Location
             </h2>
             <p className={`mt-3 ${isDark ? "text-slate-400" : "text-[#2b4a7a]"}`}>
-              Explore listings across multiple regions.
+              Explore listings across India.
             </p>
           </div>
           <Link
             href="/in"
             className={`flex items-center gap-1 text-sm font-semibold transition-all hover:gap-2 ${isDark ? "text-cyan-400 hover:text-cyan-300" : "text-blue-600 hover:text-blue-700"}`}
           >
-            View all locations <span aria-hidden="true">{"\u2192"}</span>
+            View India locations <span aria-hidden="true">{"\u2192"}</span>
           </Link>
         </div>
 
