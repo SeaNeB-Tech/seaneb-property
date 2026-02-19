@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const AUTH_APP_BASE_URL = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://localhost:3000").replace(
+const AUTH_APP_BASE_URL = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://localhost:1002").replace(
   /\/+$/,
   ""
 );
@@ -16,7 +16,7 @@ const hasSessionCookie = (request) => {
 };
 
 export function middleware(request) {
-  // In local multi-app dev (localhost:3000 + localhost:8877), auth cookies can be
+  // In local multi-app dev (localhost:1002 + localhost:1001), auth cookies can be
   // scoped in ways that are available to /api refresh calls but not reliably visible
   // at page middleware time. Avoid hard redirect loops to auth app in dev.
   if (IS_DEVELOPMENT) {
