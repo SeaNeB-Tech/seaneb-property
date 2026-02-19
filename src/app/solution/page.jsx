@@ -2,6 +2,7 @@ import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import CTASection from "@/components/marketing/shared/CTASection";
 import { getSolutionPageData } from "@/lib/marketing/getMarketingPageData";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "SeaNeB Solutions | Smarter Real Estate Workflows",
@@ -10,7 +11,7 @@ export const metadata = {
     title: "SeaNeB Solutions | Smarter Real Estate Workflows",
     description: "Explore SeaNeB's feature stack for brokers, builders, agents, and seekers.",
     type: "website",
-    url: "https://seaneb.com/solution",
+    url: getSiteUrl("/solution"),
   },
 };
 

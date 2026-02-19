@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCookie, removeCookie } from "@/services/cookie";
+import { getCookie } from "@/services/cookie";
 import {
   DASHBOARD_MODE_BUSINESS,
   DASHBOARD_MODE_USER,
@@ -14,6 +14,7 @@ import {
 } from "@/services/dashboardMode.service";
 import { getAccessTokenFromCookie, getMyProfile } from "@/services/profile.service";
 import BrandLogo from "./BrandLogo";
+import { clearAuthSessionCookies } from "@/services/authSession.service";
 
 export default function DashboardHeader({ showLogout = true }) {
   const router = useRouter();
@@ -67,28 +68,10 @@ export default function DashboardHeader({ showLogout = true }) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const clearAuthCookies = () => {
-    const keys = [
-      "access_token",
-      "refresh_token",
-      "user_email",
-      "csrf_token",
-      "csrf-token",
-      "XSRF-TOKEN",
-      "xsrf-token",
-      "_csrf",
-      "dashboard_mode",
-    ];
-
-    for (const key of keys) {
-      removeCookie(key);
-    }
-  };
-
   const handleSwitchAccount = async () => {
     try {
       setIsLoading(true);
-      clearAuthCookies();
+      clearAuthSessionCookies();
       router.push("/dashboard");
     } catch (err) {
       console.error("Switch account error:", err);
@@ -101,7 +84,7 @@ export default function DashboardHeader({ showLogout = true }) {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      clearAuthCookies();
+      clearAuthSessionCookies();
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);

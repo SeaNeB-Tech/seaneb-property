@@ -5,6 +5,7 @@ import CountriesSection from "@/components/marketing/home/CountriesSection";
 import DownloadAppSection from "@/components/marketing/home/DownloadAppSection";
 import { getHomePageData } from "@/lib/marketing/getMarketingPageData";
 import countries from "@/data/navpages/countries.json";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "SeaNeB Home | Verified Real Estate Discovery",
@@ -13,7 +14,7 @@ export const metadata = {
     title: "SeaNeB Home | Verified Real Estate Discovery",
     description: "Find trusted listings, trending localities, and direct broker connections on SeaNeB.",
     type: "website",
-    url: "https://seaneb.com/home",
+    url: getSiteUrl("/home"),
   },
 };
 

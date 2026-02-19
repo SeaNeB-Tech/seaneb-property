@@ -4,6 +4,7 @@ import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import StatsGrid from "@/components/marketing/shared/StatsGrid";
 import CTASection from "@/components/marketing/shared/CTASection";
 import { getAboutPageData } from "@/lib/marketing/getMarketingPageData";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "About SeaNeB | Mission, Vision, and Trust",
@@ -12,7 +13,7 @@ export const metadata = {
     title: "About SeaNeB | Mission, Vision, and Trust",
     description: "See how SeaNeB works from search to close with real-estate-first workflows.",
     type: "website",
-    url: "https://seaneb.com/about",
+    url: getSiteUrl("/about"),
   },
 };
 

@@ -1,7 +1,9 @@
 import axios from "axios";
-import { getCookie, removeCookie, setCookie } from "./cookie";
+import { getCookie, setCookie } from "./cookie";
+import { API_BASE_URL } from "@/lib/apiBaseUrl";
+import { clearAuthSessionCookies } from "./authSession.service";
 
-const API_BASE = "https://dev.seaneb.com/api/v1";
+const API_BASE = API_BASE_URL;
 const REFRESH_PATH = "/auth/refresh";
 const PRODUCT_KEY_FALLBACK = "property";
 
@@ -33,15 +35,7 @@ const setCsrfToken = (token) => {
 };
 
 const clearSessionCookies = () => {
-  [
-    "access_token",
-    "refresh_token",
-    "csrf_token",
-    "csrf-token",
-    "XSRF-TOKEN",
-    "xsrf-token",
-    "_csrf",
-  ].forEach((key) => removeCookie(key, { path: "/" }));
+  clearAuthSessionCookies();
 };
 
 const api = axios.create({

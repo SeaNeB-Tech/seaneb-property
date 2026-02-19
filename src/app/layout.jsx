@@ -1,7 +1,9 @@
 import "../styles/globals.css"
 import GlobalFooter from "@/components/ui/GlobalFooter"
+import Script from "next/script"
+import { SITE_URL } from "@/lib/siteUrl"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://seaneb.com"
+const siteUrl = SITE_URL
 const enableServiceWorker = process.env.NEXT_PUBLIC_ENABLE_SW === "true"
 const serviceWorkerScope = process.env.NEXT_PUBLIC_SW_SCOPE || "/"
 
@@ -22,7 +24,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://seaneb.com",
+    url: siteUrl,
     title: "SeaNeB - Find Your Perfect Property",
     description: "Discover verified apartments, houses, and commercial properties in your area.",
     siteName: "SeaNeB",
@@ -50,7 +52,7 @@ export const metadata = {
     },
   },
   alternates: {
-    canonical: "https://seaneb.com",
+    canonical: siteUrl,
   },
 };
 
@@ -81,21 +83,16 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/logos/Fav.svg" />
         <link rel="mask-icon" href="/logos/light-logo.svg" color="#d73f57" />
         
-        {/* Service Worker Registration */}
         {enableServiceWorker && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js', { scope: '${serviceWorkerScope}' })
-                      .then(() => console.log('Service Worker registered'))
-                      .catch((err) => console.log('Service Worker registration failed:', err));
-                  });
-                }
-              `,
-            }}
-          />
+          <Script id="sw-register" strategy="afterInteractive">
+            {`
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js', { scope: '${serviceWorkerScope}' });
+                });
+              }
+            `}
+          </Script>
         )}
       </head>
       <body className="min-h-screen bg-[#f8f9fb]">

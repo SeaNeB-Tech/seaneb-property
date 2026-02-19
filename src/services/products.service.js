@@ -1,5 +1,8 @@
 import axios from "axios";
 import { getDefaultProductKey } from "./pro.service";
+import { API_BASE_URL } from "@/lib/apiBaseUrl";
+
+const PRODUCTS_API_BASE = API_BASE_URL;
 
 /**
  * Fetch all active products
@@ -17,7 +20,7 @@ export const getProducts = async () => {
     console.log(" Using product key:", productKey);
 
     // GET /products with product_key parameter — use plain axios to avoid auth interceptor
-    const response = await axios.get("https://dev.seaneb.com/api/v1/products", {
+    const response = await axios.get(`${PRODUCTS_API_BASE}/products`, {
       params: { product_key: productKey },
       withCredentials: false,
       timeout: 5000
@@ -68,7 +71,7 @@ export const getProductById = async (productId) => {
     console.log(` Fetching product ${productId} (public endpoint)...`);
 
     const productKey = getDefaultProductKey();
-    const response = await axios.get(`https://dev.seaneb.com/api/v1/products/${productId}`, {
+    const response = await axios.get(`${PRODUCTS_API_BASE}/products/${productId}`, {
       params: { product_key: productKey },
       withCredentials: false,
       timeout: 5000
@@ -100,7 +103,7 @@ export const searchProducts = async (query) => {
     console.log(` Searching products (public endpoint): "${query}"`);
 
     const productKey = getDefaultProductKey();
-    const response = await axios.get("https://dev.seaneb.com/api/v1/products/search", {
+    const response = await axios.get(`${PRODUCTS_API_BASE}/products/search`, {
       params: {
         query: String(query).trim(),
         product_key: productKey

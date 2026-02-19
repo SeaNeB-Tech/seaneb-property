@@ -2,6 +2,7 @@ import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import BlogListingSection from "@/components/marketing/blogs/BlogListingSection";
 import { getBlogsPageData } from "@/lib/marketing/getMarketingPageData";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "SeaNeB Blogs | Real Estate News and Guides",
@@ -10,7 +11,7 @@ export const metadata = {
     title: "SeaNeB Blogs | Real Estate News and Guides",
     description: "Read practical content on buying, renting, commercial trends, and broker growth.",
     type: "website",
-    url: "https://seaneb.com/blogs",
+    url: getSiteUrl("/blogs"),
   },
 };
 

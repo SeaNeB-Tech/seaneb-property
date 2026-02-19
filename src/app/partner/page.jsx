@@ -3,6 +3,7 @@ import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import CTASection from "@/components/marketing/shared/CTASection";
 import PartnerRegistrationForm from "@/components/marketing/forms/PartnerRegistrationForm";
 import { getPartnerPageData } from "@/lib/marketing/getMarketingPageData";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "Partner with SeaNeB | Broker, Builder, Agent Growth",
@@ -11,7 +12,7 @@ export const metadata = {
     title: "Partner with SeaNeB | Broker, Builder, Agent Growth",
     description: "Explore partner types, pricing plans, and onboarding flow for SeaNeB.",
     type: "website",
-    url: "https://seaneb.com/partner",
+    url: getSiteUrl("/partner"),
   },
 };
 

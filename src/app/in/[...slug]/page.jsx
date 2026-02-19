@@ -4,168 +4,167 @@ import CountryPage from "@/components/pages/CountryPage";
 import StatePage from "@/components/pages/StatePage";
 import CityPage from "@/components/pages/CityPage";
 import AreaPage from "@/components/pages/AreaPage";
-import BusinessDetail from "@/components/pages/BusinessDetail";
+import { API_BASE_URL } from "@/lib/apiBaseUrl";
 
-/* ---------------- helpers ---------------- */
+const INDIA_STATE_CODES = new Set([
+  "an",
+  "ap",
+  "ar",
+  "as",
+  "br",
+  "ch",
+  "ct",
+  "dd",
+  "dl",
+  "dn",
+  "ga",
+  "gj",
+  "hp",
+  "hr",
+  "jh",
+  "jk",
+  "ka",
+  "kl",
+  "la",
+  "ld",
+  "mh",
+  "ml",
+  "mn",
+  "mp",
+  "mz",
+  "nl",
+  "or",
+  "pb",
+  "py",
+  "rj",
+  "sk",
+  "tn",
+  "tr",
+  "ts",
+  "uk",
+  "up",
+  "wb",
+]);
+
+const API_BASE = API_BASE_URL;
+
+function toSeoSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+async function looksLikeIndiaState(slug) {
+  try {
+    const response = await fetch(`${API_BASE}/location/property/in/states`, {
+      cache: "no-store",
+    });
+    const payload = await response.json();
+    const states = Array.isArray(payload?.data) ? payload.data : [];
+
+    return states.some((state) => {
+      const stateSlug = String(state?.state_slug || state?.slug || "").toLowerCase();
+      const stateSeo = toSeoSlug(state?.state_name || state?.name || stateSlug);
+      return slug === stateSlug || slug === stateSeo;
+    });
+  } catch (error) {
+    return false;
+  }
+}
 
 function toTitle(slug) {
-  return String(slug)
+  return String(slug || "")
     .replace(/[_-]/g, " ")
-    .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function normalizeSlug(slugParam) {
-  if (!slugParam && slugParam !== "") return "";
-  if (Array.isArray(slugParam)) {
-    return slugParam.map((s) => decodeURIComponent(String(s))).join("-");
-  }
-  return decodeURIComponent(String(slugParam));
+function normalizeParts(slugParam) {
+  if (!slugParam) return [];
+  const list = Array.isArray(slugParam) ? slugParam : [slugParam];
+  return list
+    .map((item) => decodeURIComponent(String(item || "")).trim().toLowerCase())
+    .filter(Boolean);
 }
 
-const KNOWN_STATES = [
-  "andaman",
-  "andhra",
-  "arunachal",
-  "assam",
-  "bihar",
-  "chhattisgarh",
-  "delhi",
-  "goa",
-  "gujarat",
-  "haryana",
-  "himachal",
-  "jammu",
-  "jharkhand",
-  "karnataka",
-  "kerala",
-  "ladakh",
-  "lakshadweep",
-  "madhya",
-  "maharashtra",
-  "manipur",
-  "meghalaya",
-  "mizoram",
-  "nagaland",
-  "odisha",
-  "puducherry",
-  "punjab",
-  "rajasthan",
-  "sikkim",
-  "tamil",
-  "telangana",
-  "tripura",
-  "uttarakhand",
-  "uttar",
-  "west",
-];
+function getPageMeta(parts) {
+  if (parts.length === 1) {
+    const [one] = parts;
+    if (one === "in") {
+      return {
+        title: "Properties in India | SeaNeB",
+        description: "Browse states, cities, and area-level property listings across India.",
+      };
+    }
 
-/* ---------------- metadata ---------------- */
+    const cityCodeMatch = one.match(/^(.*)-([a-z]{2})$/i);
+    if (cityCodeMatch && INDIA_STATE_CODES.has(cityCodeMatch[2])) {
+      return {
+        title: `Properties in ${toTitle(cityCodeMatch[1])} | SeaNeB`,
+        description: `Explore verified properties in ${toTitle(cityCodeMatch[1])}.`,
+      };
+    }
 
-export async function generateMetadata({ params }) {
-  const resolved = await params;
-  const rawSlug = resolved?.slug;
-  const slug = normalizeSlug(rawSlug);
+    if (one.includes("-")) {
+      const splitAt = one.lastIndexOf("-");
+      const areaPart = one.slice(0, splitAt);
+      return {
+        title: `Properties in ${toTitle(areaPart)} | SeaNeB`,
+        description: `Discover listings and businesses in ${toTitle(areaPart)}.`,
+      };
+    }
 
-  if (!slug) {
-    return { title: "SeaNeB" };
-  }
-
-  const slugLower = slug.toLowerCase();
-
-  // Area
-  if (slugLower.includes("nagar")) {
-    const areaName = toTitle(slug);
     return {
-      title: `Buy, Sell & Rent Properties in ${areaName} | SeaNeB Real Estate`,
-      description: `Find verified property listings in ${areaName}. Browse apartments, houses, and commercial properties with detailed information and reviews.`,
-      keywords: `properties in ${areaName}, buy in ${areaName}, sell in ${areaName}, rent in ${areaName}, real estate listings`,
-      openGraph: {
-        title: `Properties in ${areaName} - SeaNeB`,
-        description: `Browse properties in ${areaName} on SeaNeB.`,
-        type: "website",
-      },
-    };
-  }
-
-  // City (ahmedabad-gj)
-  if (/-[a-z]{2}$/i.test(slug)) {
-    const city = toTitle(slug.split("-")[0]);
-    return {
-      title: `Buy, Sell & Rent Properties in ${city} | SeaNeB Real Estate`,
-      description: `Discover residential and commercial properties in ${city}. Find apartments, houses, plots, and shops with prices and detailed information.`,
-      keywords: `properties in ${city}, buy property ${city}, sell property ${city}, real estate ${city}`,
-      openGraph: {
-        title: `Properties in ${city} - SeaNeB`,
-        description: `Browse properties in ${city} on SeaNeB.`,
-        type: "website",
-      },
-    };
-  }
-
-  // State
-  if (KNOWN_STATES.includes(slugLower)) {
-    const state = toTitle(slug);
-    return {
-      title: `Buy, Sell & Rent Properties in ${state} | SeaNeB Real Estate`,
-      description: `Find properties across ${state}. Browse verified listings for apartments, houses, commercial properties in major cities.`,
-      keywords: `properties in ${state}, real estate ${state}, buy property ${state}, sell property ${state}`,
-      openGraph: {
-        title: `Properties in ${state} - SeaNeB`,
-        description: `Browse properties in ${state} on SeaNeB.`,
-        type: "website",
-      },
+      title: `Properties in ${toTitle(one)} | SeaNeB`,
+      description: `Browse verified property listings in ${toTitle(one)}.`,
     };
   }
 
   return {
-    title: "Not Found — SeaNeB",
-    description: "The page you are looking for could not be found.",
+    title: "SeaNeB",
+    description: "Discover properties by country, state, city, and area.",
   };
 }
 
-/* ---------------- page ---------------- */
+export async function generateMetadata({ params }) {
+  const resolved = await params;
+  const parts = normalizeParts(resolved?.slug);
+  return getPageMeta(parts);
+}
 
 export default async function InSlugPage({ params }) {
   const resolved = await params;
-  const slug = resolved?.slug || [];
+  const parts = normalizeParts(resolved?.slug);
 
-  if (!slug || slug.length === 0) return notFound();
-
-  const parts = slug.map((s) => String(s).toLowerCase());
-  const [country, state, city, area] = parts;
+  if (parts.length === 0) return notFound();
 
   if (parts.length === 1) {
-    const single = parts[0];
+    const [one] = parts;
 
-    if (single && single.length === 2) {
-      return <CountryPage countrySlug={single} />;
+    if (one === "in") {
+      return <CountryPage countrySlug="in" />;
     }
 
-    if (single && single.includes("nagar")) {
-      return <AreaPage areaSlug={single} />;
+    const cityCodeMatch = one.match(/^(.*)-([a-z]{2})$/i);
+    if (cityCodeMatch && INDIA_STATE_CODES.has(cityCodeMatch[2])) {
+      const citySlug = cityCodeMatch[1];
+      const stateSlug = cityCodeMatch[2];
+      return <CityPage countrySlug="in" stateSlug={stateSlug} citySlug={citySlug} />;
     }
 
-    if (single && /-[a-z]{2}$/i.test(single)) {
-      return <CityPage citySlug={single} />;
+    if (await looksLikeIndiaState(one)) {
+      return <StatePage countrySlug="in" stateSlug={one} />;
     }
 
-    if (single && KNOWN_STATES.includes(single)) {
-      return <StatePage stateSlug={single} />;
+    if (one.includes("-")) {
+      const splitAt = one.lastIndexOf("-");
+      const areaSlug = one.slice(0, splitAt);
+      const citySlug = one.slice(splitAt + 1);
+      return <AreaPage countrySlug="in" citySlug={citySlug} areaSlug={areaSlug} />;
     }
 
-    return <BusinessDetail businessSlug={single} />;
-  }
-
-  if (parts.length === 2) {
-    const [stateSlug, citySlug] = parts;
-    return <CityPage citySlug={citySlug} />;
-  }
-
-  if (parts.length === 3) {
-    const areaSlug = parts[2];
-    return <AreaPage areaSlug={areaSlug} />;
+    return <StatePage countrySlug="in" stateSlug={one} />;
   }
 
   return notFound();

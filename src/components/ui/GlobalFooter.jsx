@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import BrandLogo from "./BrandLogo";
-import { getCookie } from "@/services/cookie";
+import { getAuthAppUrl } from "@/lib/authAppUrl";
+import { isAuthenticatedByCookies, subscribeAuthState } from "@/services/authSession.service";
+
+const authDashboardUrl = getAuthAppUrl("/dashboard");
+const authHelpUrl = getAuthAppUrl("/dashboard/help");
 
 const footerGroups = [
   {
@@ -12,8 +16,8 @@ const footerGroups = [
     links: [
       { label: "Home", href: "/home" },
       { label: "Browse India", href: "/in" },
-      { label: "Login", href: "/dashboard" },
-      { label: "Dashboard", href: "/dashboard" },
+      { label: "Login", href: authDashboardUrl },
+      { label: "Dashboard", href: authDashboardUrl },
     ],
   },
   {
@@ -29,7 +33,7 @@ const footerGroups = [
   {
     title: "Support",
     links: [
-      { label: "Help Center", href: "/dashboard/help" },
+      { label: "Help Center", href: authHelpUrl },
       { label: "Contact", href: "/contact" },
       { label: "Privacy Policy", href: "#" },
       { label: "Terms & Conditions", href: "#" },
@@ -38,23 +42,68 @@ const footerGroups = [
 ];
 
 const socialLinks = [
-  { label: "FB", href: "https://www.facebook.com/TiffinServiceApp/" },
-  { label: "X", href: "https://x.com/tiffinserviceap" },
-  { label: "IN", href: "https://www.linkedin.com/showcase/tiffinserviceapp/" },
-  { label: "YT", href: "https://www.youtube.com/@tiffinserviceapp" },
-  { label: "IG", href: "https://www.instagram.com/tiffinserviceapp" },
-  { label: "PT", href: "https://in.pinterest.com/TiffinServiceApp/" },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M13.5 8.25V6.9c0-.54.36-.9.9-.9H16V3h-2.1C11.67 3 10.5 4.17 10.5 6.39v1.86H8.25v3h2.25V21h3v-9.75H16.2l.45-3h-3.15z" />
+      </svg>
+    ),
+  },
+  {
+    label: "X",
+    href: "https://x.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M18.9 3h2.84l-6.21 7.1L22.8 21h-5.7l-4.47-5.85L7.5 21H4.65l6.64-7.59L4.2 3h5.84l4.03 5.32L18.9 3zm-1 16.3h1.58L9.18 4.62H7.5L17.9 19.3z" />
+      </svg>
+    ),
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M6.94 8.5H4v11h2.94v-11zM5.47 3.75a1.71 1.71 0 1 0 0 3.42 1.71 1.71 0 0 0 0-3.42zM20 13.21c0-3.02-1.61-4.43-3.76-4.43-1.73 0-2.5.95-2.93 1.62V8.5h-2.94v11h2.94v-6.14c0-1.62.31-3.19 2.32-3.19 1.98 0 2.01 1.85 2.01 3.29v6.04H20v-6.29z" />
+      </svg>
+    ),
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M21.58 7.19a2.96 2.96 0 0 0-2.08-2.09C17.66 4.5 12 4.5 12 4.5s-5.66 0-7.5.6A2.96 2.96 0 0 0 2.42 7.2 31.1 31.1 0 0 0 2 12a31.1 31.1 0 0 0 .42 4.81 2.96 2.96 0 0 0 2.08 2.09c1.84.6 7.5.6 7.5.6s5.66 0 7.5-.6a2.96 2.96 0 0 0 2.08-2.09A31.1 31.1 0 0 0 22 12a31.1 31.1 0 0 0-.42-4.81zM10 15.5v-7l6 3.5-6 3.5z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5zm4.75-3a1.25 1.25 0 1 1-1.25 1.25 1.25 1.25 0 0 1 1.25-1.25z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Pinterest",
+    href: "https://www.pinterest.com/",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+        <path d="M12 2a10 10 0 0 0-3.64 19.32c-.05-.82-.09-2.08.02-2.98.1-.77.66-4.93.66-4.93s-.17-.35-.17-.87c0-.82.48-1.44 1.07-1.44.5 0 .75.38.75.83 0 .5-.32 1.25-.49 1.95-.14.58.29 1.06.86 1.06 1.03 0 1.82-1.08 1.82-2.64 0-1.38-.99-2.34-2.4-2.34-1.64 0-2.61 1.23-2.61 2.5 0 .5.19 1.03.43 1.32a.17.17 0 0 1 .04.16c-.04.18-.14.58-.16.66-.03.11-.09.14-.21.09-.78-.36-1.27-1.5-1.27-2.42 0-1.97 1.43-3.79 4.12-3.79 2.17 0 3.86 1.55 3.86 3.62 0 2.16-1.36 3.9-3.24 3.9-.63 0-1.23-.33-1.43-.73l-.39 1.48c-.14.54-.52 1.22-.78 1.64A10 10 0 1 0 12 2z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function GlobalFooter() {
   const pathname = usePathname();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
   const isAuthenticated = useSyncExternalStore(
-    () => () => {},
-    () =>
-      getCookie("profile_completed") === "true" ||
-      Boolean(getCookie("access_token")) ||
-      Boolean(getCookie("session_start_time")),
+    subscribeAuthState,
+    isAuthenticatedByCookies,
     () => false
   );
 
@@ -86,9 +135,9 @@ export default function GlobalFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={item.label}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-[11px] font-semibold text-slate-200 transition-colors hover:border-slate-300 hover:text-white"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-200 transition-colors hover:border-slate-300 hover:text-white"
               >
-                {item.label}
+                {item.icon}
               </a>
             ))}
           </div>
@@ -101,9 +150,18 @@ export default function GlobalFooter() {
               <ul className="space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="text-sm text-slate-300 transition-colors hover:text-white">
-                      {link.label}
-                    </Link>
+                    {link.href.startsWith("http") ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-slate-300 transition-colors hover:text-white"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link href={link.href} className="text-sm text-slate-300 transition-colors hover:text-white">
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

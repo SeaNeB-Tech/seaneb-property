@@ -2,6 +2,7 @@ import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import ContactForm from "@/components/marketing/forms/ContactForm";
 import { getContactPageData } from "@/lib/marketing/getMarketingPageData";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
   title: "Contact SeaNeB | Support and Partnership Help",
@@ -10,7 +11,7 @@ export const metadata = {
     title: "Contact SeaNeB | Support and Partnership Help",
     description: "Reach SeaNeB support, get onboarding help, and connect with our team.",
     type: "website",
-    url: "https://seaneb.com/contact",
+    url: getSiteUrl("/contact"),
   },
 };
 

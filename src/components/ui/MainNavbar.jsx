@@ -5,8 +5,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import BrandLogo from "./BrandLogo";
 import TempUserAvatar from "./TempUserAvatar";
 import navbarLinks from "@/data/navbarLinks.json";
-import { getCookie, removeCookie } from "@/services/cookie";
-import { getAccessTokenFromCookie } from "@/services/profile.service";
+import { getCookie } from "@/services/cookie";
+import { getAuthAppUrl } from "@/lib/authAppUrl";
+import {
+  clearAuthSessionCookies,
+  isAuthenticatedByCookies,
+  subscribeAuthState,
+} from "@/services/authSession.service";
 
 function NavbarItem({ item }) {
   const isExternal = item.href.startsWith("http");
@@ -38,12 +43,13 @@ export default function MainNavbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const isAuthenticated = useSyncExternalStore(
-    () => () => {},
-    () => Boolean(getAccessTokenFromCookie()),
+    subscribeAuthState,
+    isAuthenticatedByCookies,
     () => false
   );
   const userEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const userLabel = userEmail || "Guest User";
+  const authDashboardUrl = getAuthAppUrl("/dashboard");
 
   useEffect(() => {
     const onClickOutside = (event) => {
@@ -58,10 +64,7 @@ export default function MainNavbar() {
   }, []);
 
   const handleLogout = () => {
-    removeCookie("access_token");
-    removeCookie("refresh_token");
-    removeCookie("session_start_time");
-    removeCookie("profile_completed");
+    clearAuthSessionCookies();
     setIsProfileOpen(false);
   };
 
@@ -146,7 +149,7 @@ export default function MainNavbar() {
                   </div>
                   <div className="p-2">
                     <Link
-                      href="/dashboard"
+                      href={authDashboardUrl}
                       onClick={() => setIsProfileOpen(false)}
                       className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
                     >
@@ -174,7 +177,7 @@ export default function MainNavbar() {
                     </div>
                   </div>
                   <Link
-                    href="/dashboard"
+                    href={authDashboardUrl}
                     onClick={() => setIsProfileOpen(false)}
                     className="mt-3 block rounded-xl bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
                   >
