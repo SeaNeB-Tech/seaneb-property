@@ -3,11 +3,11 @@ const normalizedBasePath =
   rawBasePath && rawBasePath !== "/"
     ? `/${rawBasePath.replace(/^\/+|\/+$/g, "")}`
     : "";
-const authAppBaseUrl = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://property.seaneb.app").replace(
+const authAppBaseUrl = (process.env.NEXT_PUBLIC_AUTH_APP_URL || "https://property.seaneb.com").replace(
   /\/+$/,
   ""
 );
-const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://central-api.seaneb.com/api/v1").replace(
+const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://dev.seaneb.com").replace(
   /\/+$/,
   ""
 );
