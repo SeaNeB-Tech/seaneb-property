@@ -26,7 +26,7 @@ NEXT_PUBLIC_AUTH_APP_URL=https://property.seaneb.app
 NEXT_PUBLIC_COOKIE_DOMAIN=property.seaneb.com
 NEXT_PUBLIC_COOKIE_PATH=/
 NEXT_PUBLIC_COOKIE_SAMESITE=Lax
-NEXT_PUBLIC_API_BASE_URL=https://central-api.seaneb.com/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://dev.seaneb.com
 NEXT_PUBLIC_ENABLE_SW=false
 NEXT_PUBLIC_SW_SCOPE=/
 ```
