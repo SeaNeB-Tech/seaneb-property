@@ -11,6 +11,8 @@ export default function ContactForm() {
   const [success, setSuccess] = useState(false);
 
   function handleChange(event) {
+    if (error) setError("");
+    if (success) setSuccess(false);
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   }
 
@@ -24,6 +26,7 @@ export default function ContactForm() {
     }
 
     setError("");
+    setForm({ name: "", email: "", message: "" });
     setSuccess(true);
   }
 

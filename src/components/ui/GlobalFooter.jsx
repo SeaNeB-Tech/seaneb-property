@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -100,6 +100,7 @@ export default function GlobalFooter() {
   const pathname = usePathname();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
   const isAuthenticated = useAuthState();
+  if (isDashboardRoute) return null;
 
   const visibleFooterGroups = footerGroups.map((group) => ({
     ...group,
@@ -108,9 +109,11 @@ export default function GlobalFooter() {
       return isAuthenticated;
     }),
   }));
+  const footerTextLinkClass =
+    "relative text-sm text-slate-300 transition-colors hover:text-white after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:bg-[var(--error)] after:transition-[width] after:duration-300 after:content-[''] hover:after:w-full";
 
   return (
-    <footer className={`mt-12 border-t border-slate-200 bg-gradient-to-b from-slate-950 to-slate-900 text-slate-200 ${isDashboardRoute ? "lg:pl-64" : ""}`}>
+    <footer className="border-t border-slate-200 bg-gradient-to-b from-slate-950 to-slate-900 text-slate-200">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 lg:grid-cols-12 lg:px-8">
         <div className="lg:col-span-5">
           <BrandLogo
@@ -147,12 +150,12 @@ export default function GlobalFooter() {
                     {link.href.startsWith("http") ? (
                       <a
                         href={link.href}
-                        className="text-sm text-slate-300 transition-colors hover:text-white"
+                        className={footerTextLinkClass}
                       >
                         {link.label}
                       </a>
                     ) : (
-                      <Link href={link.href} className="text-sm text-slate-300 transition-colors hover:text-white">
+                      <Link href={link.href} className={footerTextLinkClass}>
                         {link.label}
                       </Link>
                     )}
@@ -165,9 +168,10 @@ export default function GlobalFooter() {
       </div>
 
       <div className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
-        © {new Date().getFullYear()} SeaNeB. All rights reserved.
+        Copyright {new Date().getFullYear()} SeaNeB. All rights reserved.
       </div>
     </footer>
   );
 }
+
 

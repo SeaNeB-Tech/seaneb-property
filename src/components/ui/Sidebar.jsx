@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,21 +57,21 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed left-4 top-16 z-50 block rounded-md bg-[var(--sidebar-primary)] p-2 text-white transition-colors hover:bg-[var(--sidebar-primary-dark)] lg:hidden"
+        className="fixed left-4 top-16 z-50 block rounded-md bg-[#9E6200] p-2 text-[#FCFCF7] transition-colors hover:bg-[#7F4F00] lg:hidden"
         aria-label="Toggle sidebar"
       >
         {isOpen ? "X" : "|||"}
       </button>
 
       <aside
-        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 transform bg-gradient-to-b from-[var(--sidebar-primary)] to-[var(--sidebar-primary-dark)] text-white shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 transform bg-gradient-to-b from-[#9E6200] to-[#613D00] text-[#FCFCF7] shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <nav className="flex h-full flex-col">
-          <div className="hidden border-b border-[var(--sidebar-border)] px-6 py-8 lg:block">
-            <h2 className="mb-1 text-2xl font-bold text-[var(--sidebar-accent)]">SeaNeB</h2>
-            <p className="text-xs font-medium text-[var(--sidebar-text-secondary)]">Real Estate Platform</p>
+          <div className="hidden border-b border-[#B6841F]/60 px-6 py-8 lg:block">
+            <h2 className="mb-1 text-2xl font-bold text-[#FCFCF7]">SeaNeB</h2>
+            <p className="text-xs font-medium text-[#F3EBD6]">Real Estate Platform</p>
           </div>
 
           <ul className="flex-1 space-y-2 overflow-y-auto px-2 py-6">
@@ -80,13 +80,13 @@ export default function Sidebar() {
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`sidebar-menu-item flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200 ${
                     isActive(item.href)
-                      ? "active bg-[var(--sidebar-hover)] text-white shadow-lg"
-                      : "text-[var(--sidebar-text)] hover:bg-black/20"
+                      ? "border-l-[3px] border-[#FCFCF7] bg-[#BF932A] text-black shadow-lg"
+                      : "text-[#FCFCF7] hover:bg-[#7F4F00]/70"
                   }`}
                 >
-                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-[11px] font-bold tracking-wide text-white">
+                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FCFCF7]/20 text-[11px] font-bold tracking-wide text-[#FCFCF7]">
                     {item.icon}
                   </span>
                   <span className="truncate text-sm">{item.label}</span>
@@ -95,8 +95,8 @@ export default function Sidebar() {
             ))}
           </ul>
 
-          <div className="space-y-4 border-t border-[color:var(--sidebar-border)]/50 px-6 py-6">
-            <div className="text-xs font-medium text-[var(--sidebar-text-secondary)]">
+          <div className="space-y-4 border-t border-[#B6841F]/60 px-6 py-6">
+            <div className="text-xs font-medium text-[#F3EBD6]">
               <p className="mb-1">SeaNeB Platform</p>
               <p className="text-[10px]">© 2026 All Rights Reserved</p>
             </div>
@@ -110,3 +110,5 @@ export default function Sidebar() {
     </>
   );
 }
+
+

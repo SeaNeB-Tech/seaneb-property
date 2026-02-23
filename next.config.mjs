@@ -35,7 +35,7 @@ const normalizeAuthAppUrl = (value) => {
   if (!normalized) return normalized;
   try {
     const parsed = new URL(normalized);
-    if (parsed.port === "3000" || parsed.port === "1001") {
+    if (parsed.port === "3000" || parsed.port === "8877" || parsed.port === "1001") {
       parsed.port = "1002";
       return normalizeUrl(parsed.toString());
     }
@@ -47,10 +47,20 @@ const normalizeAuthAppUrl = (value) => {
 const authAppBaseUrl = normalizeAuthAppUrl(
   process.env.NEXT_PUBLIC_AUTH_APP_URL || defaultAuthUrl
 );
+const devApiUrl =
+  process.env.API_DEV_URL ||
+  process.env.NEXT_PUBLIC_API_DEV_URL ||
+  "https://dev.seaneb.com/api/v1";
+const centralApiUrl =
+  process.env.API_CENTRAL_URL ||
+  process.env.NEXT_PUBLIC_API_CENTRAL_URL ||
+  "https://central-api.seaneb.com/api/v1";
+const envSelectedApiUrl = process.env.NODE_ENV === "development" ? devApiUrl : centralApiUrl;
 const apiBaseUrl = (
+  process.env.API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://dev.seaneb.com/api/v1"
+  envSelectedApiUrl
 ).replace(/\/+$/, "");
 const apiHostname = new URL(apiBaseUrl).hostname;
 

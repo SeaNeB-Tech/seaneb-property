@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
 import { getBusinessDetailsBySeanebId } from "@/services/location.service";
+import { locationTw } from "./locationTailwindClasses";
 
 export default function BusinessDetail({ businessSlug }) {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [details, setDetails] = useState(null);
@@ -74,6 +77,21 @@ export default function BusinessDetail({ businessSlug }) {
     details?.business_name ||
     fallbackName;
 
+  const toSeoSlug = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
+  const areaSlug = toSeoSlug(area?.area_name || area?.name);
+  const citySlug = toSeoSlug(city?.city_name || city?.name);
+  const stateSlug = toSeoSlug(state?.state_slug || state?.slug || state?.state_name || state?.name);
+  const computedBackHref =
+    areaSlug && citySlug ? `/in/${areaSlug}-${citySlug}` : citySlug && stateSlug ? `/in/${citySlug}-${stateSlug}` : "/in";
+  const fromParam = String(searchParams.get("from") || "").trim();
+  const backToAreaHref = fromParam.startsWith("/in/") ? fromParam : computedBackHref;
+
   const detailRows = [
     ["SeaNeB ID", details?.seaneb_id || businessSlug || "-"],
     ["Branch ID", details?.branch_id || "-"],
@@ -93,25 +111,26 @@ export default function BusinessDetail({ businessSlug }) {
   return (
     <>
       <MainNavbar />
-      <div className="bd-wrapper">
-        <div className="dp-dynamicContainer">
-          <div className="bd-container">
-            <p className="bd-breadcrumb">
-              <Link href="/in">Home</Link> / <Link href="/in">Areas</Link> / {businessName}
+      <div className={locationTw.detailWrapper}>
+        <div className={locationTw.dynamicContainer}>
+          <div className={locationTw.detailContainer}>
+            <p className={locationTw.detailBreadcrumb}>
+              <Link className={locationTw.detailBreadcrumbLink} href="/in">Home</Link> /{" "}
+              <Link className={locationTw.detailBreadcrumbLink} href={backToAreaHref}>Area</Link> / {businessName}
             </p>
-            <h1 className="bd-title">{businessName}</h1>
-            <p className="bd-desc">
+            <h1 className={locationTw.detailTitle}>{businessName}</h1>
+            <p className={locationTw.detailDesc}>
               {details?.about_branch || `Business detail page for ${businessName}.`}
             </p>
 
-            {loading && <p className="bd-desc">Loading business details...</p>}
-            {!loading && error && <p className="bd-desc">{error}</p>}
+            {loading && <p className={locationTw.detailDesc}>Loading business details...</p>}
+            {!loading && error && <p className={locationTw.detailDesc}>{error}</p>}
 
             {!loading && !error && (
               <>
-                <div className="bd-rating-row">
-                  <div className="bd-rating">
-                    <span className="bd-rating-value">Location Hierarchy</span>
+                <div className={locationTw.detailRatingRow}>
+                  <div className={locationTw.detailRating}>
+                    <span className={locationTw.detailRatingValue}>Location Hierarchy</span>
                   </div>
                   <div>
                     {[area?.area_name, city?.city_name, state?.state_name, country?.country_name]
@@ -122,13 +141,13 @@ export default function BusinessDetail({ businessSlug }) {
 
                 <h3>Business Information</h3>
                 {detailRows.map(([label, value]) => (
-                  <p key={label} className="bd-desc">
+                  <p key={label} className={locationTw.detailDesc}>
                     <strong>{label}:</strong> {String(value ?? "-")}
                   </p>
                 ))}
 
                 <h3 className="mt-4">Area / City / State / Country</h3>
-                <ul className="bd-features">
+                <ul className={locationTw.detailFeatures}>
                   <li>
                     Area: {area?.area_name || "-"} ({area?.area_id || "-"})
                   </li>
@@ -143,17 +162,12 @@ export default function BusinessDetail({ businessSlug }) {
                   </li>
                 </ul>
 
-                {details?.primary_number && (
-                  <a href={`tel:${details.primary_number}`} className="bd-contact-btn">
-                    Contact Now
-                  </a>
-                )}
               </>
             )}
 
-            <div style={{ marginTop: 16 }}>
-              <Link href="/in" className="text-sm text-gray-500">
-                Back to Areas
+            <div className={locationTw.detailBackWrap}>
+              <Link href={backToAreaHref} className={locationTw.backLink}>
+                Back to Area
               </Link>
             </div>
           </div>

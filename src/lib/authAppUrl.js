@@ -9,7 +9,7 @@ const normalizeAuthPort = (value) => {
   try {
     const parsed = new URL(normalized);
     // Keep backward compatibility with old auth/listing ports.
-    if (parsed.port === "3000" || parsed.port === "1001") {
+    if (parsed.port === "3000" || parsed.port === "8877" || parsed.port === "1001") {
       parsed.port = "1002";
       return normalizeUrl(parsed.toString());
     }

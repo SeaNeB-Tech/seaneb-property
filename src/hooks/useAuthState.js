@@ -1,35 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAuthenticatedByCookies, subscribeAuthState } from "@/services/authSession.service";
-import { ensureAccessToken } from "@/services/api";
+import { checkAuthenticatedSession, subscribeAuthState } from "@/services/authSession.service";
 
 export function useAuthState() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    let isMounted = true;
 
-    const syncAuth = async () => {
-      const cookieAuth = isAuthenticatedByCookies();
-      if (cookieAuth) {
-        if (active) setIsAuthenticated(true);
-        return;
-      }
+    const setAuthState = (nextValue) => {
+      if (isMounted) setIsAuthenticated(nextValue);
+    };
 
-      const refreshed = await ensureAccessToken();
-      if (active) {
-        setIsAuthenticated(Boolean(refreshed || isAuthenticatedByCookies()));
+    const syncAuthState = async () => {
+      try {
+        const authenticated = await checkAuthenticatedSession();
+        setAuthState(Boolean(authenticated));
+      } catch {
+        setAuthState(false);
       }
     };
 
-    void syncAuth();
+    void syncAuthState();
     const unsubscribe = subscribeAuthState(() => {
-      void syncAuth();
+      void syncAuthState();
     });
 
     return () => {
-      active = false;
+      isMounted = false;
       unsubscribe();
     };
   }, []);

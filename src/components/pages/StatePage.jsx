@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
 import { getCountries, getCities, getStates } from "@/services/location.service";
+import { locationTw } from "./locationTailwindClasses";
 
 function toTitle(slug) {
   return String(slug || "")
@@ -104,31 +105,31 @@ export default function StatePage({ countrySlug = "in", stateSlug }) {
     <>
       <MainNavbar />
 
-      <section className="dp-heroDarkFull">
-        <div className="dp-heroInner">
-          <p className="dp-breadcrumb">Home / {countryName} / {stateName}</p>
+      <section className={locationTw.heroDarkFull}>
+        <div className={locationTw.heroInner}>
+          <p className={locationTw.breadcrumb}>Home / {countryName} / {stateName}</p>
 
-          <h1 className="dp-heroTitle">Properties in {stateName}</h1>
+          <h1 className={locationTw.heroTitle}>Properties in {stateName}</h1>
 
-          <p className="dp-heroDesc">
+          <p className={locationTw.heroDesc}>
             Buy, rent and invest in verified properties across {stateName}.
           </p>
         </div>
       </section>
 
-      <main className="dp-dynamicContainer">
-        <section className="dp-section">
-          <h2 className="dp-sectionTitle">Cities in {stateName}</h2>
+      <main className={locationTw.dynamicContainer}>
+        <section className={locationTw.section}>
+          <h2 className={locationTw.sectionTitle}>Cities in {stateName}</h2>
 
-          <div className="dp-pillGrid">
+          <div className={locationTw.pillGrid}>
             {cities.length === 0 ? (
-              <p className="dp-sectionDesc">No city data available right now.</p>
+              <p className={locationTw.sectionDesc}>No city data available right now.</p>
             ) : (
               cities.map((city) => (
                 <Link
                   key={city.slug}
                   href={buildCityHref(normalizedCountrySlug, stateApiSlug, toSeoSlug(city.name || city.slug))}
-                  className="dp-pill"
+                  className={locationTw.pill}
                 >
                   {city.name}
                 </Link>
@@ -137,10 +138,10 @@ export default function StatePage({ countrySlug = "in", stateSlug }) {
           </div>
         </section>
 
-        <section className="dp-sectionLight">
-          <h3 className="dp-sectionSubTitle">Why Choose SeaNeB in {stateName}?</h3>
+        <section className={locationTw.sectionLight}>
+          <h3 className={locationTw.sectionSubTitle}>Why Choose SeaNeB in {stateName}?</h3>
 
-          <ul className="dp-list">
+          <ul className={locationTw.list}>
             <li>Verified listings</li>
             <li>Trusted agents</li>
             <li>Smart area search</li>
@@ -148,20 +149,23 @@ export default function StatePage({ countrySlug = "in", stateSlug }) {
           </ul>
         </section>
 
-        <section className="dp-ctaBanner">
+        <section className={locationTw.ctaBanner}>
           <div>
-            <h3 className="dp-ctaTitle">List Your Property in {stateName}</h3>
+            <h3 className={locationTw.ctaTitle}>List Your Property in {stateName}</h3>
 
-            <p className="dp-ctaDesc">Reach verified buyers and renters on SeaNeB.</p>
+            <p className={locationTw.ctaDesc}>Reach verified buyers and renters on SeaNeB.</p>
           </div>
 
-          <Link href="/partner" className="dp-ctaBtn">
+          <Link href="/partner" className={locationTw.ctaBtn}>
             Partner With Us
           </Link>
         </section>
 
-        <div className="dp-backLink">
-          <Link href={normalizedCountrySlug === "in" ? "/in" : `/in/${normalizedCountrySlug}`}>
+        <div className={locationTw.backLinkWrap}>
+          <Link
+            className={locationTw.backLink}
+            href={normalizedCountrySlug === "in" ? "/in" : `/in/${normalizedCountrySlug}`}
+          >
             Back to {countryName}
           </Link>
         </div>

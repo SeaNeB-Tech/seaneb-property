@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBaseUrl";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
@@ -5,202 +6,202 @@ import { getAuthAppUrl } from "@/lib/authAppUrl";
 const REFRESH_ENDPOINT = "/auth/refresh";
 const DEFAULT_PRODUCT_KEY = "property";
 
-const getCookieEntries = () => {
-  if (typeof document === "undefined") return [];
-  const cookies = document.cookie ? document.cookie.split("; ") : [];
-  return cookies
-    .map((entry) => {
-      const idx = entry.indexOf("=");
-      if (idx < 0) return null;
-      const key = decodeURIComponent(entry.slice(0, idx));
-      const value = decodeURIComponent(entry.slice(idx + 1));
-      return { key, value };
-    })
-    .filter(Boolean);
-};
+let inMemoryAccessToken = "";
+let refreshPromise = null;
+let lastRefreshStatus = "idle";
+let lastRefreshAt = 0;
+let lastRefreshHttpStatus = 0;
+let lastRefreshError = "";
 
 const getCookie = (name) => {
-  const entries = getCookieEntries();
-  for (const { key, value } of entries) {
-    if (key !== name) continue;
-    return value;
-  }
-  return "";
-};
-
-const getCookieByPrefixes = (prefixes = []) => {
-  const entries = getCookieEntries();
-  for (const { key, value } of entries) {
-    const lowerKey = key.toLowerCase();
-    if (prefixes.some((prefix) => lowerKey === prefix || lowerKey.startsWith(`${prefix}_`))) {
-      if (String(value || "").trim()) return value;
-    }
+  if (typeof document === "undefined") return "";
+  const cookies = document.cookie ? document.cookie.split("; ") : [];
+  for (const entry of cookies) {
+    const idx = entry.indexOf("=");
+    if (idx < 0) continue;
+    const key = decodeURIComponent(entry.slice(0, idx));
+    const value = decodeURIComponent(entry.slice(idx + 1));
+    if (key === name) return value;
   }
   return "";
 };
 
 const getCsrfToken = () =>
-  (
-    getCookie("csrf_token") ||
-    getCookieByPrefixes(["csrf_token"]) ||
-    getCookie("csrf-token") ||
-    getCookieByPrefixes(["csrf-token"]) ||
-    getCookie("XSRF-TOKEN") ||
-    getCookieByPrefixes(["xsrf-token"]) ||
-    getCookie("XSRF_TOKEN") ||
-    getCookie("xsrf-token") ||
-    getCookie("_csrf") ||
-    ""
+  String(
+    getCookie("csrf_token_property") || ""
   ).trim();
 
-const getAccessToken = () =>
-  (getCookie("access_token") || getCookieByPrefixes(["access_token"]) || "").trim();
+const getAccessToken = () => inMemoryAccessToken;
 
 const getProductKey = () =>
-  (getCookie("product_key") || DEFAULT_PRODUCT_KEY).trim().toLowerCase() || DEFAULT_PRODUCT_KEY;
+  (getCookie("product_key") || DEFAULT_PRODUCT_KEY)
+    .toLowerCase()
+    .trim();
 
-const getRefreshToken = () =>
-  (getCookie("refresh_token") || getCookieByPrefixes(["refresh_token"]) || getCookie("refresh-token") || "").trim();
+const setAccessToken = (token) => {
+  inMemoryAccessToken = String(token || "").trim();
+};
 
-const redirectToAuthLogin = () => {
+const redirectToLogin = () => {
   if (typeof window === "undefined") return;
   const returnTo = encodeURIComponent(window.location.href);
   window.location.href = getAuthAppUrl(`/auth/login?returnTo=${returnTo}`);
 };
 
+const readToken = (res) => {
+  const data = res?.data || {};
+  return (
+    data?.access_token ||
+    data?.accessToken ||
+    data?.data?.access_token ||
+    data?.data?.accessToken ||
+    data?.data?.token?.access_token ||
+    data?.data?.token?.accessToken ||
+    data?.result?.access_token ||
+    data?.result?.accessToken ||
+    data?.token ||
+    data?.jwt ||
+    ""
+  );
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  },
 });
 
 const refreshClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  },
 });
 
-let refreshPromise = null;
-
-const refreshAccessToken = async () => {
-  const csrfToken = getCsrfToken();
+const performRefreshAccessToken = async () => {
   const productKey = getProductKey();
-  const refreshToken = getRefreshToken();
-  const headers = {};
-  const baseBody = { product_key: productKey };
-
-  if (csrfToken) {
-    headers["x-csrf-token"] = csrfToken;
-    headers["csrf-token"] = csrfToken;
+  const csrf = getCsrfToken();
+  if (!csrf) {
+    lastRefreshStatus = "failed";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = 0;
+    lastRefreshError = "Missing csrf_token_property cookie";
+    throw new Error("Missing csrf_token_property cookie");
   }
-  headers["x-product-key"] = productKey;
-
-  const attempts = [];
-  if (refreshToken) attempts.push({ ...baseBody, refresh_token: refreshToken });
-  attempts.push(baseBody);
-  attempts.push({});
 
   let lastError = null;
-  for (const body of attempts) {
-    try {
-      await refreshClient.post(REFRESH_ENDPOINT, body, { headers });
-      return true;
-    } catch (error) {
-      lastError = error;
-      const status = Number(error?.response?.status || 0);
-      if (status === 401) throw error;
-    }
+  const headers = {
+    "x-product-key": productKey,
+    "x-csrf-token": csrf,
+  };
+
+  try {
+    lastRefreshStatus = "pending";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = 0;
+    lastRefreshError = "";
+    const res = await refreshClient.post(
+      REFRESH_ENDPOINT,
+      { product_key: productKey },
+      { headers }
+    );
+
+    const token = readToken(res);
+    if (!token) throw new Error("No access token from refresh");
+    setAccessToken(token);
+    lastRefreshStatus = "success";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = Number(res?.status || 0);
+    lastRefreshError = "";
+    return true;
+  } catch (err) {
+    lastError = err;
+    lastRefreshStatus = "failed";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = Number(err?.response?.status || 0);
+    lastRefreshError = String(
+      err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Refresh failed"
+    );
   }
 
   throw lastError || new Error("Refresh failed");
-  return true;
 };
 
 export const ensureAccessToken = async () => {
-  if (getAccessToken()) return true;
-  try {
-    await refreshAccessToken();
-    return true;
-  } catch {
-    return false;
-  }
+  return Boolean(getAccessToken());
 };
 
-const hasAuthRefreshContext = () =>
-  // CSRF-only context should not force auth redirect for public pages.
-  Boolean(getAccessToken() || getRefreshToken());
+export const hasCsrfCookie = () => Boolean(getCsrfToken());
 
-const isPublicLocationRequest = (url) => String(url || "").startsWith("/location/");
-const isProtectedAppRoute = () =>
-  typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard");
-
-const shouldRedirectOnAuthFailure = (requestUrl, originalRequest = {}) => {
-  if (originalRequest?.skipAuthRedirect) return false;
-  if (isPublicLocationRequest(requestUrl)) return false;
-  if (originalRequest?.requireAuth) return true;
-  return isProtectedAppRoute();
+export const refreshAccessToken = async () => {
+  if (!hasCsrfCookie()) {
+    lastRefreshStatus = "failed";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = 0;
+    lastRefreshError = "Missing csrf_token_property cookie";
+    throw new Error("Missing csrf_token_property cookie");
+  }
+  if (!refreshPromise) {
+    refreshPromise = performRefreshAccessToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  await refreshPromise;
+  return true;
 };
 
 api.interceptors.request.use((config) => {
   config.withCredentials = true;
   config.headers = config.headers || {};
 
-  const csrfToken = getCsrfToken();
-  const accessToken = getAccessToken();
+  const csrf = getCsrfToken();
+  const token = getAccessToken();
   const productKey = getProductKey();
-  if (csrfToken) {
-    config.headers["x-csrf-token"] = csrfToken;
-    config.headers["csrf-token"] = csrfToken;
-  }
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
-  config.headers["x-product-key"] = config.headers["x-product-key"] || productKey;
+
+  if (csrf) config.headers["x-csrf-token"] = csrf;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers["x-product-key"] = productKey;
 
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   async (error) => {
-    const originalRequest = error?.config || {};
-    const status = Number(error?.response?.status || 0);
-    const isRefreshRequest = String(originalRequest?.url || "").includes(REFRESH_ENDPOINT);
-    const requestUrl = String(originalRequest?.url || "");
+    const original = error?.config || {};
+    const status = error?.response?.status;
+    const isRefreshRequest = String(original?.url || "").includes(REFRESH_ENDPOINT);
 
-    if (status !== 401 || originalRequest._retry || isRefreshRequest) {
+    if (status !== 401 || original._retry || isRefreshRequest) {
       return Promise.reject(error);
     }
 
-    if (!hasAuthRefreshContext()) {
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
+    original._retry = true;
 
     try {
-      if (!refreshPromise) {
-        refreshPromise = refreshAccessToken().finally(() => {
-          refreshPromise = null;
-        });
+      await refreshAccessToken();
+      return api(original);
+    } catch {
+      setAccessToken("");
+      const shouldRedirect =
+        original?.requireAuth === true && original?.skipAuthRedirect !== true;
+      if (shouldRedirect) {
+        redirectToLogin();
       }
-
-      await refreshPromise;
-      originalRequest.withCredentials = true;
-      return api(originalRequest);
-    } catch (refreshError) {
-      if (shouldRedirectOnAuthFailure(requestUrl, originalRequest)) {
-        redirectToAuthLogin();
-      }
-      return Promise.reject(refreshError);
+      return Promise.reject(error);
     }
   }
 );
 
 export default api;
+export const getInMemoryAccessToken = () => getAccessToken();
+export const clearInMemoryAccessToken = () => setAccessToken("");
+export const getAuthDiagnostics = () => ({
+  hasAccessTokenInMemory: Boolean(getAccessToken()),
+  hasCsrfCookie: Boolean(getCsrfToken()),
+  refreshInFlight: Boolean(refreshPromise),
+  lastRefreshStatus,
+  lastRefreshAt,
+  lastRefreshHttpStatus,
+  lastRefreshError,
+});

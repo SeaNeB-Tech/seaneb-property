@@ -1,1 +1,1 @@
-export { default, ensureAccessToken } from "@/lib/api/client";
+export { default, ensureAccessToken, refreshAccessToken } from "@/lib/api/client";

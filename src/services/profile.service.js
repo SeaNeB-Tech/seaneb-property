@@ -1,62 +1,32 @@
-import api, { ensureAccessToken } from "./api";
-import { getCookie, setCookie } from "./cookie";
-import { getDefaultProductKey } from "./pro.service";
+import api from "./api";
+import { setCookie } from "./cookie";
+import { getDefaultProductKey } from "./product.service";
+import { getInMemoryAccessToken } from "@/lib/api/client";
 
-const resolveProductKey = () => {
-  const fromCookie = String(getCookie("product_key") || "").trim();
-  if (fromCookie) return fromCookie;
-  return getDefaultProductKey();
+const resolveProductKey = () => getDefaultProductKey();
+
+const toBool = (value) => {
+  if (value === true) return true;
+  if (value === false || value == null) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
 };
 
 export const getMyProfile = async () => {
-  await ensureAccessToken();
-  const accessToken = getAccessTokenFromCookie();
+  const accessToken = getInMemoryAccessToken();
   const headers = {
     "x-product-key": resolveProductKey(),
   };
 
-  if (!accessToken) return null;
-
-  headers.Authorization = `Bearer ${accessToken}`;
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
 
   const res = await api.get("/profile/me", { headers, skipAuthRedirect: true });
   return res?.data?.data || null;
 };
-
-const getCookieEntries = () => {
-  if (typeof document === "undefined") return [];
-  const entries = document.cookie ? document.cookie.split("; ") : [];
-  return entries
-    .map((entry) => {
-      const idx = entry.indexOf("=");
-      if (idx < 0) return null;
-      return {
-        key: decodeURIComponent(entry.slice(0, idx)).toLowerCase(),
-        value: decodeURIComponent(entry.slice(idx + 1)),
-      };
-    })
-    .filter(Boolean);
-};
-
-export const getAccessTokenFromCookie = () => {
-  const direct = String(getCookie("access_token") || "").trim();
-  if (direct) return direct;
-
-  const prefixed = getCookieEntries().find(
-    ({ key, value }) => (key === "access_token" || key.startsWith("access_token_")) && String(value || "").trim()
-  );
-
-  return String(prefixed?.value || "").trim();
-};
-
 export const hasBusinessFromProfile = (profile) => {
   const data = profile || {};
-  const toBool = (value) => {
-    if (value === true) return true;
-    if (value === false || value == null) return false;
-    const normalized = String(value).trim().toLowerCase();
-    return normalized === "true" || normalized === "1" || normalized === "yes";
-  };
 
   // Primary API contract
   if (toBool(data.is_business_registered)) return true;
@@ -78,6 +48,25 @@ export const hasBusinessFromProfile = (profile) => {
   if (Array.isArray(data.user_businesses) && data.user_businesses.length > 0) return true;
 
   return false;
+};
+
+export const getProfileVerificationStatus = (profile) => {
+  const data = profile || {};
+  const seanebId = String(data.seaneb_id || data.seanebId || "").trim();
+  const fullName = String(data.full_name || data.fullName || "").trim();
+
+  const hasExplicitUserVerification =
+    toBool(data.is_user_verified) ||
+    toBool(data.user_verified) ||
+    toBool(data.is_verified) ||
+    toBool(data.verified) ||
+    toBool(data.kyc_verified);
+
+  return {
+    seanebId,
+    userVerified: hasExplicitUserVerification || Boolean(fullName && seanebId),
+    businessVerified: hasBusinessFromProfile(data),
+  };
 };
 
 export const syncBusinessRegistrationCookie = (profile) => {

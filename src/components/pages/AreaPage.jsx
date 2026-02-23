@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
 import BusinessListingPage from "./BusinessListingPage";
+import { locationTw } from "./locationTailwindClasses";
 import {
   getAreas,
   getBusinessesByArea,
@@ -184,26 +185,26 @@ export default function AreaPage({ countrySlug = "in", stateSlug, citySlug, area
     <>
       <MainNavbar />
 
-      <section className="dp-heroDarkFull">
-        <div className="dp-heroInner">
-          <p className="dp-breadcrumb">
+      <section className={locationTw.heroDarkFull}>
+        <div className={locationTw.heroInner}>
+          <p className={locationTw.breadcrumb}>
             Home / {countryName} / {stateName} / {cityName} / {areaName}
           </p>
 
-          <h1 className="dp-heroTitle">Properties in {areaName}</h1>
+          <h1 className={locationTw.heroTitle}>Properties in {areaName}</h1>
 
-          <p className="dp-heroDesc">
+          <p className={locationTw.heroDesc}>
             Explore verified residential and commercial properties in {areaName}, {cityName}. Buy,
             rent, or invest confidently.
           </p>
         </div>
       </section>
 
-      <main className="dp-dynamicContainer">
-        <section className="dp-sectionLight">
-          <h3 className="dp-sectionSubTitle">Why Buy Property in {areaName}?</h3>
+      <main className={locationTw.dynamicContainer}>
+        <section className={locationTw.sectionLight}>
+          <h3 className={locationTw.sectionSubTitle}>Why Buy Property in {areaName}?</h3>
 
-          <ul className="dp-list">
+          <ul className={locationTw.list}>
             <li>Premium residential locality</li>
             <li>Excellent connectivity</li>
             <li>Trusted local agents</li>
@@ -217,19 +218,19 @@ export default function AreaPage({ countrySlug = "in", stateSlug, citySlug, area
           businesses={businesses}
         />
 
-        <section className="dp-cityCtaBanner">
+        <section className={locationTw.ctaBanner}>
           <div>
-            <h3 className="dp-ctaTitle">List Your Property in {areaName}</h3>
-            <p className="dp-ctaDesc">Reach serious buyers and renters in {cityName}.</p>
+            <h3 className={locationTw.ctaTitle}>List Your Property in {areaName}</h3>
+            <p className={locationTw.ctaDesc}>Reach serious buyers and renters in {cityName}.</p>
           </div>
 
-          <Link href="/partner" className="dp-ctaBtn">
+          <Link href="/partner" className={locationTw.ctaBtn}>
             Partner With Us
           </Link>
         </section>
 
-        <div className="dp-backLink">
-          <Link href={buildCityHref(normalizedCountrySlug, stateApiSlug, citySeoSlug)}>
+        <div className={locationTw.backLinkWrap}>
+          <Link className={locationTw.backLink} href={buildCityHref(normalizedCountrySlug, stateApiSlug, citySeoSlug)}>
             Back to {cityName}
           </Link>
         </div>

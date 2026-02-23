@@ -1,13 +1,12 @@
 // product.service.js
 
 import api from "./api";
-import { getCookie, setCookie } from "./cookie";
+import { removeCookie } from "./cookie";
 
 // Single allowed product across app.
 const PRODUCT_KEY = "property";
-const PRODUCT_NAME = "Property";
-const PRODUCT_COOKIE_KEY = "product_key";
-let inMemoryProductKey = "";
+const PRODUCT_NAME = "property";
+let inMemoryProductKey = PRODUCT_KEY;
 
 const normalizeKey = (key) => String(key || "").trim().toLowerCase();
 const isAllowedKey = (key) => normalizeKey(key) === PRODUCT_KEY;
@@ -27,28 +26,11 @@ const selectSingleProperty = (items = []) => {
   return [{ product_key: PRODUCT_KEY, product_name: PRODUCT_NAME }];
 };
 
-const getStoredProductKey = () => {
-  if (inMemoryProductKey) {
-    if (isAllowedKey(inMemoryProductKey)) return inMemoryProductKey;
-    inMemoryProductKey = "";
-  }
-
-  const cookieKey = String(getCookie(PRODUCT_COOKIE_KEY) || "").trim();
-  if (cookieKey && isAllowedKey(cookieKey)) {
-    inMemoryProductKey = cookieKey;
-    return cookieKey;
-  }
-
-  return "";
-};
+const getStoredProductKey = () => (isAllowedKey(inMemoryProductKey) ? inMemoryProductKey : "");
 
 export const setDefaultProductKey = () => {
-  const productKey = PRODUCT_KEY;
-  inMemoryProductKey = productKey;
-  setCookie(PRODUCT_COOKIE_KEY, productKey, {
-    maxAge: 60 * 60 * 24 * 30,
-    path: "/",
-  });
+  inMemoryProductKey = PRODUCT_KEY;
+  removeCookie("product_key");
 };
 
 export const getDefaultProductKey = () => {
@@ -106,3 +88,5 @@ export const getProducts = async () => {
     return selectSingleProperty([]);
   }
 };
+
+

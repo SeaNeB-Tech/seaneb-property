@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { locationTw } from "./locationTailwindClasses";
 
 const PROPERTY_IMAGE = "/assets/propertyimages/image.png";
 
@@ -11,49 +13,53 @@ function formatPrice(value) {
 }
 
 export default function BusinessListingPage({ title, subtitle, businesses = [] }) {
-  return (
-    <section className="dp-wrapper" aria-labelledby="property-listing-title">
-      <header className="dp-header">
-        <h2 id="property-listing-title">{title || "Properties Near You"}</h2>
+  const pathname = usePathname();
 
-        <p>
+  return (
+    <section className={locationTw.wrapper} aria-labelledby="property-listing-title">
+      <header className={locationTw.header}>
+        <h2 id="property-listing-title" className={locationTw.headerTitle}>
+          {title || "Properties Near You"}
+        </h2>
+
+        <p className={locationTw.headerDesc}>
           {subtitle ||
             "Browse verified residential and commercial properties curated for your selected area."}
         </p>
       </header>
 
-      <div className="dp-grid">
+      <div className={locationTw.listingGrid}>
         {businesses.length === 0 ? (
-          <p className="dp-sectionDesc">No businesses found for this location.</p>
+          <p className={locationTw.sectionDesc}>No businesses found for this location.</p>
         ) : (
           businesses.map((business) => (
             <Link
               key={business.id}
-              href={`/${business.slug}`}
-              className="dp-card"
+              href={`/${business.slug}?from=${encodeURIComponent(pathname || "/in")}`}
+              className={locationTw.card}
               aria-label={`View details of ${business.title}`}
             >
-              <div className="dp-imageWrap">
+              <div className={locationTw.imageWrap}>
                 <Image
                   src={business.image || PROPERTY_IMAGE}
                   alt={`${business.title} image`}
                   fill
-                  className="dp-image"
+                  className={locationTw.image}
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
 
-                <span className="dp-badge">{business.type || "Property"}</span>
+                <span className={locationTw.badge}>{business.type || "Property"}</span>
               </div>
 
-              <div className="dp-body">
-                <h3 className="dp-title">{business.title}</h3>
+              <div className={locationTw.cardBody}>
+                <h3 className={locationTw.cardTitle}>{business.title}</h3>
 
-                <p className="dp-location">{business.location || "Location not available"}</p>
+                <p className={locationTw.cardLocation}>{business.location || "Location not available"}</p>
 
-                <div className="dp-footer">
-                  <span className="dp-price">{formatPrice(business.price)}</span>
+                <div className={locationTw.cardFooter}>
+                  <span className={locationTw.cardPrice}>{formatPrice(business.price)}</span>
 
-                  <span className="dp-action">View Details</span>
+                  <span className={locationTw.cardAction}>View Details</span>
                 </div>
               </div>
             </Link>

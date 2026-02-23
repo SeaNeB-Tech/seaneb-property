@@ -1,11 +1,9 @@
 import "../styles/globals.css"
 import GlobalFooter from "@/components/ui/GlobalFooter"
-import Script from "next/script"
 import { SITE_URL } from "@/lib/siteUrl"
 
 const siteUrl = SITE_URL
-const enableServiceWorker = process.env.NEXT_PUBLIC_ENABLE_SW === "true"
-const serviceWorkerScope = process.env.NEXT_PUBLIC_SW_SCOPE || "/"
+const THEME_COLOR = "#BF932A"
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
@@ -60,7 +58,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#d73f57",
+  themeColor: THEME_COLOR,
 }
 
 export default function RootLayout({ children }) {
@@ -72,7 +70,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="SeaNeB" />
-        <meta name="msapplication-TileColor" content="#d73f57" />
+        <meta name="msapplication-TileColor" content={THEME_COLOR} />
         <meta name="msapplication-config" content="/browserconfig.xml" />
         
         {/* Manifest Link */}
@@ -81,19 +79,7 @@ export default function RootLayout({ children }) {
         {/* Icons */}
         <link rel="icon" href="/logos/Fav.svg" />
         <link rel="apple-touch-icon" href="/logos/Fav.svg" />
-        <link rel="mask-icon" href="/logos/light-logo.svg" color="#d73f57" />
-        
-        {enableServiceWorker && (
-          <Script id="sw-register" strategy="afterInteractive">
-            {`
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js', { scope: '${serviceWorkerScope}' });
-                });
-              }
-            `}
-          </Script>
-        )}
+        <link rel="mask-icon" href="/logos/light-logo.svg" color={THEME_COLOR} />
       </head>
       <body className="min-h-screen bg-[var(--layout-body-bg)]">
         <div className="min-h-screen flex flex-col">

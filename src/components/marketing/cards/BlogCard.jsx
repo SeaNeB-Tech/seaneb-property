@@ -4,6 +4,17 @@ import Link from "next/link";
  * Blog card used in blogs grid and popular section.
  */
 export default function BlogCard({ blog }) {
+  const slug = String(blog?.title || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
+  const rawHref = String(blog?.href || "").trim();
+  const href =
+    rawHref.startsWith("/blogs/") && rawHref.length > "/blogs/".length
+      ? rawHref
+      : `/blogs/${slug}`;
+
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="h-36 bg-gradient-to-r from-amber-100 to-orange-100" />
@@ -13,7 +24,7 @@ export default function BlogCard({ blog }) {
         <p className="mt-2 text-sm text-slate-600">{blog.excerpt}</p>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xs text-slate-500">{blog.readTime}</span>
-          <Link href={blog.href} className="text-xs font-semibold text-amber-700 hover:text-amber-800">
+          <Link href={href} className="text-xs font-semibold text-amber-700 hover:text-amber-800">
             Read more
           </Link>
         </div>

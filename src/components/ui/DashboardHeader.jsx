@@ -16,7 +16,7 @@ import { getMyProfile, syncBusinessRegistrationCookie } from "@/services/profile
 import BrandLogo from "./BrandLogo";
 import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
-import { getDefaultProductName } from "@/services/pro.service";
+import { getDefaultProductName } from "@/services/product.service";
 
 export default function DashboardHeader({ showLogout = true }) {
   const router = useRouter();

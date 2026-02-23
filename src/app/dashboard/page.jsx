@@ -5,7 +5,6 @@ import Link from "next/link";
 import DashboardHeader from "@/components/ui/DashboardHeader";
 import Sidebar from "@/components/ui/Sidebar";
 import { getProducts } from "@/services/products.service";
-import { ensureAccessToken } from "@/services/api";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -13,21 +12,34 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadProducts = async () => {
-      await ensureAccessToken();
+    let active = true;
 
+    const loadProducts = async () => {
       try {
         setError("");
         const data = await getProducts();
+        if (!active) return;
+
+        if (Array.isArray(data) && data.length === 0) {
+          // Empty list can be valid. Keep UI as-is.
+          setProducts([]);
+          return;
+        }
+
         setProducts(Array.isArray(data) ? data : []);
-      } catch {
+      } catch (err) {
+        if (!active) return;
         setError("Unable to load products right now.");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     loadProducts();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -39,8 +51,8 @@ export default function DashboardPage() {
           <div className="p-6 md:p-8 lg:p-8">
             <div className="mx-auto max-w-7xl space-y-6">
               <section className="rounded-xl border border-slate-200 bg-white p-6">
-                <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-                <p className="mt-1 text-sm text-slate-600">
+                <h1 className="text-2xl font-bold text-black">Dashboard</h1>
+                <p className="mt-1 text-sm text-black/80">
                   Manage your account, product access, and dashboard modules from here.
                 </p>
               </section>
@@ -57,7 +69,7 @@ export default function DashboardPage() {
 
               <section className="rounded-xl border border-slate-200 bg-white p-6">
                 <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-lg font-semibold text-slate-900">Products From API</h2>
+                  <h2 className="text-lg font-semibold text-black">Products From API</h2>
                   <Link
                     href="/dashboard/products"
                     className="rounded-lg border border-blue-600 bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
@@ -66,10 +78,10 @@ export default function DashboardPage() {
                   </Link>
                 </div>
 
-                {loading && <p className="mt-4 text-sm text-slate-600">Loading products...</p>}
+                {loading && <p className="mt-4 text-sm text-black/75">Loading products...</p>}
                 {!loading && error && <p className="mt-4 text-sm text-rose-600">{error}</p>}
                 {!loading && !error && products.length === 0 && (
-                  <p className="mt-4 text-sm text-slate-600">No products returned by API.</p>
+                  <p className="mt-4 text-sm text-black/75">No products returned by API.</p>
                 )}
 
                 {!loading && !error && products.length > 0 && (
@@ -79,11 +91,8 @@ export default function DashboardPage() {
                         key={String(product?.product_id || product?.id || product?.product_key || index)}
                         className="rounded-lg border border-slate-200 bg-slate-50 p-4"
                       >
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-black">
                           {product?.product_name || "Unnamed Product"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-600">
-                          Key: {product?.product_key || "N/A"}
                         </p>
                       </article>
                     ))}
@@ -101,9 +110,9 @@ export default function DashboardPage() {
 function StatCard({ title, value, subtitle }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
-      <p className="mt-1 text-xs text-slate-600">{subtitle}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-black/65">{title}</p>
+      <p className="mt-2 text-2xl font-bold text-black">{value}</p>
+      <p className="mt-1 text-xs text-black/75">{subtitle}</p>
     </article>
   );
 }

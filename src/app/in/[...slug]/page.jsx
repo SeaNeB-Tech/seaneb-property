@@ -47,6 +47,7 @@ const INDIA_STATE_CODES = new Set([
 ]);
 
 const API_BASE = API_BASE_URL;
+const LOCATION_PRODUCT_KEY = "property";
 
 function toSeoSlug(value) {
   return String(value || "")
@@ -58,7 +59,7 @@ function toSeoSlug(value) {
 
 async function looksLikeIndiaState(slug) {
   try {
-    const response = await fetch(`${API_BASE}/location/property/in/states`, {
+    const response = await fetch(`${API_BASE}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
       cache: "no-store",
     });
     const payload = await response.json();
@@ -71,6 +72,30 @@ async function looksLikeIndiaState(slug) {
     });
   } catch (error) {
     return false;
+  }
+}
+
+async function resolveIndiaStateFromToken(token) {
+  const normalizedToken = toSeoSlug(token);
+  if (!normalizedToken) return null;
+
+  try {
+    const response = await fetch(`${API_BASE}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
+      cache: "no-store",
+    });
+    const payload = await response.json();
+    const states = Array.isArray(payload?.data) ? payload.data : [];
+
+    const match = states.find((state) => {
+      const stateSlug = toSeoSlug(state?.state_slug || state?.slug || "");
+      const stateSeo = toSeoSlug(state?.state_name || state?.name || "");
+      return normalizedToken === stateSlug || normalizedToken === stateSeo;
+    });
+
+    if (!match) return null;
+    return String(match?.state_slug || match?.slug || "").toLowerCase();
+  } catch {
+    return null;
   }
 }
 
@@ -146,22 +171,28 @@ export default async function InSlugPage({ params }) {
       return <CountryPage countrySlug="in" />;
     }
 
-    const cityCodeMatch = one.match(/^(.*)-([a-z]{2})$/i);
-    if (cityCodeMatch && INDIA_STATE_CODES.has(cityCodeMatch[2])) {
-      const citySlug = cityCodeMatch[1];
-      const stateSlug = cityCodeMatch[2];
-      return <CityPage countrySlug="in" stateSlug={stateSlug} citySlug={citySlug} />;
+    const splitAt = one.lastIndexOf("-");
+    if (splitAt > 0) {
+      const left = one.slice(0, splitAt);
+      const right = one.slice(splitAt + 1);
+
+      const cityCodeMatch = one.match(/^(.*)-([a-z]{2})$/i);
+      if (cityCodeMatch && INDIA_STATE_CODES.has(cityCodeMatch[2])) {
+        const citySlug = cityCodeMatch[1];
+        const stateSlug = cityCodeMatch[2];
+        return <CityPage countrySlug="in" stateSlug={stateSlug} citySlug={citySlug} />;
+      }
+
+      const resolvedStateSlug = await resolveIndiaStateFromToken(right);
+      if (resolvedStateSlug) {
+        return <CityPage countrySlug="in" stateSlug={resolvedStateSlug} citySlug={left} />;
+      }
+
+      return <AreaPage countrySlug="in" citySlug={right} areaSlug={left} />;
     }
 
     if (await looksLikeIndiaState(one)) {
       return <StatePage countrySlug="in" stateSlug={one} />;
-    }
-
-    if (one.includes("-")) {
-      const splitAt = one.lastIndexOf("-");
-      const areaSlug = one.slice(0, splitAt);
-      const citySlug = one.slice(splitAt + 1);
-      return <AreaPage countrySlug="in" citySlug={citySlug} areaSlug={areaSlug} />;
     }
 
     return <StatePage countrySlug="in" stateSlug={one} />;

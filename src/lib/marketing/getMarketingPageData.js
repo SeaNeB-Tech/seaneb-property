@@ -14,91 +14,64 @@ import {
   fetchContactPageData,
 } from "@/services/marketing.service";
 
-const HOME_CACHE_SECONDS = 300;
+const REVALIDATE_SECONDS = 300;
 
-const getCachedHomePageData = unstable_cache(
-  async () => fetchHomePageData(),
-  ["marketing-home-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
+const createCachedLoader = (fetcher, cacheKey) =>
+  unstable_cache(fetcher, [cacheKey], { revalidate: REVALIDATE_SECONDS });
 
-const getCachedAboutPageData = unstable_cache(
-  async () => fetchAboutPageData(),
-  ["marketing-about-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
-
-const getCachedSolutionPageData = unstable_cache(
-  async () => fetchSolutionPageData(),
-  ["marketing-solution-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
-
-const getCachedBlogsPageData = unstable_cache(
-  async () => fetchBlogsPageData(),
-  ["marketing-blogs-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
-
-const getCachedPartnerPageData = unstable_cache(
-  async () => fetchPartnerPageData(),
-  ["marketing-partner-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
-
-const getCachedContactPageData = unstable_cache(
-  async () => fetchContactPageData(),
-  ["marketing-contact-page"],
-  { revalidate: HOME_CACHE_SECONDS }
-);
-
-/**
- * Fetches live API data and falls back to local mock JSON.
- */
-export async function getHomePageData() {
+const loadOrFallback = async (loader, fallback) => {
   try {
-    return await getCachedHomePageData();
+    return await loader();
   } catch {
-    return homeMock;
+    return fallback;
   }
+};
+
+const getCachedHomePageData = createCachedLoader(
+  fetchHomePageData,
+  "marketing-home-page"
+);
+const getCachedAboutPageData = createCachedLoader(
+  fetchAboutPageData,
+  "marketing-about-page"
+);
+const getCachedSolutionPageData = createCachedLoader(
+  fetchSolutionPageData,
+  "marketing-solution-page"
+);
+const getCachedBlogsPageData = createCachedLoader(
+  fetchBlogsPageData,
+  "marketing-blogs-page"
+);
+const getCachedPartnerPageData = createCachedLoader(
+  fetchPartnerPageData,
+  "marketing-partner-page"
+);
+const getCachedContactPageData = createCachedLoader(
+  fetchContactPageData,
+  "marketing-contact-page"
+);
+
+export async function getHomePageData() {
+  return loadOrFallback(getCachedHomePageData, homeMock);
 }
 
 export async function getAboutPageData() {
-  try {
-    return await getCachedAboutPageData();
-  } catch {
-    return aboutMock;
-  }
+  return loadOrFallback(getCachedAboutPageData, aboutMock);
 }
 
 export async function getSolutionPageData() {
-  try {
-    return await getCachedSolutionPageData();
-  } catch {
-    return solutionMock;
-  }
+  return loadOrFallback(getCachedSolutionPageData, solutionMock);
 }
 
 export async function getBlogsPageData() {
-  try {
-    return await getCachedBlogsPageData();
-  } catch {
-    return blogsMock;
-  }
+  return loadOrFallback(getCachedBlogsPageData, blogsMock);
 }
 
 export async function getPartnerPageData() {
-  try {
-    return await getCachedPartnerPageData();
-  } catch {
-    return partnerMock;
-  }
+  return loadOrFallback(getCachedPartnerPageData, partnerMock);
 }
 
 export async function getContactPageData() {
-  try {
-    return await getCachedContactPageData();
-  } catch {
-    return contactMock;
-  }
+  return loadOrFallback(getCachedContactPageData, contactMock);
 }

@@ -1,22 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import TempUserAvatar from "./TempUserAvatar";
 import navbarLinks from "@/data/navbarLinks.json";
 import { getCookie } from "@/services/cookie";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
-import {
-  isAuthenticatedByCookies,
-  logoutAndClearAuthSession,
-  subscribeAuthState,
-} from "@/services/authSession.service";
+import { logoutAndClearAuthSession } from "@/services/authSession.service";
+import { useAuthState } from "@/hooks/useAuthState";
 
-function NavbarItem({ item }) {
+function isPathActive(pathname, href) {
+  if (!href || href.startsWith("#") || href.startsWith("http")) return false;
+  if (href === "/home") return pathname === "/" || pathname === "/home";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavbarItem({ item, isActive, onNavigate }) {
   const isExternal = item.href.startsWith("http");
   const isAnchor = item.href.startsWith("#");
   const useAnchorTag = isExternal || item.download || isAnchor;
+  const baseClass =
+    "relative px-3 py-1.5 text-base font-medium transition duration-200";
+  const activeClass = isActive
+    ? "text-white after:absolute after:bottom-[-7px] after:left-1/2 after:h-[2px] after:w-10 after:-translate-x-1/2 after:rounded-full after:bg-amber-300 after:content-['']"
+    : "text-slate-300 hover:text-white after:absolute after:bottom-[-7px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-amber-300 after:transition-all after:duration-200 after:content-[''] hover:after:w-8";
 
   if (useAnchorTag) {
     return (
@@ -25,7 +34,8 @@ function NavbarItem({ item }) {
         download={item.download ? true : undefined}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
-        className="text-sm font-medium hover:text-white transition"
+        className={`${baseClass} ${activeClass}`}
+        onClick={onNavigate}
       >
         {item.name}
       </a>
@@ -33,7 +43,7 @@ function NavbarItem({ item }) {
   }
 
   return (
-    <Link href={item.href} className="text-sm font-medium hover:text-white transition">
+    <Link href={item.href} className={`${baseClass} ${activeClass}`} onClick={onNavigate}>
       {item.name}
     </Link>
   );
@@ -41,16 +51,19 @@ function NavbarItem({ item }) {
 
 export default function MainNavbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const isAuthenticated = useSyncExternalStore(
-    subscribeAuthState,
-    isAuthenticatedByCookies,
-    () => false
-  );
+  const pathname = usePathname();
+  const isHomeRoute = pathname === "/" || pathname === "/home";
+  const isAuthenticated = useAuthState();
   const userEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const userLabel = userEmail || "Guest User";
   const dashboardUrl = "/dashboard";
   const loginUrl = getAuthAppUrl("/auth/login");
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const onClickOutside = (event) => {
@@ -73,55 +86,47 @@ export default function MainNavbar() {
   };
 
   return (
-    <header className="relative z-50 bg-black border-b border-gray-800 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        
-        {/* ================= LEFT: LOGO + LOCATION ================= */}
-        <div className="flex items-center gap-4">
-          {/* Logo */}
+    <header
+      className={`top-0 z-50 border-b border-white/20 backdrop-blur-xl ${
+        isHomeRoute ? "absolute left-0 right-0 bg-transparent" : "sticky bg-[#2a2419]/92"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
           <Link
             href="/home"
-            className="hover:opacity-90 transition"
+            className={`rounded-xl px-2 py-1 transition ${isHomeRoute ? "hover:bg-white/10" : "hover:bg-white/10"}`}
           >
             <BrandLogo
               size={48}
               titleClass="text-white text-lg font-bold"
-              subtitleClass="text-gray-400 text-xs"
+              subtitleClass="text-amber-200/70 text-xs"
               textWrapperClass="block"
               compact
             />
           </Link>
-
-          {/* Location Pill */}
-          <div className="hidden sm:flex items-center ml-4">
-            <span className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow hover:bg-red-700 transition">
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"
-                  fill="#fff"
-                />
-              </svg>
-              Location
+          <div className="hidden sm:flex items-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-200/20 px-3 py-1 text-xs font-semibold text-amber-100">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              India
             </span>
           </div>
         </div>
 
-        {/* ================= CENTER: NAV ================= */}
-        <nav className="hidden lg:flex items-center gap-8 text-gray-300">
+        <nav className="hidden items-center gap-2 lg:flex">
           {navbarLinks.map((item) => (
-            <NavbarItem key={`${item.name}-${item.href}`} item={item} />
+            <NavbarItem
+              key={`${item.name}-${item.href}`}
+              item={item}
+              isActive={isPathActive(pathname, item.href)}
+            />
           ))}
         </nav>
 
-        {/* ================= RIGHT: CTA ================= */}
         <div className="relative flex items-center gap-3" ref={dropdownRef}>
           <Link
             href="#download"
-            className="hidden sm:inline-block bg-white text-black px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition"
+            className="hidden rounded-full border border-amber-300/70 bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 sm:inline-block"
           >
             Get the App
           </Link>
@@ -129,7 +134,7 @@ export default function MainNavbar() {
           <button
             type="button"
             onClick={() => setIsProfileOpen((open) => !open)}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-900 px-2 py-1 text-white transition hover:border-gray-600 hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-white transition hover:border-white/35 hover:bg-white/10"
             aria-label="Profile menu"
           >
             <TempUserAvatar size="sm" />
@@ -194,8 +199,39 @@ export default function MainNavbar() {
               )}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
+            aria-label="Toggle menu"
+          >
+            <span className="text-lg leading-none">{isMobileMenuOpen ? "\u2715" : "\u2261"}</span>
+          </button>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="border-t border-white/15 bg-slate-950/95 px-4 py-3 sm:px-6 lg:hidden">
+          <nav className="grid grid-cols-2 gap-2">
+            {navbarLinks.map((item) => (
+              <NavbarItem
+                key={`mobile-${item.name}-${item.href}`}
+                item={item}
+                isActive={isPathActive(pathname, item.href)}
+                onNavigate={() => setIsMobileMenuOpen(false)}
+              />
+            ))}
+          </nav>
+          <Link
+            href="#download"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="mt-3 block rounded-xl bg-amber-300 px-4 py-2 text-center text-sm font-semibold text-slate-950"
+          >
+            Get the App
+          </Link>
+        </div>
+      )}
     </header>
   );
 }

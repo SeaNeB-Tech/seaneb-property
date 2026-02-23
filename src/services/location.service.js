@@ -1,12 +1,25 @@
 import api from "./api";
-import { getDefaultProductKey } from "./pro.service";
+import { getDefaultProductKey } from "./product.service";
 
-const LOCATION_PRODUCT_PREFIX = "seaneb_";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const locationApi = api;
 
 const memoryCache = new Map();
 const inflightRequests = new Map();
+if (typeof window !== "undefined") {
+  try {
+    const legacyKeys = [];
+    for (let i = 0; i < window.sessionStorage.length; i += 1) {
+      const key = window.sessionStorage.key(i);
+      if (String(key || "").startsWith("/location/")) {
+        legacyKeys.push(key);
+      }
+    }
+    legacyKeys.forEach((key) => window.sessionStorage.removeItem(key));
+  } catch {
+    // ignore storage cleanup errors
+  }
+}
 
 const toText = (value) => String(value || "").trim();
 
@@ -22,7 +35,7 @@ const toTitle = (value) =>
 
 const unique = (list) => Array.from(new Set(list.filter(Boolean)));
 
-const canUseSessionStorage = () => typeof window !== "undefined" && Boolean(window.sessionStorage);
+const canUseSessionStorage = () => false;
 
 const toCacheRecord = (data) => ({ data, expiresAt: Date.now() + CACHE_TTL_MS });
 
@@ -74,13 +87,7 @@ const setCachedData = (path, data) => {
 
 const getProductKeyCandidates = () => {
   const base = toText(getDefaultProductKey()) || "property";
-
-  if (base.startsWith(LOCATION_PRODUCT_PREFIX)) {
-    const withoutPrefix = base.slice(LOCATION_PRODUCT_PREFIX.length);
-    return unique([base, withoutPrefix]);
-  }
-
-  return unique([base, `${LOCATION_PRODUCT_PREFIX}${base}`]);
+  return unique([base]);
 };
 
 const normalizeList = (payload) => {
@@ -190,7 +197,6 @@ const requestLocation = async (pathFactory) => {
       const data = await fetchLocationPath(path);
       return { productKey, data };
     } catch (error) {
-      // Fallback between product_key variants (property vs seaneb_property).
       lastError = error;
     }
   }
@@ -296,7 +302,7 @@ const normalizeBusiness = (item) => {
     title: toText(name),
     slug: toText(slug),
     location: toText(location),
-    type: toText(row.business_type || row.category || row.type || "Property"),
+    type: toText(row.business_type || row.category || row.type || "property"),
     price: toText(rawPrice),
     image:
       row.business_logo ||
@@ -340,3 +346,5 @@ export const getBusinessDetailsBySeanebId = async (seanebId) => {
   const first = normalizeBusinessDetailPayload(result?.data);
   return first || null;
 };
+
+

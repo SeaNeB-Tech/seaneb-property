@@ -33,8 +33,8 @@ export default function BrokerDashboardPage() {
           <div className="p-6 md:p-8 lg:p-8">
             <div className="mx-auto max-w-7xl space-y-6">
               <section className="rounded-xl border border-slate-200 bg-white p-6">
-                <h1 className="text-2xl font-bold text-slate-900">Business Dashboard</h1>
-                <p className="mt-1 text-sm text-slate-600">
+                <h1 className="text-2xl font-bold text-black">Business Dashboard</h1>
+                <p className="mt-1 text-sm text-black/80">
                   Manage broker operations, listings, and leads in business mode.
                 </p>
               </section>
@@ -54,9 +54,8 @@ export default function BrokerDashboardPage() {
 function Card({ title, value }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="mt-2 text-lg font-bold text-slate-900">{value}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-black/65">{title}</p>
+      <p className="mt-2 text-lg font-bold text-black">{value}</p>
     </article>
   );
 }
-

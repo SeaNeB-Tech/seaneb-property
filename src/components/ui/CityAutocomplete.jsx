@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getCities } from "@/services/city.services";
+import { getCities } from "@/services/city.service";
 
 export default function AutoComplete({
   value,
@@ -116,3 +116,4 @@ export default function AutoComplete({
     </div>
   );
 }
+

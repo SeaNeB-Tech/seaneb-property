@@ -11,6 +11,8 @@ export default function PartnerRegistrationForm() {
   const [success, setSuccess] = useState(false);
 
   function handleChange(event) {
+    if (error) setError("");
+    if (success) setSuccess(false);
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   }
 
@@ -24,6 +26,7 @@ export default function PartnerRegistrationForm() {
     }
 
     setError("");
+    setForm({ name: "", email: "", company: "", partnerType: "Broker" });
     setSuccess(true);
   }
 

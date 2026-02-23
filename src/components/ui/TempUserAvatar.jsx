@@ -11,7 +11,7 @@ export default function TempUserAvatar({ size = "md", className = "" }) {
 
   return (
     <span
-      className={`relative inline-flex ${sizeClass} items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 shadow-[0_8px_20px_rgba(37,99,235,0.35)] ${className}`}
+      className={`relative inline-flex ${sizeClass} items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 shadow-[0_8px_20px_var(--shadow-avatar-glow)] ${className}`}
       aria-hidden="true"
     >
       <svg viewBox="0 0 24 24" fill="none" className="h-[68%] w-[68%] text-white">
