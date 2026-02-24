@@ -80,7 +80,8 @@ const isEssentialCookieName = (name) => {
     key === "refresh_token_property" ||
     key === "refesh_token" ||
     key === "csrf_token" ||
-    key === "csrf_token_property"
+    key === "csrf_token_property" ||
+    key === "post_otp_verified"
   );
 };
 

@@ -1,7 +1,8 @@
 import api from "./api";
 import { setCookie } from "./cookie";
 import { getDefaultProductKey } from "./product.service";
-import { getInMemoryAccessToken } from "@/lib/api/client";
+import { getInMemoryAccessToken, hasCsrfCookie } from "@/lib/api/client";
+import { refreshAccessToken } from "@/services/api";
 
 const resolveProductKey = () => getDefaultProductKey();
 
@@ -13,14 +14,28 @@ const toBool = (value) => {
 };
 
 export const getMyProfile = async () => {
-  const accessToken = getInMemoryAccessToken();
+  let accessToken = getInMemoryAccessToken();
+  if (!accessToken) {
+    // Avoid refresh attempts for guests on public pages.
+    if (!hasCsrfCookie()) {
+      throw new Error("Missing auth hints for profile request");
+    }
+    try {
+      await refreshAccessToken();
+      accessToken = getInMemoryAccessToken();
+    } catch {
+      // Keep request attempt below; caller handles unauthorized state.
+    }
+  }
+
+  if (!accessToken) {
+    throw new Error("Missing access token for profile request");
+  }
+
   const headers = {
     "x-product-key": resolveProductKey(),
+    Authorization: `Bearer ${accessToken}`,
   };
-
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
 
   const res = await api.get("/profile/me", { headers, skipAuthRedirect: true });
   return res?.data?.data || null;
@@ -42,10 +57,60 @@ export const hasBusinessFromProfile = (profile) => {
 
   if (typeof data.business_count === "number" && data.business_count > 0) return true;
 
-  if (data.business_id || data.business_uuid || data.business_slug) return true;
+  if (
+    data.business_id ||
+    data.business_uuid ||
+    data.business_slug ||
+    data.branch_id ||
+    data.branch_uuid ||
+    data.branch_slug ||
+    data.broker_id ||
+    data.company_id
+  ) {
+    return true;
+  }
 
   if (Array.isArray(data.businesses) && data.businesses.length > 0) return true;
   if (Array.isArray(data.user_businesses) && data.user_businesses.length > 0) return true;
+  if (Array.isArray(data.branches) && data.branches.length > 0) return true;
+  if (Array.isArray(data.user_branches) && data.user_branches.length > 0) return true;
+  if (Array.isArray(data.branch_list) && data.branch_list.length > 0) return true;
+
+  if (data.business && typeof data.business === "object") {
+    if (
+      data.business.id ||
+      data.business.business_id ||
+      data.business.uuid ||
+      data.business.branch_id
+    ) {
+      return true;
+    }
+  }
+
+  if (data.branch && typeof data.branch === "object") {
+    if (
+      data.branch.id ||
+      data.branch.branch_id ||
+      data.branch.uuid ||
+      data.branch.business_id
+    ) {
+      return true;
+    }
+  }
+
+  const roleHint = String(
+    data.role || data.user_role || data.user_type || data.account_type || ""
+  )
+    .trim()
+    .toLowerCase();
+  if (
+    roleHint.includes("broker") ||
+    roleHint.includes("business") ||
+    roleHint.includes("builder") ||
+    roleHint.includes("agent")
+  ) {
+    return true;
+  }
 
   return false;
 };

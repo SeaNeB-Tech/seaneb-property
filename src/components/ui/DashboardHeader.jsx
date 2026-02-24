@@ -73,19 +73,6 @@ export default function DashboardHeader({ showLogout = true }) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const handleSwitchAccount = async () => {
-    try {
-      setIsLoading(true);
-      await logoutAndClearAuthSession();
-      router.push("/");
-    } catch (err) {
-      console.error("Switch account error:", err);
-    } finally {
-      setIsLoading(false);
-      setIsProfileOpen(false);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       setIsLoading(true);
@@ -176,24 +163,24 @@ export default function DashboardHeader({ showLogout = true }) {
               <p className="mt-1 truncate text-sm font-semibold text-gray-900">{userDisplayName}</p>
               <p className="mt-1 truncate text-xs font-medium text-gray-500">{productName}</p>
               <p className="mt-1 truncate text-xs text-gray-600">{userEmail}</p>
+              {dashboardMode !== DASHBOARD_MODE_BUSINESS && (
+                <button
+                  type="button"
+                  onClick={handleModeSwitch}
+                  className="mt-4 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+                >
+                  {hasBusiness ? "Switch to Business Dashboard" : "Business Register"}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleModeSwitch}
-                className="mt-4 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  router.push("/home");
+                }}
+                className="mt-3 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
               >
-                {dashboardMode === DASHBOARD_MODE_BUSINESS
-                  ? "Switch to User Dashboard"
-                  : hasBusiness
-                    ? "Switch to Business Dashboard"
-                    : "Business Register"}
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={handleSwitchAccount}
-                className="mt-3 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50"
-              >
-                Switch Account
+                Visit Listings Home
               </button>
               {showLogout && (
                 <button

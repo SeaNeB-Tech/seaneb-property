@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
@@ -10,6 +11,19 @@ import { getCookie } from "@/services/cookie";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import { useAuthState } from "@/hooks/useAuthState";
+import {
+  getMyProfile,
+  hasBusinessFromProfile,
+  syncBusinessRegistrationCookie,
+} from "@/services/profile.service";
+
+const hasBusinessCookieHint = () => {
+  const registered = String(getCookie("business_registered") || "").trim().toLowerCase();
+  if (registered === "true" || registered === "1" || registered === "yes") return true;
+  if (String(getCookie("branch_id") || "").trim()) return true;
+  if (String(getCookie("business_id") || "").trim()) return true;
+  return false;
+};
 
 function isPathActive(pathname, href) {
   if (!href || href.startsWith("#") || href.startsWith("http")) return false;
@@ -52,18 +66,39 @@ function NavbarItem({ item, isActive, onNavigate }) {
 export default function MainNavbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const dropdownRef = useRef(null);
   const pathname = usePathname();
   const isHomeRoute = pathname === "/" || pathname === "/home";
   const isAuthenticated = useAuthState();
-  const userEmail = getCookie("verified_email") || getCookie("user_email") || "";
-  const userLabel = userEmail || "Guest User";
-  const dashboardUrl = "/dashboard";
+  const [profile, setProfile] = useState(null);
+  const [hasBusiness, setHasBusiness] = useState(() => hasBusinessCookieHint());
+  const fallbackEmail = getCookie("verified_email") || getCookie("user_email") || "";
+  const fallbackSeaNebId = getCookie("seaneb_id") || "";
+  const userEmail = profile?.email || fallbackEmail;
+  const userName = profile?.full_name || profile?.first_name || userEmail || "User";
+  const userSeaNebId = String(profile?.seaneb_id || fallbackSeaNebId || "").trim();
+  const profilePhoto = String(profile?.profile_photo || "").trim();
+  const profileUrl = "/dashboard/broker";
+  const registerBusinessUrl = getAuthAppUrl("/auth/business-register");
   const loginUrl = getAuthAppUrl("/auth/login");
+  const canShowAuthenticated = hydrated && isAuthenticated;
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setHasScrolled(window.scrollY > 18);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     const onClickOutside = (event) => {
@@ -77,6 +112,36 @@ export default function MainNavbar() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadProfile = async () => {
+      if (!hydrated || !isAuthenticated) {
+        if (!active) return;
+        setProfile(null);
+        setHasBusiness(false);
+        return;
+      }
+
+      try {
+        const data = await getMyProfile();
+        if (!active) return;
+        setProfile(data || null);
+        const business = hasBusinessFromProfile(data || {});
+        setHasBusiness(business);
+        syncBusinessRegistrationCookie(data || {});
+      } catch {
+        if (!active) return;
+        setHasBusiness(hasBusinessCookieHint());
+      }
+    };
+
+    void loadProfile();
+    return () => {
+      active = false;
+    };
+  }, [hydrated, isAuthenticated, pathname]);
+
   const handleLogout = async () => {
     try {
       await logoutAndClearAuthSession();
@@ -86,9 +151,12 @@ export default function MainNavbar() {
   };
 
   return (
+    <>
     <header
-      className={`top-0 z-50 border-b border-white/20 backdrop-blur-xl ${
-        isHomeRoute ? "absolute left-0 right-0 bg-transparent" : "sticky bg-[#2a2419]/92"
+      className={`fixed inset-x-0 top-0 z-[120] overflow-visible border-b border-white/20 backdrop-blur-xl ${
+        isHomeRoute
+          ? `${hasScrolled ? "bg-[#2a2419]/92 shadow-md" : "bg-transparent"}`
+          : "bg-[#2a2419]/92 shadow-sm"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -137,62 +205,102 @@ export default function MainNavbar() {
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-2 py-1 text-white transition hover:border-white/35 hover:bg-white/10"
             aria-label="Profile menu"
           >
-            <TempUserAvatar size="sm" />
+            {profilePhoto ? (
+              <span className="inline-flex h-8 w-8 overflow-hidden rounded-full border border-white/20 bg-white/15">
+                <Image
+                  src={profilePhoto}
+                  alt={userName || "Profile"}
+                  width={32}
+                  height={32}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              </span>
+            ) : (
+              <TempUserAvatar size="sm" />
+            )}
             <span className="hidden pr-1 text-xs font-semibold sm:inline">
-              {isAuthenticated ? "Account" : "Sign In"}
+              {canShowAuthenticated ? "Account" : "Sign In"}
             </span>
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 top-14 z-50 w-[min(92vw,21rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_22px_50px_rgba(2,6,23,0.25)]">
-              {isAuthenticated ? (
+            <div className="absolute right-0 top-[calc(100%+0.6rem)] z-[100] max-h-[80vh] w-[min(92vw,22.5rem)] overflow-y-auto rounded-2xl border border-white/10 bg-[#0f1116] text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+              {canShowAuthenticated ? (
                 <>
-                  <div className="bg-gradient-to-r from-sky-50 to-indigo-50 px-5 py-4">
+                  <div className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <TempUserAvatar size="lg" />
+                      {profilePhoto ? (
+                        <span className="inline-flex h-12 w-12 overflow-hidden rounded-full border border-white/20 bg-white/10">
+                          <Image
+                            src={profilePhoto}
+                            alt={userName || "Profile"}
+                            width={48}
+                            height={48}
+                            className="h-full w-full object-cover"
+                            unoptimized
+                          />
+                        </span>
+                      ) : (
+                        <TempUserAvatar size="lg" />
+                      )}
                       <div className="min-w-0">
-                        <p className="truncate text-base font-bold text-slate-900">{userLabel}</p>
-                        <p className="truncate text-xs text-slate-500">{userEmail || "Signed in user"}</p>
+                        <p className="truncate text-[1.1rem] font-semibold text-white">{userName}</p>
+                        <p className="truncate text-sm text-slate-300">
+                          {userSeaNebId ? `SeaNeB ID: ${userSeaNebId}` : userEmail || "Signed in user"}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  <div className="p-2">
+                  <div className="grid grid-cols-2 gap-3 border-t border-white/10 px-4 py-4">
                     <Link
-                      href={dashboardUrl}
+                      href={hasBusiness ? profileUrl : registerBusinessUrl}
                       onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+                      className="flex min-h-[96px] flex-col items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center transition hover:border-white/20 hover:bg-white/[0.08]"
                     >
-                      <span>My Account</span>
-                      <span className="text-slate-400">{"\u203A"}</span>
+                      <span className="text-xl leading-none text-slate-200">{"\u25A6"}</span>
+                      <span className="mt-3 text-[1.65rem] leading-none text-slate-300">
+                        {"\u2192"}
+                      </span>
+                      <span className="mt-2 text-[1.05rem] font-semibold leading-tight text-white">
+                        {hasBusiness ? "Switch to Business" : "Register Business"}
+                      </span>
                     </Link>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                      className="flex min-h-[96px] flex-col items-center justify-center rounded-xl border border-rose-500/35 bg-rose-950/40 px-3 py-3 text-center transition hover:border-rose-400/50 hover:bg-rose-900/50"
                     >
-                      <span>Sign Out</span>
-                      <span className="text-rose-300">{"\u203A"}</span>
+                      <span className="text-xl leading-none text-rose-200">{"\u21AA"}</span>
+                      <span className="mt-3 text-[1.65rem] leading-none text-rose-200">
+                        {"\u2192"}
+                      </span>
+                      <span className="mt-2 text-[1.05rem] font-semibold leading-tight text-rose-100">
+                        Logout
+                      </span>
                     </button>
-                    <p className="px-3 pb-1 pt-2 text-[11px] font-medium text-slate-400">Temporary profile logo enabled</p>
+                  </div>
+                  <div className="border-t border-white/10 px-4 py-2 text-center text-sm font-medium text-slate-400">
+                    SeaNeB Account
                   </div>
                 </>
               ) : (
                 <div className="p-4">
-                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
                     <TempUserAvatar size="lg" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900">Welcome to SeaNeB</p>
-                      <p className="text-xs text-slate-500">Access your account to continue</p>
+                      <p className="text-sm font-bold text-white">Welcome to SeaNeB</p>
+                      <p className="text-xs text-slate-400">Access your account to continue</p>
                     </div>
                   </div>
                   <Link
                     href={loginUrl}
                     onClick={() => setIsProfileOpen(false)}
-                    className="mt-3 block rounded-xl bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+                    className="mt-3 block rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
                   >
                     Sign In
                   </Link>
-                  <p className="mt-2 text-center text-[11px] text-slate-400">
+                  <p className="mt-2 text-center text-[11px] text-slate-500">
                     Temporary person logo is shown until user photo is added
                   </p>
                 </div>
@@ -233,6 +341,8 @@ export default function MainNavbar() {
         </div>
       )}
     </header>
+    {!isHomeRoute && <div className="h-[74px]" aria-hidden="true" />}
+    </>
   );
 }
 

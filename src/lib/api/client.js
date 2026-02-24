@@ -5,8 +5,18 @@ import { getAuthAppUrl } from "@/lib/authAppUrl";
 
 const REFRESH_ENDPOINT = "/auth/refresh";
 const DEFAULT_PRODUCT_KEY = "property";
+const ACCESS_TOKEN_STORAGE_KEY = "access_token_property";
 
-let inMemoryAccessToken = "";
+const readStoredAccessToken = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+};
+
+let inMemoryAccessToken = readStoredAccessToken();
 let refreshPromise = null;
 let lastRefreshStatus = "idle";
 let lastRefreshAt = 0;
@@ -39,7 +49,18 @@ const getProductKey = () =>
     .trim();
 
 const setAccessToken = (token) => {
-  inMemoryAccessToken = String(token || "").trim();
+  const safeToken = String(token || "").trim();
+  inMemoryAccessToken = safeToken;
+  if (typeof window === "undefined") return;
+  try {
+    if (safeToken) {
+      window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, safeToken);
+    } else {
+      window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors and keep in-memory token.
+  }
 };
 
 const redirectToLogin = () => {
@@ -78,19 +99,14 @@ const refreshClient = axios.create({
 const performRefreshAccessToken = async () => {
   const productKey = getProductKey();
   const csrf = getCsrfToken();
-  if (!csrf) {
-    lastRefreshStatus = "failed";
-    lastRefreshAt = Date.now();
-    lastRefreshHttpStatus = 0;
-    lastRefreshError = "Missing csrf_token_property cookie";
-    throw new Error("Missing csrf_token_property cookie");
-  }
+  const existingAccessToken = getAccessToken();
 
   let lastError = null;
   const headers = {
     "x-product-key": productKey,
-    "x-csrf-token": csrf,
   };
+  if (csrf) headers["x-csrf-token"] = csrf;
+  if (existingAccessToken) headers.Authorization = `Bearer ${existingAccessToken}`;
 
   try {
     lastRefreshStatus = "pending";
@@ -100,7 +116,12 @@ const performRefreshAccessToken = async () => {
     const res = await refreshClient.post(
       REFRESH_ENDPOINT,
       { product_key: productKey },
-      { headers }
+      {
+        headers,
+        // Ensure browser sends refresh token cookie with refresh request.
+        withCredentials: true,
+        credentials: "include",
+      }
     );
 
     const token = readToken(res);
@@ -134,13 +155,6 @@ export const ensureAccessToken = async () => {
 export const hasCsrfCookie = () => Boolean(getCsrfToken());
 
 export const refreshAccessToken = async () => {
-  if (!hasCsrfCookie()) {
-    lastRefreshStatus = "failed";
-    lastRefreshAt = Date.now();
-    lastRefreshHttpStatus = 0;
-    lastRefreshError = "Missing csrf_token_property cookie";
-    throw new Error("Missing csrf_token_property cookie");
-  }
   if (!refreshPromise) {
     refreshPromise = performRefreshAccessToken().finally(() => {
       refreshPromise = null;
@@ -171,8 +185,15 @@ api.interceptors.response.use(
     const original = error?.config || {};
     const status = error?.response?.status;
     const isRefreshRequest = String(original?.url || "").includes(REFRESH_ENDPOINT);
+    const hasAccessTokenHint = Boolean(getAccessToken());
+    const hasCsrfHint = Boolean(getCsrfToken());
+    const shouldAttemptRefresh =
+      (original?.requireAuth === true || hasAccessTokenHint || hasCsrfHint);
 
     if (status !== 401 || original._retry || isRefreshRequest) {
+      return Promise.reject(error);
+    }
+    if (!shouldAttemptRefresh) {
       return Promise.reject(error);
     }
 

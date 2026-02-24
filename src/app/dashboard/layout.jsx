@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { checkAuthenticatedSession } from "@/services/authSession.service";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { getCookie, removeCookie } from "@/services/cookie";
+import {
+  getMyProfile,
+  hasBusinessFromProfile,
+  syncBusinessRegistrationCookie,
+} from "@/services/profile.service";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -41,6 +46,21 @@ export default function DashboardLayout({ children }) {
           return;
         }
         router.replace(getAuthAppUrl("/auth/login"));
+        return;
+      }
+
+      let isBrokerUser = false;
+      try {
+        const profile = await getMyProfile();
+        isBrokerUser = hasBusinessFromProfile(profile || {});
+        syncBusinessRegistrationCookie(profile || {});
+      } catch {
+        isBrokerUser =
+          String(getCookie("business_registered") || "").trim().toLowerCase() === "true";
+      }
+
+      if (!isBrokerUser) {
+        router.replace("/home");
         return;
       }
 

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 1001",
+    "dev": "node scripts/run-next-with-env-port.mjs dev NEXT_PUBLIC_SITE_URL 8877",
     "build": "next build",
-    "start": "next start -p 1001",
+    "start": "node scripts/run-next-with-env-port.mjs start NEXT_PUBLIC_SITE_URL 8877",
     "lint": "eslint",
     "generate:about-images": "powershell -ExecutionPolicy Bypass -File scripts/generate-about-anime-images.ps1"
   },
