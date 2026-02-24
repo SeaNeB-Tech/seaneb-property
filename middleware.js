@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const normalizeUrl = (value) => String(value || "").replace(/\/+$/, "");
 
 const AUTH_APP_BASE_URL = normalizeUrl(
-  process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://localhost:3000"
+  process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://159.65.154.221:1002/"
 );
 const REFRESH_COOKIE_KEYS = [
   "refresh_token_property",

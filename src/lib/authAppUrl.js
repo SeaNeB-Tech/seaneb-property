@@ -1,5 +1,5 @@
 const ENV_AUTH_APP_URL = process.env.NEXT_PUBLIC_AUTH_APP_URL;
-const PROD_AUTH_APP_URL = "http://localhost:3000";
+const PROD_AUTH_APP_URL = "http://159.65.154.221:1002/";
 
 const normalizeUrl = (value) => String(value || "").replace(/\/+$/, "");
 
