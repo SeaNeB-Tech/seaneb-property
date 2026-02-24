@@ -7,6 +7,7 @@ import SectionHeading from "@/components/marketing/shared/SectionHeading";
  */
 export default function CountriesSection({ countries = [], title, description }) {
   if (!countries.length) return null;
+  const primaryCountryName = String(countries[0]?.name || "India").trim() || "India";
 
   const getCountryHref = (country) => {
     const code = String(country?.code || "").toLowerCase();
@@ -14,18 +15,14 @@ export default function CountriesSection({ countries = [], title, description })
     return code ? `/in/${code}` : "/in";
   };
 
-  const sortedCountries = [...countries].sort((a, b) => {
-    if (a.name === "India") return -1;
-    if (b.name === "India") return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const sortedCountries = [...countries].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <SectionHeading
-        eyebrow="India"
+        eyebrow={primaryCountryName}
         title={title || "Available Location"}
-        description={description || "Explore listings across India."}
+        description={description || `Explore listings across ${primaryCountryName}.`}
       />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

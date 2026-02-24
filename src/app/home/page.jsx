@@ -77,6 +77,13 @@ export default async function HomePage() {
     // Keep fallback countries when API call fails.
   }
 
+  const primaryCountry = countriesToShow[0] || { name: "India", code: "in" };
+  const primaryCountryName = String(primaryCountry?.name || "India").trim() || "India";
+  const primaryCountryCode = String(primaryCountry?.code || "").trim().toLowerCase();
+  const primaryCountryHref = primaryCountryCode && primaryCountryCode !== "in"
+    ? `/in/${primaryCountryCode}`
+    : "/in";
+
   return (
     <MarketingPageShell>
       <section className="relative min-h-[640px] overflow-hidden text-white">
@@ -101,7 +108,7 @@ export default async function HomePage() {
             </p>
             <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-extrabold leading-tight sm:text-5xl lg:text-[56px] lg:leading-[1.05]">
               Find Verified Properties
-              <span className="block">Across India</span>
+              <span className="block">{`Across ${primaryCountryName}`}</span>
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-100 sm:text-[15px]">
               {data.hero.description}
@@ -149,23 +156,23 @@ export default async function HomePage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-5xl font-bold text-slate-900">Available Location</h2>
-              <p className="mt-2 text-sm text-slate-600">{data.countriesSection?.description || "Explore listings across India."}</p>
+              <p className="mt-2 text-sm text-slate-600">{data.countriesSection?.description || `Explore listings across ${primaryCountryName}.`}</p>
             </div>
-            <Link href="/in" className="hidden text-sm font-semibold text-slate-700 hover:text-slate-900 sm:inline-flex">
-              View India locations {"->"}
+            <Link href={primaryCountryHref} className="hidden text-sm font-semibold text-slate-700 hover:text-slate-900 sm:inline-flex">
+              {`View ${primaryCountryName} locations ->`}
             </Link>
           </div>
 
           <div className="mt-8 w-full max-w-[220px] rounded-2xl border border-[#d7bc7a] bg-[#f4ecd8] px-4 py-2.5">
-            <Link href="/in" className="flex items-center gap-2">
+            <Link href={primaryCountryHref} className="flex items-center gap-2">
               <Image
                 src={countriesToShow[0]?.flag || "/assets/countries/flags/in.png"}
-                alt="India flag"
+                alt={`${primaryCountryName} flag`}
                 width={28}
                 height={20}
                 className="h-5 w-7 rounded-[3px] object-cover"
               />
-              <span className="text-sm font-semibold text-slate-800">{countriesToShow[0]?.name || "India"}</span>
+              <span className="text-sm font-semibold text-slate-800">{primaryCountryName}</span>
             </Link>
           </div>
         </div>

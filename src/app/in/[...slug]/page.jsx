@@ -4,7 +4,7 @@ import CountryPage from "@/components/pages/CountryPage";
 import StatePage from "@/components/pages/StatePage";
 import CityPage from "@/components/pages/CityPage";
 import AreaPage from "@/components/pages/AreaPage";
-import { API_BASE_URL } from "@/lib/apiBaseUrl";
+import { API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/apiBaseUrl";
 
 const INDIA_STATE_CODES = new Set([
   "an",
@@ -46,7 +46,9 @@ const INDIA_STATE_CODES = new Set([
   "wb",
 ]);
 
-const API_BASE = API_BASE_URL;
+const API_BASE_CANDIDATES = Array.from(
+  new Set([API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL].filter(Boolean))
+);
 const LOCATION_PRODUCT_KEY = "property";
 
 function toSeoSlug(value) {
@@ -58,45 +60,55 @@ function toSeoSlug(value) {
 }
 
 async function looksLikeIndiaState(slug) {
-  try {
-    const response = await fetch(`${API_BASE}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
-      cache: "no-store",
-    });
-    const payload = await response.json();
-    const states = Array.isArray(payload?.data) ? payload.data : [];
+  for (const apiBase of API_BASE_CANDIDATES) {
+    try {
+      const response = await fetch(`${apiBase}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
+        cache: "no-store",
+      });
+      if (!response.ok) continue;
+      const payload = await response.json();
+      const states = Array.isArray(payload?.data) ? payload.data : [];
 
-    return states.some((state) => {
-      const stateSlug = String(state?.state_slug || state?.slug || "").toLowerCase();
-      const stateSeo = toSeoSlug(state?.state_name || state?.name || stateSlug);
-      return slug === stateSlug || slug === stateSeo;
-    });
-  } catch (error) {
-    return false;
+      return states.some((state) => {
+        const stateSlug = String(state?.state_slug || state?.slug || "").toLowerCase();
+        const stateSeo = toSeoSlug(state?.state_name || state?.name || stateSlug);
+        return slug === stateSlug || slug === stateSeo;
+      });
+    } catch {
+      // Try secondary backend URL.
+    }
   }
+
+  return false;
 }
 
 async function resolveIndiaStateFromToken(token) {
   const normalizedToken = toSeoSlug(token);
   if (!normalizedToken) return null;
 
-  try {
-    const response = await fetch(`${API_BASE}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
-      cache: "no-store",
-    });
-    const payload = await response.json();
-    const states = Array.isArray(payload?.data) ? payload.data : [];
+  for (const apiBase of API_BASE_CANDIDATES) {
+    try {
+      const response = await fetch(`${apiBase}/location/${LOCATION_PRODUCT_KEY}/in/states`, {
+        cache: "no-store",
+      });
+      if (!response.ok) continue;
+      const payload = await response.json();
+      const states = Array.isArray(payload?.data) ? payload.data : [];
 
-    const match = states.find((state) => {
-      const stateSlug = toSeoSlug(state?.state_slug || state?.slug || "");
-      const stateSeo = toSeoSlug(state?.state_name || state?.name || "");
-      return normalizedToken === stateSlug || normalizedToken === stateSeo;
-    });
+      const match = states.find((state) => {
+        const stateSlug = toSeoSlug(state?.state_slug || state?.slug || "");
+        const stateSeo = toSeoSlug(state?.state_name || state?.name || "");
+        return normalizedToken === stateSlug || normalizedToken === stateSeo;
+      });
 
-    if (!match) return null;
-    return String(match?.state_slug || match?.slug || "").toLowerCase();
-  } catch {
-    return null;
+      if (!match) continue;
+      return String(match?.state_slug || match?.slug || "").toLowerCase();
+    } catch {
+      // Try secondary backend URL.
+    }
   }
+
+  return null;
 }
 
 function toTitle(slug) {

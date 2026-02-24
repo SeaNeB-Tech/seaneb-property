@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import CountryPage from "@/components/pages/CountryPage";
-import { API_BASE_URL } from "@/lib/apiBaseUrl";
+import { API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/apiBaseUrl";
 
 const LOCATION_PRODUCT_KEYS = [
   "property",
@@ -26,9 +26,21 @@ const getList = (payload) => {
 };
 
 async function fetchJson(path) {
-  const response = await fetch(`${API_BASE_URL}${path}`, { cache: "no-store" });
-  if (!response.ok) return null;
-  return response.json();
+  const candidates = Array.from(
+    new Set([API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL].filter(Boolean))
+  );
+
+  for (const baseUrl of candidates) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, { cache: "no-store" });
+      if (!response.ok) continue;
+      return await response.json();
+    } catch {
+      // Try secondary backend URL.
+    }
+  }
+
+  return null;
 }
 
 async function resolveSearchRoute(rawQuery) {

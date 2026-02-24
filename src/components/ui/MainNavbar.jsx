@@ -11,6 +11,7 @@ import { getCookie } from "@/services/cookie";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import { useAuthState } from "@/hooks/useAuthState";
+import { getCountries } from "@/services/location.service";
 import {
   getMyProfile,
   hasBusinessFromProfile,
@@ -74,6 +75,7 @@ export default function MainNavbar() {
   const isAuthenticated = useAuthState();
   const [profile, setProfile] = useState(null);
   const [hasBusiness, setHasBusiness] = useState(() => hasBusinessCookieHint());
+  const [countryBadgeName, setCountryBadgeName] = useState("");
   const fallbackEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const fallbackSeaNebId = getCookie("seaneb_id") || "";
   const userEmail = profile?.email || fallbackEmail;
@@ -142,6 +144,27 @@ export default function MainNavbar() {
     };
   }, [hydrated, isAuthenticated, pathname]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadCountryBadge = async () => {
+      try {
+        const countries = await getCountries();
+        if (!active) return;
+        const firstName = String(countries?.[0]?.name || "").trim();
+        setCountryBadgeName(firstName || "India");
+      } catch {
+        if (!active) return;
+        setCountryBadgeName("India");
+      }
+    };
+
+    void loadCountryBadge();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logoutAndClearAuthSession();
@@ -174,9 +197,9 @@ export default function MainNavbar() {
             />
           </Link>
           <div className="hidden sm:flex items-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-200/20 px-3 py-1 text-xs font-semibold text-amber-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
-              India
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-200/20 px-3 py-1 text-xs font-semibold text-amber-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              {countryBadgeName || "India"}
             </span>
           </div>
         </div>

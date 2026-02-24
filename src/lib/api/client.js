@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import { API_BASE_URL } from "@/lib/apiBaseUrl";
+import { API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/apiBaseUrl";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 
 const REFRESH_ENDPOINT = "/auth/refresh";
@@ -22,6 +22,7 @@ let lastRefreshStatus = "idle";
 let lastRefreshAt = 0;
 let lastRefreshHttpStatus = 0;
 let lastRefreshError = "";
+const TRANSIENT_BACKEND_STATUSES = new Set([500, 502, 503, 504, 522, 524]);
 
 const getCookie = (name) => {
   if (typeof document === "undefined") return "";
@@ -96,6 +97,26 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
+const shouldAttemptBackendFailover = (error, originalConfig = {}) => {
+  if (originalConfig?._backendFailoverAttempted) return false;
+  if (!API_REMOTE_FALLBACK_BASE_URL) return false;
+  const status = Number(error?.response?.status || 0);
+  const networkFailure = !error?.response;
+  return networkFailure || TRANSIENT_BACKEND_STATUSES.has(status);
+};
+
+const retryWithBackendFailover = async (client, error) => {
+  const originalConfig = error?.config || {};
+  if (!shouldAttemptBackendFailover(error, originalConfig)) {
+    throw error;
+  }
+
+  originalConfig._backendFailoverAttempted = true;
+  originalConfig.baseURL = API_REMOTE_FALLBACK_BASE_URL;
+  originalConfig.withCredentials = true;
+  return client(originalConfig);
+};
+
 const performRefreshAccessToken = async () => {
   const productKey = getProductKey();
   const csrf = getCsrfToken();
@@ -133,14 +154,26 @@ const performRefreshAccessToken = async () => {
     lastRefreshError = "";
     return true;
   } catch (err) {
-    lastError = err;
+    try {
+      const res = await retryWithBackendFailover(refreshClient, err);
+      const token = readToken(res);
+      if (!token) throw new Error("No access token from refresh");
+      setAccessToken(token);
+      lastRefreshStatus = "success";
+      lastRefreshAt = Date.now();
+      lastRefreshHttpStatus = Number(res?.status || 0);
+      lastRefreshError = "";
+      return true;
+    } catch (fallbackErr) {
+      lastError = fallbackErr;
+    }
     lastRefreshStatus = "failed";
     lastRefreshAt = Date.now();
-    lastRefreshHttpStatus = Number(err?.response?.status || 0);
+    lastRefreshHttpStatus = Number(lastError?.response?.status || 0);
     lastRefreshError = String(
-      err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        err?.message ||
+      lastError?.response?.data?.error?.message ||
+        lastError?.response?.data?.message ||
+        lastError?.message ||
         "Refresh failed"
     );
   }
@@ -189,6 +222,14 @@ api.interceptors.response.use(
     const hasCsrfHint = Boolean(getCsrfToken());
     const shouldAttemptRefresh =
       (original?.requireAuth === true || hasAccessTokenHint || hasCsrfHint);
+
+    if (!isRefreshRequest) {
+      try {
+        return await retryWithBackendFailover(api, error);
+      } catch {
+        // Continue with regular auth/401 flow.
+      }
+    }
 
     if (status !== 401 || original._retry || isRefreshRequest) {
       return Promise.reject(error);

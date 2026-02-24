@@ -6,7 +6,7 @@
 🚀 GETTING STARTED:
 
 npm install          # Install dependencies
-npm run dev         # Start development server (http://localhost:8877)
+npm run dev         # Start development server (http://159.65.154.221:1001)
 npm run build       # Build for production
 npm start           # Start production server
 

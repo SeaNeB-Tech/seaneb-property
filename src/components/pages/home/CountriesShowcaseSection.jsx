@@ -13,6 +13,8 @@ export default function CountriesShowcaseSection({
       return country;
     })
     .filter((country) => country?.name);
+  const primaryCountryName = String(normalizedCountries[0]?.name || "India").trim() || "India";
+  const primaryCountryHref = normalizedCountries[0] ? getCountryHref(normalizedCountries[0]) : "/in";
 
   return (
     <section className={`py-20 sm:py-24 ${isDark ? "bg-[var(--home-country-bg-dark)]" : "bg-[var(--home-country-bg-light)]"}`}>
@@ -23,14 +25,14 @@ export default function CountriesShowcaseSection({
               Available Location
             </h2>
             <p className={`mt-3 ${isDark ? "text-slate-400" : "text-[var(--home-country-text-light)]"}`}>
-              Explore listings across India.
+              {`Explore listings across ${primaryCountryName}.`}
             </p>
           </div>
           <Link
-            href="/in"
+            href={primaryCountryHref}
             className={`flex items-center gap-1 text-sm font-semibold transition-all hover:gap-2 ${isDark ? "text-cyan-400 hover:text-cyan-300" : "text-blue-600 hover:text-blue-700"}`}
           >
-            View India locations <span aria-hidden="true">{"\u2192"}</span>
+            {`View ${primaryCountryName} locations `}<span aria-hidden="true">{"\u2192"}</span>
           </Link>
         </div>
 
