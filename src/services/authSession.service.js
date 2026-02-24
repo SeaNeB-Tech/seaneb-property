@@ -10,12 +10,31 @@ import { refreshAccessToken } from "@/services/api";
 const AUTH_CHANGE_EVENT = "seaneb:auth-changed";
 const COOKIE_CHANGE_EVENT = "property:cookie-change";
 const UNAUTHORIZED_COOLDOWN_MS = 10_000;
+const REFRESH_RETRY_COOLDOWN_MS = 15_000;
+const AUTH_RELATED_COOKIE_KEYS = new Set([
+  "csrf_token_property",
+  "refresh_token_property",
+  "access_token_property",
+  "post_otp_verified",
+  "business_registered",
+]);
 
 let authCheckPromise = null;
 let lastUnauthorizedAt = 0;
+let lastRefreshFailureAt = 0;
 
 const verifyProfileSession = async () => {
   const res = await api.get("/profile/me", {
+    withCredentials: true,
+    skipAuthRedirect: true,
+    requireAuth: false,
+    skipRefresh: true,
+  });
+  return Number(res?.status || 0) === 200;
+};
+
+const verifyAuthMeSession = async () => {
+  const res = await api.get("/auth/me", {
     withCredentials: true,
     skipAuthRedirect: true,
     requireAuth: false,
@@ -32,9 +51,15 @@ export const checkAuthenticatedSession = async ({ strict = false } = {}) => {
   // But if auth hints exist (fresh login/restore), do not suppress verification.
   if (
     !strict &&
-    Date.now() - lastUnauthorizedAt < UNAUTHORIZED_COOLDOWN_MS &&
+    Date.now() - lastUnauthorizedAt < UNAUTHORIZED_COOLDOWN_MS
+  ) {
+    return false;
+  }
+
+  if (
+    !strict &&
     !hasTokenInMemory &&
-    !hasCsrfHint
+    Date.now() - lastRefreshFailureAt < REFRESH_RETRY_COOLDOWN_MS
   ) {
     return false;
   }
@@ -56,12 +81,32 @@ export const checkAuthenticatedSession = async ({ strict = false } = {}) => {
         }
       }
 
+      // If backend can validate session via auth/me, treat user as authenticated
+      // even when access token is not yet restored in memory.
+      try {
+        const authMeOk = await verifyAuthMeSession();
+        if (authMeOk) {
+          lastUnauthorizedAt = 0;
+          lastRefreshFailureAt = 0;
+          return true;
+        }
+      } catch {
+        // Continue to refresh flow.
+      }
+
       // Attempt refresh only when auth hints exist.
       if (shouldAttemptRefresh) {
-        await refreshAccessToken();
+        try {
+          await refreshAccessToken();
+          lastRefreshFailureAt = 0;
+        } catch (refreshError) {
+          lastRefreshFailureAt = Date.now();
+          throw refreshError;
+        }
         const ok = await verifyProfileSession();
         if (ok) {
           lastUnauthorizedAt = 0;
+          lastRefreshFailureAt = 0;
         }
         return ok;
       }
@@ -110,14 +155,21 @@ export const notifyAuthChanged = () => {
 export const subscribeAuthState = (callback) => {
   if (typeof window === "undefined") return () => {};
 
-  const listener = () => callback();
-  window.addEventListener("focus", listener);
-  window.addEventListener(COOKIE_CHANGE_EVENT, listener);
-  window.addEventListener(AUTH_CHANGE_EVENT, listener);
+  const onFocus = () => callback();
+  const onAuthChanged = () => callback();
+  const onCookieChange = (event) => {
+    const changedKey = String(event?.detail?.name || "").trim().toLowerCase();
+    if (changedKey && !AUTH_RELATED_COOKIE_KEYS.has(changedKey)) return;
+    callback();
+  };
+
+  window.addEventListener("focus", onFocus);
+  window.addEventListener(COOKIE_CHANGE_EVENT, onCookieChange);
+  window.addEventListener(AUTH_CHANGE_EVENT, onAuthChanged);
 
   return () => {
-    window.removeEventListener("focus", listener);
-    window.removeEventListener(COOKIE_CHANGE_EVENT, listener);
-    window.removeEventListener(AUTH_CHANGE_EVENT, listener);
+    window.removeEventListener("focus", onFocus);
+    window.removeEventListener(COOKIE_CHANGE_EVENT, onCookieChange);
+    window.removeEventListener(AUTH_CHANGE_EVENT, onAuthChanged);
   };
 };

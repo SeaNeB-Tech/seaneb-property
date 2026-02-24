@@ -44,10 +44,7 @@ const getCsrfToken = () =>
 
 const getAccessToken = () => inMemoryAccessToken;
 
-const getProductKey = () =>
-  (getCookie("product_key") || DEFAULT_PRODUCT_KEY)
-    .toLowerCase()
-    .trim();
+const getProductKey = () => DEFAULT_PRODUCT_KEY;
 
 const setAccessToken = (token) => {
   const safeToken = String(token || "").trim();
@@ -98,6 +95,8 @@ const refreshClient = axios.create({
 });
 
 const shouldAttemptBackendFailover = (error, originalConfig = {}) => {
+  // Browser must keep auth requests on same-origin /api so localhost cookies are sent.
+  if (typeof window !== "undefined") return false;
   if (originalConfig?._backendFailoverAttempted) return false;
   if (!API_REMOTE_FALLBACK_BASE_URL) return false;
   const status = Number(error?.response?.status || 0);
@@ -120,14 +119,12 @@ const retryWithBackendFailover = async (client, error) => {
 const performRefreshAccessToken = async () => {
   const productKey = getProductKey();
   const csrf = getCsrfToken();
-  const existingAccessToken = getAccessToken();
 
   let lastError = null;
   const headers = {
     "x-product-key": productKey,
   };
   if (csrf) headers["x-csrf-token"] = csrf;
-  if (existingAccessToken) headers.Authorization = `Bearer ${existingAccessToken}`;
 
   try {
     lastRefreshStatus = "pending";
@@ -178,6 +175,9 @@ const performRefreshAccessToken = async () => {
     );
   }
 
+  // Prevent repeated refresh loops on stale in-memory tokens.
+  setAccessToken("");
+
   throw lastError || new Error("Refresh failed");
 };
 
@@ -218,6 +218,7 @@ api.interceptors.response.use(
     const original = error?.config || {};
     const status = error?.response?.status;
     const isRefreshRequest = String(original?.url || "").includes(REFRESH_ENDPOINT);
+    const skipRefresh = original?.skipRefresh === true;
     const hasAccessTokenHint = Boolean(getAccessToken());
     const hasCsrfHint = Boolean(getCsrfToken());
     const shouldAttemptRefresh =
@@ -231,7 +232,7 @@ api.interceptors.response.use(
       }
     }
 
-    if (status !== 401 || original._retry || isRefreshRequest) {
+    if (status !== 401 || original._retry || isRefreshRequest || skipRefresh) {
       return Promise.reject(error);
     }
     if (!shouldAttemptRefresh) {
