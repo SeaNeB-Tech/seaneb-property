@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 
 const command = process.argv[2] || "dev";
 const envKey = process.argv[3] || "NEXT_PUBLIC_SITE_URL";
-const fallbackPort = String(process.argv[4] || "8877");
+const fallbackPort = String(process.argv[4] || "1001");
 
 const rootDir = process.cwd();
 const envFiles = [".env.local", ".env"];

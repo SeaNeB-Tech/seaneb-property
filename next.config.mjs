@@ -12,11 +12,11 @@ const readPortsConfig = () => {
     const parsed = JSON.parse(raw);
     return {
       host: String(parsed?.host || "localhost").trim(),
-      listingPort: String(parsed?.listingPort || "8877").trim(),
-      appPort: String(parsed?.appPort || "3000").trim(),
+      listingPort: String(parsed?.listingPort || "1001").trim(),
+      appPort: String(parsed?.appPort || "1002").trim(),
     };
   } catch {
-    return { host: "localhost", listingPort: "8877", appPort: "3000" };
+    return { host: "localhost", listingPort: "1001", appPort: "1002" };
   }
 };
 
