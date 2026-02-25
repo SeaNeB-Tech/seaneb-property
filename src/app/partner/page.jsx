@@ -4,6 +4,7 @@ import CTASection from "@/components/marketing/shared/CTASection";
 import PartnerRegistrationForm from "@/components/marketing/forms/PartnerRegistrationForm";
 import { getPartnerPageData } from "@/lib/marketing/getMarketingPageData";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { getAuthAppUrl } from "@/lib/authAppUrl";
 
 export const metadata = {
   title: "Partner with SeaNeB | Broker, Builder, Agent Growth",
@@ -18,10 +19,14 @@ export const metadata = {
 
 export default async function PartnerPage() {
   const data = await getPartnerPageData();
+  const primaryCta = {
+    ...data.cta.primary,
+    href: getAuthAppUrl("/auth/business-register"),
+  };
 
   return (
     <MarketingPageShell>
-      <section className="bg-gradient-to-r from-sky-900 via-blue-800 to-cyan-700 text-white">
+      <section className="bg-gradient-to-r from-amber-900 via-amber-800 to-orange-700 text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">{data.hero.eyebrow}</p>
           <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
@@ -39,7 +44,7 @@ export default async function PartnerPage() {
           {data.partnerTypes.map((item) => (
             <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-700">{item.description}</p>
+              <p className="mt-2 text-sm text-[#708090]">{item.description}</p>
             </article>
           ))}
         </div>
@@ -53,7 +58,7 @@ export default async function PartnerPage() {
         />
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {data.benefits.map((item) => (
-            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#708090] shadow-sm">
               {item}
             </p>
           ))}
@@ -69,7 +74,7 @@ export default async function PartnerPage() {
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {data.dashboardPreview.map((item) => (
-              <div key={item} className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-700">
+              <div key={item} className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-medium text-[#708090]">
                 {item}
               </div>
             ))}
@@ -90,7 +95,7 @@ export default async function PartnerPage() {
               <p className="mt-2 text-2xl font-bold text-slate-900">{plan.price}</p>
               <ul className="mt-4 space-y-2">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="text-sm text-slate-700">- {feature}</li>
+                  <li key={feature} className="text-sm text-[#708090]">- {feature}</li>
                 ))}
               </ul>
             </article>
@@ -105,7 +110,7 @@ export default async function PartnerPage() {
       <CTASection
         title={data.cta.title}
         description={data.cta.description}
-        primary={data.cta.primary}
+        primary={primaryCta}
         secondary={data.cta.secondary}
       />
     </MarketingPageShell>

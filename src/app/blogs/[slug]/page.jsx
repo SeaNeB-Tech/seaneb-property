@@ -33,6 +33,13 @@ export async function generateMetadata({ params }) {
   return {
     title: `${post.title} | SeaNeB Blogs`,
     description: post.excerpt,
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: getSiteUrl(`/blogs/${post.slug}`),
+    },
     openGraph: {
       title: `${post.title} | SeaNeB Blogs`,
       description: post.excerpt,
@@ -42,17 +49,20 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function BlogDetailPage({ params }) {
+export default async function BlogDetailPage({ params, searchParams }) {
   const resolved = await params;
+  const resolvedSearch = await searchParams;
   const slug = String(resolved?.slug || "");
   const post = getAllPosts().find((item) => item.slug === slug);
+  const fromParam = String(resolvedSearch?.from || "").trim();
+  const backToBlogsHref = fromParam.startsWith("/blogs") ? fromParam : "/blogs";
 
   if (!post) return notFound();
 
   return (
     <main className="min-h-screen bg-slate-50">
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <Link href="/blogs" className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+        <Link href={backToBlogsHref} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
           Back to Blogs
         </Link>
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
@@ -60,7 +70,7 @@ export default async function BlogDetailPage({ params }) {
         </p>
         <h1 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">{post.title}</h1>
         <p className="mt-2 text-sm text-slate-500">{post.readTime}</p>
-        <div className="mt-8 space-y-4 text-base leading-7 text-slate-700">
+        <div className="mt-8 space-y-4 text-base leading-7 text-[#708090]">
           <p>{post.excerpt}</p>
           <p>
             SeaNeB editorial is expanding detailed guides. This article currently shows a short

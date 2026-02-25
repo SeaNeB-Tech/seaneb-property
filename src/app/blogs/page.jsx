@@ -20,7 +20,7 @@ export default async function BlogsPage() {
 
   return (
     <MarketingPageShell>
-      <section className="bg-gradient-to-r from-amber-900 via-amber-700 to-orange-600 text-white">
+      <section className="bg-gradient-to-r from-amber-900 via-amber-800 to-orange-700 text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">{data.hero.eyebrow}</p>
           <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>

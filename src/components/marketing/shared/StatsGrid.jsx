@@ -10,7 +10,7 @@ export default function StatsGrid({ stats = [] }) {
         {stats.map((item) => (
           <article key={`${item.label}-${item.value}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xl font-bold text-slate-900 sm:text-2xl">{item.value}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">{item.label}</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[#708090]">{item.label}</p>
           </article>
         ))}
       </div>

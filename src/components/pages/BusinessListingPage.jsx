@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { locationTw } from "./locationTailwindClasses";
 
 const PROPERTY_IMAGE = "/assets/propertyimages/image.png";
@@ -14,6 +14,9 @@ function formatPrice(value) {
 
 export default function BusinessListingPage({ title, subtitle, businesses = [] }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryText = searchParams?.toString() || "";
+  const fromPath = `${pathname || "/in"}${queryText ? `?${queryText}` : ""}`;
 
   return (
     <section className={locationTw.wrapper} aria-labelledby="property-listing-title">
@@ -35,7 +38,7 @@ export default function BusinessListingPage({ title, subtitle, businesses = [] }
           businesses.map((business) => (
             <Link
               key={business.id}
-              href={`/${business.slug}?from=${encodeURIComponent(pathname || "/in")}`}
+              href={`/${business.slug}?from=${encodeURIComponent(fromPath)}`}
               className={locationTw.card}
               aria-label={`View details of ${business.title}`}
             >

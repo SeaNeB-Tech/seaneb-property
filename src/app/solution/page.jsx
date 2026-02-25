@@ -1,4 +1,5 @@
 import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell";
+import Image from "next/image";
 import SectionHeading from "@/components/marketing/shared/SectionHeading";
 import CTASection from "@/components/marketing/shared/CTASection";
 import { getSolutionPageData } from "@/lib/marketing/getMarketingPageData";
@@ -17,14 +18,33 @@ export const metadata = {
 
 export default async function SolutionPage() {
   const data = await getSolutionPageData();
+  const heroImage = data?.hero?.image || "/about-images/about-image-5.jpg";
+  const heroImageAlt = data?.hero?.imageAlt || "SeaNeB solution workflow showcase";
 
   return (
     <MarketingPageShell>
-      <section className="bg-gradient-to-r from-emerald-900 to-teal-800 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">{data.hero.eyebrow}</p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
-          <p className="mt-4 max-w-3xl text-sm text-emerald-100 sm:text-lg">{data.hero.description}</p>
+      <section className="bg-gradient-to-r from-amber-900 via-amber-800 to-orange-700 text-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">{data.hero.eyebrow}</p>
+            <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
+            <p className="mt-4 max-w-3xl text-sm text-amber-100 sm:text-lg">{data.hero.description}</p>
+          </div>
+          <div className="relative overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
+            <div className="relative h-[260px] w-full sm:h-[320px]">
+              <Image
+                src={heroImage}
+                alt={heroImageAlt}
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+            <p className="absolute bottom-4 left-4 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-slate-900">
+              Data. Workflow. Growth.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -57,7 +77,7 @@ export default async function SolutionPage() {
           {data.features.map((feature) => (
             <article key={feature.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{feature.description}</p>
+              <p className="mt-2 text-sm text-[#708090]">{feature.description}</p>
             </article>
           ))}
         </div>
@@ -75,7 +95,7 @@ export default async function SolutionPage() {
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-xs font-semibold text-white">
                 {index + 1}
               </span>
-              <p className="text-sm text-slate-700">{item}</p>
+              <p className="text-sm text-[#708090]">{item}</p>
             </div>
           ))}
         </div>
@@ -89,7 +109,7 @@ export default async function SolutionPage() {
         />
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {data.benefits.map((item) => (
-            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#708090] shadow-sm">
               {item}
             </p>
           ))}

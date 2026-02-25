@@ -17,7 +17,7 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
 };
 
 export async function GET(request) {
-  const upstreamUrl = `${API_REMOTE_BASE_URL}/auth/me`;
+  const upstreamUrl = `${API_REMOTE_BASE_URL}/profile/me`;
   const incomingProductKey = String(request.headers.get("x-product-key") || "").trim();
   const incomingCsrf = String(request.headers.get("x-csrf-token") || "").trim();
   const incomingCookie = String(request.headers.get("cookie") || "").trim();

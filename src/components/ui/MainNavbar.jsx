@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import TempUserAvatar from "./TempUserAvatar";
@@ -17,6 +17,7 @@ import {
   hasBusinessFromProfile,
   syncBusinessRegistrationCookie,
 } from "@/services/profile.service";
+import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 
 const hasBusinessCookieHint = () => {
   const registered = String(getCookie("business_registered") || "").trim().toLowerCase();
@@ -39,8 +40,8 @@ function NavbarItem({ item, isActive, onNavigate }) {
   const baseClass =
     "relative px-3 py-1.5 text-base font-medium transition duration-200";
   const activeClass = isActive
-    ? "text-white after:absolute after:bottom-[-7px] after:left-1/2 after:h-[2px] after:w-10 after:-translate-x-1/2 after:rounded-full after:bg-amber-300 after:content-['']"
-    : "text-slate-300 hover:text-white after:absolute after:bottom-[-7px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-amber-300 after:transition-all after:duration-200 after:content-[''] hover:after:w-8";
+    ? "text-white after:absolute after:bottom-[-7px] after:left-3 after:right-3 after:h-[2px] after:rounded-full after:bg-amber-300 after:content-['']"
+    : "text-slate-300 hover:text-white after:absolute after:bottom-[-7px] after:left-3 after:right-3 after:h-[2px] after:origin-center after:scale-x-0 after:rounded-full after:bg-amber-300 after:transition-transform after:duration-200 after:content-[''] hover:after:scale-x-100";
 
   if (useAnchorTag) {
     return (
@@ -65,6 +66,7 @@ function NavbarItem({ item, isActive, onNavigate }) {
 }
 
 export default function MainNavbar() {
+  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -86,6 +88,20 @@ export default function MainNavbar() {
   const registerBusinessUrl = getAuthAppUrl("/auth/business-register");
   const loginUrl = getAuthAppUrl("/auth/login");
   const canShowAuthenticated = hydrated && isAuthenticated;
+  const downloadSectionHref = "/home#download";
+
+  const handleGetAppClick = (event) => {
+    if (pathname === "/" || pathname === "/home") {
+      event.preventDefault();
+      const target = document.getElementById("download");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", "#download");
+      }
+      return;
+    }
+    router.push(downloadSectionHref);
+  };
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -173,6 +189,12 @@ export default function MainNavbar() {
     }
   };
 
+  const handleLoginClick = (event) => {
+    event.preventDefault();
+    setIsProfileOpen(false);
+    openAuthLoginTab();
+  };
+
   return (
     <>
     <header
@@ -216,8 +238,9 @@ export default function MainNavbar() {
 
         <div className="relative flex items-center gap-3" ref={dropdownRef}>
           <Link
-            href="#download"
-            className="hidden rounded-full border border-amber-300/70 bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 sm:inline-block"
+            href={downloadSectionHref}
+            onClick={handleGetAppClick}
+            className="hidden rounded-full border border-[#c79a2b] bg-[#c79a2b] px-4 py-2 text-sm font-semibold text-[#1b1304] transition hover:bg-[#d8ac3e] sm:inline-block"
           >
             Get the App
           </Link>
@@ -318,7 +341,7 @@ export default function MainNavbar() {
                   </div>
                   <Link
                     href={loginUrl}
-                    onClick={() => setIsProfileOpen(false)}
+                    onClick={handleLoginClick}
                     className="mt-3 block rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
                   >
                     Sign In
@@ -355,9 +378,12 @@ export default function MainNavbar() {
             ))}
           </nav>
           <Link
-            href="#download"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="mt-3 block rounded-xl bg-amber-300 px-4 py-2 text-center text-sm font-semibold text-slate-950"
+            href={downloadSectionHref}
+            onClick={(event) => {
+              setIsMobileMenuOpen(false);
+              handleGetAppClick(event);
+            }}
+            className="mt-3 block rounded-xl border border-[#c79a2b] bg-[#c79a2b] px-4 py-2 text-center text-sm font-semibold text-[#1b1304] hover:bg-[#d8ac3e]"
           >
             Get the App
           </Link>
@@ -368,4 +394,3 @@ export default function MainNavbar() {
     </>
   );
 }
-

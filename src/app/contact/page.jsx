@@ -20,7 +20,7 @@ export default async function ContactPage() {
 
   return (
     <MarketingPageShell>
-      <section className="bg-gradient-to-r from-indigo-900 to-violet-800 text-white">
+      <section className="bg-gradient-to-r from-amber-900 via-amber-800 to-orange-700 text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200">{data.hero.eyebrow}</p>
           <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
@@ -34,17 +34,17 @@ export default async function ContactPage() {
         <div className="space-y-6">
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <SectionHeading eyebrow="Map" title="Office Location" description="Google map placeholder for office navigation." />
-            <div className="mt-4 flex h-56 items-center justify-center rounded-xl bg-slate-200 text-sm font-medium text-slate-600">
+            <div className="mt-4 flex h-56 items-center justify-center rounded-xl bg-slate-200 text-sm font-medium text-[#708090]">
               Map Embed Placeholder
             </div>
           </article>
 
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <SectionHeading eyebrow="Office" title="Office Details" />
-            <p className="mt-3 text-sm text-slate-700">{data.office.address}</p>
-            <p className="mt-2 text-sm text-slate-700">{data.office.email}</p>
-            <p className="mt-2 text-sm text-slate-700">{data.office.phone}</p>
-            <p className="mt-2 text-sm text-slate-700">{data.office.hours}</p>
+            <p className="mt-3 text-sm text-[#708090]">{data.office.address}</p>
+            <p className="mt-2 text-sm text-[#708090]">{data.office.email}</p>
+            <p className="mt-2 text-sm text-[#708090]">{data.office.phone}</p>
+            <p className="mt-2 text-sm text-[#708090]">{data.office.hours}</p>
           </article>
         </div>
       </section>
@@ -55,7 +55,7 @@ export default async function ContactPage() {
           {data.faqPreview.map((item) => (
             <article key={item.question} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-900">{item.question}</h3>
-              <p className="mt-2 text-sm text-slate-700">{item.answer}</p>
+              <p className="mt-2 text-sm text-[#708090]">{item.answer}</p>
             </article>
           ))}
         </div>
@@ -65,7 +65,7 @@ export default async function ContactPage() {
         <SectionHeading eyebrow="Support" title="Support Information" description="Choose the right support path for faster resolution." />
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {data.support.map((item) => (
-            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+            <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#708090] shadow-sm">
               {item}
             </p>
           ))}

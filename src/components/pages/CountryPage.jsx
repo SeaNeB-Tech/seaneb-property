@@ -75,7 +75,10 @@ export default function CountryPage({ countrySlug = "in" }) {
 
       <section className={locationTw.countryHero}>
         <div className={locationTw.countryHeroInner}>
-          <p className={locationTw.breadcrumb}>Home / Countries / {countryName}</p>
+          <p className={locationTw.breadcrumb}>
+            <Link href="/home" className="hover:underline">Home</Link> /{" "}
+            <Link href="/in" className="hover:underline">Countries</Link> / {countryName}
+          </p>
 
           <h1 className={locationTw.countryHeroTitle}>Properties in {countryName}</h1>
 

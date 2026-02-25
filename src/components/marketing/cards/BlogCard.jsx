@@ -3,7 +3,7 @@ import Link from "next/link";
 /**
  * Blog card used in blogs grid and popular section.
  */
-export default function BlogCard({ blog }) {
+export default function BlogCard({ blog, fromHref = "" }) {
   const slug = String(blog?.title || "")
     .trim()
     .toLowerCase()
@@ -14,6 +14,13 @@ export default function BlogCard({ blog }) {
     rawHref.startsWith("/blogs/") && rawHref.length > "/blogs/".length
       ? rawHref
       : `/blogs/${slug}`;
+  const safeFromHref =
+    String(fromHref || "").trim().startsWith("/blogs")
+      ? String(fromHref || "").trim()
+      : "";
+  const detailHref = safeFromHref
+    ? `${href}${href.includes("?") ? "&" : "?"}from=${encodeURIComponent(safeFromHref)}`
+    : href;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -21,10 +28,10 @@ export default function BlogCard({ blog }) {
       <div className="p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">{blog.category}</p>
         <h3 className="mt-2 text-base font-semibold text-slate-900">{blog.title}</h3>
-        <p className="mt-2 text-sm text-slate-600">{blog.excerpt}</p>
+        <p className="mt-2 text-sm text-[#708090]">{blog.excerpt}</p>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xs text-slate-500">{blog.readTime}</span>
-          <Link href={href} className="text-xs font-semibold text-amber-700 hover:text-amber-800">
+          <Link href={detailHref} className="text-xs font-semibold text-amber-700 hover:text-amber-800">
             Read more
           </Link>
         </div>

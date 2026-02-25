@@ -33,8 +33,8 @@ const verifyProfileSession = async () => {
   return Number(res?.status || 0) === 200;
 };
 
-const verifyAuthMeSession = async () => {
-  const res = await api.get("/auth/me", {
+const verifyProfileSessionFallback = async () => {
+  const res = await api.get("/profile/me", {
     withCredentials: true,
     skipAuthRedirect: true,
     requireAuth: false,
@@ -81,11 +81,11 @@ export const checkAuthenticatedSession = async ({ strict = false } = {}) => {
         }
       }
 
-      // If backend can validate session via auth/me, treat user as authenticated
+      // If backend can validate session via profile/me, treat user as authenticated
       // even when access token is not yet restored in memory.
       try {
-        const authMeOk = await verifyAuthMeSession();
-        if (authMeOk) {
+        const profileFallbackOk = await verifyProfileSessionFallback();
+        if (profileFallbackOk) {
           lastUnauthorizedAt = 0;
           lastRefreshFailureAt = 0;
           return true;

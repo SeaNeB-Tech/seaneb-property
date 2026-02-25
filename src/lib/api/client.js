@@ -95,7 +95,7 @@ const refreshClient = axios.create({
 });
 
 const shouldAttemptBackendFailover = (error, originalConfig = {}) => {
-  // Browser must keep auth requests on same-origin /api so localhost cookies are sent.
+  // Browser must keep auth requests on same-origin /api so same-origin cookies are sent.
   if (typeof window !== "undefined") return false;
   if (originalConfig?._backendFailoverAttempted) return false;
   if (!API_REMOTE_FALLBACK_BASE_URL) return false;

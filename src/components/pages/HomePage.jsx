@@ -26,6 +26,7 @@ import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { logoutAndClearAuthSession } from "@/services/authSession.service";
 import NextSearchExperience from "@/components/marketing/home/NextSearchExperience";
 import { getCountries } from "@/services/location.service";
+import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 
 const PropertyCategoriesSection = dynamic(() => import("./home/PropertyCategoriesSection"));
 const CountriesShowcaseSection = dynamic(() => import("./home/CountriesShowcaseSection"));
@@ -257,6 +258,12 @@ export default function HomePage({ data }) {
     router.push(businessDashboardUrl);
   }, [businessDashboardUrl, dashboardMode, dashboardUrl, hasBusiness, router]);
 
+  const handleLoginClick = useCallback((event) => {
+    event.preventDefault();
+    setIsProfileOpen(false);
+    openAuthLoginTab();
+  }, []);
+
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[var(--home-page-bg-dark)] text-slate-100" : "bg-[var(--home-page-bg-light)] text-slate-900"}`}>
       <header
@@ -408,7 +415,7 @@ export default function HomePage({ data }) {
                     </div>
                     <Link
                       href={authLoginUrl}
-                      onClick={() => setIsProfileOpen(false)}
+                      onClick={handleLoginClick}
                       className="mt-3 block rounded-xl bg-blue-700 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-blue-800"
                     >
                       Sign In

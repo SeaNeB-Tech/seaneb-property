@@ -107,7 +107,13 @@ export default function StatePage({ countrySlug = "in", stateSlug }) {
 
       <section className={locationTw.heroDarkFull}>
         <div className={locationTw.heroInner}>
-          <p className={locationTw.breadcrumb}>Home / {countryName} / {stateName}</p>
+          <p className={locationTw.breadcrumb}>
+            <Link href="/home" className="hover:underline">Home</Link> /{" "}
+            <Link href={normalizedCountrySlug === "in" ? "/in" : `/in/${normalizedCountrySlug}`} className="hover:underline">
+              {countryName}
+            </Link>{" "}
+            / {stateName}
+          </p>
 
           <h1 className={locationTw.heroTitle}>Properties in {stateName}</h1>
 

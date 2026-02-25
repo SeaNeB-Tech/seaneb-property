@@ -5,6 +5,7 @@ import StatePage from "@/components/pages/StatePage";
 import CityPage from "@/components/pages/CityPage";
 import AreaPage from "@/components/pages/AreaPage";
 import { API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/apiBaseUrl";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 const INDIA_STATE_CODES = new Set([
   "an",
@@ -126,12 +127,21 @@ function normalizeParts(slugParam) {
 }
 
 function getPageMeta(parts) {
+  const canonicalPath = `/in/${parts.join("/")}`;
+
   if (parts.length === 1) {
     const [one] = parts;
     if (one === "in") {
       return {
         title: "Properties in India | SeaNeB",
         description: "Browse states, cities, and area-level property listings across India.",
+        alternates: {
+          canonical: getSiteUrl("/in"),
+        },
+        robots: {
+          index: true,
+          follow: true,
+        },
       };
     }
 
@@ -140,6 +150,13 @@ function getPageMeta(parts) {
       return {
         title: `Properties in ${toTitle(cityCodeMatch[1])} | SeaNeB`,
         description: `Explore verified properties in ${toTitle(cityCodeMatch[1])}.`,
+        alternates: {
+          canonical: getSiteUrl(canonicalPath),
+        },
+        robots: {
+          index: true,
+          follow: true,
+        },
       };
     }
 
@@ -149,18 +166,39 @@ function getPageMeta(parts) {
       return {
         title: `Properties in ${toTitle(areaPart)} | SeaNeB`,
         description: `Discover listings and businesses in ${toTitle(areaPart)}.`,
+        alternates: {
+          canonical: getSiteUrl(canonicalPath),
+        },
+        robots: {
+          index: true,
+          follow: true,
+        },
       };
     }
 
     return {
       title: `Properties in ${toTitle(one)} | SeaNeB`,
       description: `Browse verified property listings in ${toTitle(one)}.`,
+      alternates: {
+        canonical: getSiteUrl(canonicalPath),
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   }
 
   return {
     title: "SeaNeB",
     description: "Discover properties by country, state, city, and area.",
+    alternates: {
+      canonical: getSiteUrl(canonicalPath),
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 

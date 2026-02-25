@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 
 const normalizeUrl = (value) => String(value || "").replace(/\/+$/, "");
 
-const AUTH_APP_BASE_URL = normalizeUrl(
-  process.env.NEXT_PUBLIC_AUTH_APP_URL || "http://159.65.154.221:1002/"
-);
+const AUTH_APP_BASE_URL = normalizeUrl(process.env.NEXT_PUBLIC_AUTH_APP_URL);
 const REFRESH_COOKIE_KEYS = [
   "refresh_token_property",
   "refresh_token_auto",
@@ -25,7 +23,7 @@ const hasSessionCookie = (request) => {
 export function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  // Dashboard auth is enforced client-side via /auth/me + refresh flow.
+  // Dashboard auth is enforced client-side via /profile/me + refresh flow.
   // Edge cookie checks are unreliable when auth cookies are scoped to /api paths.
   if (pathname.startsWith("/dashboard")) {
     return NextResponse.next();
@@ -46,6 +44,10 @@ export function middleware(request) {
   }
 
   // Redirect to login only once
+  if (!AUTH_APP_BASE_URL) {
+    return NextResponse.next();
+  }
+
   const loginUrl = new URL(`${AUTH_APP_BASE_URL}/auth/login`);
   loginUrl.searchParams.set("returnTo", request.nextUrl.href);
   return NextResponse.redirect(loginUrl, { status: 307 });

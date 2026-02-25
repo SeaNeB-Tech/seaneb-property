@@ -7,7 +7,7 @@ export default function PageErrorState({ message = "Something went wrong.", rese
   return (
     <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-slate-900">Unable to load page</h1>
-      <p className="mt-3 text-sm text-slate-600 sm:text-base">{message}</p>
+      <p className="mt-3 text-sm text-[#708090] sm:text-base">{message}</p>
       {reset ? (
         <button
           type="button"

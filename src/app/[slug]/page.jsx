@@ -1,18 +1,30 @@
 import BusinessDetail from "@/components/pages/BusinessDetail";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export async function generateMetadata({ params }) {
   const resolved = await params;
-  const slug = resolved?.slug;
-  const title = slug ? `${slug.replace(/[-_]/g, " ")} - Business Details | SeaNeB` : "Business Details - SeaNeB";
+  const slugValue = resolved?.slug;
+  const normalizedSlug = Array.isArray(slugValue) ? slugValue.join("-") : String(slugValue || "");
+  const title = normalizedSlug
+    ? `${normalizedSlug.replace(/[-_]/g, " ")} - Business Details | SeaNeB`
+    : "Business Details - SeaNeB";
   
   return {
     title,
     description: "View detailed business information, reviews, and services on SeaNeB.",
     keywords: "business details, real estate business, services, reviews",
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: getSiteUrl(`/${normalizedSlug}`),
+    },
     openGraph: {
       title,
       description: "View detailed business information on SeaNeB.",
       type: "website",
+      url: getSiteUrl(`/${normalizedSlug}`),
     },
   };
 }

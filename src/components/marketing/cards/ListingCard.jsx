@@ -12,7 +12,7 @@ export default function ListingCard({ listing }) {
           <h3 className="text-base font-semibold text-slate-900">{listing.title}</h3>
           <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Verified</span>
         </div>
-        <p className="mt-2 text-sm text-slate-600">{listing.location}</p>
+        <p className="mt-2 text-sm text-[#708090]">{listing.location}</p>
         <p className="mt-1 text-lg font-bold text-slate-900">{listing.price}</p>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xs text-slate-500">{listing.type}</span>

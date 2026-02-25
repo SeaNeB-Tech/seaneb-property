@@ -32,22 +32,23 @@ export default async function AboutPage() {
 
   return (
     <MarketingPageShell>
-      <section className="bg-gradient-to-r from-rose-900 via-rose-800 to-orange-700 text-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-14 sm:px-6 md:py-16 lg:grid-cols-2 lg:items-center lg:px-8">
+      <section className="bg-gradient-to-r from-amber-900 via-amber-800 to-orange-700 text-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-200">{data.hero.eyebrow}</p>
             <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{data.hero.title}</h1>
             <p className="mt-4 max-w-3xl text-sm text-rose-100 sm:text-lg">{data.hero.description}</p>
           </div>
           <div className="relative overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
-            <Image
-              src={heroImage}
-              alt={heroImageAlt}
-              width={1600}
-              height={900}
-              priority
-              className="h-[260px] w-full object-cover sm:h-[320px]"
-            />
+            <div className="relative h-[260px] w-full sm:h-[320px]">
+              <Image
+                src={heroImage}
+                alt={heroImageAlt}
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
             <p className="absolute bottom-4 left-4 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-slate-900">
               Verified. Local. Actionable.
@@ -56,7 +57,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:px-8">
         <article className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm">
           <SectionHeading eyebrow="Mission" title="Our Mission" description={data.mission} />
         </article>
@@ -65,7 +66,7 @@ export default async function AboutPage() {
         </article>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Workflow"
           title="How SeaNeB Works"
@@ -76,13 +77,13 @@ export default async function AboutPage() {
             <article key={item.step} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">Step {idx + 1}</p>
               <h3 className="mt-2 text-lg font-semibold text-slate-900">{item.step}</h3>
-              <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+              <p className="mt-2 text-sm text-[#708090]">{item.description}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div>
             <SectionHeading
@@ -92,7 +93,7 @@ export default async function AboutPage() {
             />
             <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-1">
               {data.verification.map((item) => (
-                <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                <p key={item} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#708090] shadow-sm">
                   {item}
                 </p>
               ))}
@@ -105,9 +106,9 @@ export default async function AboutPage() {
                 alt={storyImageAlt}
                 width={1200}
                 height={900}
-                className="h-44 w-full object-cover"
+                className="h-36 w-full object-cover"
               />
-              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Team and operations</p>
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#708090]">Team and operations</p>
             </article>
             <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <Image
@@ -115,9 +116,9 @@ export default async function AboutPage() {
                 alt={trustImageAlt}
                 width={1200}
                 height={900}
-                className="h-44 w-full object-cover"
+                className="h-36 w-full object-cover"
               />
-              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Quality and trust workflow</p>
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#708090]">Quality and trust workflow</p>
             </article>
             <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <Image
@@ -125,9 +126,9 @@ export default async function AboutPage() {
                 alt={discoveryImageAlt}
                 width={1200}
                 height={900}
-                className="h-44 w-full object-cover"
+                className="h-36 w-full object-cover"
               />
-              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Property discovery</p>
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#708090]">Property discovery</p>
             </article>
             <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <Image
@@ -135,9 +136,9 @@ export default async function AboutPage() {
                 alt={marketImageAlt}
                 width={1200}
                 height={900}
-                className="h-44 w-full object-cover"
+                className="h-36 w-full object-cover"
               />
-              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Market pulse</p>
+              <p className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#708090]">Market pulse</p>
             </article>
           </div>
         </div>
@@ -145,7 +146,7 @@ export default async function AboutPage() {
 
       <StatsGrid stats={data.stats} />
 
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Team"
           title="The Team Behind SeaNeB"
@@ -155,8 +156,8 @@ export default async function AboutPage() {
           {data.team.map((member) => (
             <article key={member.name} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-900">{member.name}</h3>
-              <p className="mt-1 text-sm text-slate-600">{member.role}</p>
-              <p className="mt-3 text-sm text-slate-700">{member.focus}</p>
+              <p className="mt-1 text-sm text-[#708090]">{member.role}</p>
+              <p className="mt-3 text-sm text-[#708090]">{member.focus}</p>
             </article>
           ))}
         </div>

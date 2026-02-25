@@ -188,7 +188,19 @@ export default function AreaPage({ countrySlug = "in", stateSlug, citySlug, area
       <section className={locationTw.heroDarkFull}>
         <div className={locationTw.heroInner}>
           <p className={locationTw.breadcrumb}>
-            Home / {countryName} / {stateName} / {cityName} / {areaName}
+            <Link href="/home" className="hover:underline">Home</Link> /{" "}
+            <Link href={normalizedCountrySlug === "in" ? "/in" : `/in/${normalizedCountrySlug}`} className="hover:underline">
+              {countryName}
+            </Link>{" "}
+            /{" "}
+            <Link href={normalizedCountrySlug === "in" ? `/in/${stateSeoSlug}` : `/in/${normalizedCountrySlug}/${stateSeoSlug}`} className="hover:underline">
+              {stateName}
+            </Link>{" "}
+            /{" "}
+            <Link href={buildCityHref(normalizedCountrySlug, stateApiSlug, citySeoSlug)} className="hover:underline">
+              {cityName}
+            </Link>{" "}
+            / {areaName}
           </p>
 
           <h1 className={locationTw.heroTitle}>Properties in {areaName}</h1>

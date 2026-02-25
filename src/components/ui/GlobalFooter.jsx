@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import BrandLogo from "./BrandLogo";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 import { useAuthState } from "@/hooks/useAuthState";
+import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 
 const loginUrl = getAuthAppUrl("/auth/login");
 
@@ -113,7 +114,7 @@ export default function GlobalFooter() {
     "relative text-sm text-slate-300 transition-colors hover:text-white after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:bg-[var(--error)] after:transition-[width] after:duration-300 after:content-[''] hover:after:w-full";
 
   return (
-    <footer className="border-t border-slate-200 bg-gradient-to-b from-slate-950 to-slate-900 text-slate-200">
+    <footer className="border-t border-slate-800 bg-black text-slate-200">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 lg:grid-cols-12 lg:px-8">
         <div className="lg:col-span-5">
           <BrandLogo
@@ -132,7 +133,7 @@ export default function GlobalFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={item.label}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-200 transition-colors hover:border-slate-300 hover:text-white"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-600 bg-black text-slate-200 transition-colors hover:border-slate-300 hover:text-white"
               >
                 {item.icon}
               </a>
@@ -155,7 +156,11 @@ export default function GlobalFooter() {
                         {link.label}
                       </a>
                     ) : (
-                      <Link href={link.href} className={footerTextLinkClass}>
+                      <Link
+                        href={link.href}
+                        className={footerTextLinkClass}
+                        onClick={link.label === "Login" ? handleLoginClick : undefined}
+                      >
                         {link.label}
                       </Link>
                     )}
@@ -175,3 +180,7 @@ export default function GlobalFooter() {
 }
 
 
+  const handleLoginClick = (event) => {
+    event.preventDefault();
+    openAuthLoginTab();
+  };

@@ -125,7 +125,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-4xl font-bold text-slate-900">Browse by Property Type</h2>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-[#708090]">
               Choose the format that fits your buying goals from our verified listings.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default async function HomePage() {
                   {card.icon}
                 </span>
                 <h3 className="text-base font-bold text-slate-900">{card.name}</h3>
-                <p className="mt-1 text-xs font-medium text-slate-600">{card.info}</p>
+                <p className="mt-1 text-xs font-medium text-[#708090]">{card.info}</p>
               </article>
             ))}
           </div>
@@ -156,7 +156,7 @@ export default async function HomePage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-5xl font-bold text-slate-900">Available Location</h2>
-              <p className="mt-2 text-sm text-slate-600">{data.countriesSection?.description || `Explore listings across ${primaryCountryName}.`}</p>
+              <p className="mt-2 text-sm text-[#708090]">{data.countriesSection?.description || `Explore listings across ${primaryCountryName}.`}</p>
             </div>
             <Link href={primaryCountryHref} className="hidden text-sm font-semibold text-slate-700 hover:text-slate-900 sm:inline-flex">
               {`View ${primaryCountryName} locations ->`}
@@ -178,7 +178,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="download" className="bg-[#f8f8f8] py-16">
+      <section id="download" className="scroll-mt-24 bg-[#f8f8f8] py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-r from-[#2e2a20] via-[#201c16] to-[#2b251c] p-8 text-white shadow-[0_26px_46px_rgba(20,16,10,0.22)] sm:p-12">
             <div className="pointer-events-none absolute -left-24 -top-16 h-64 w-64 rounded-full bg-amber-300/10 blur-3xl" />
