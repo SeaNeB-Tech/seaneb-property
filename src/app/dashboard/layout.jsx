@@ -55,8 +55,7 @@ export default function DashboardLayout({ children }) {
         isBrokerUser = hasBusinessFromProfile(profile || {});
         syncBusinessRegistrationCookie(profile || {});
       } catch {
-        isBrokerUser =
-          String(getCookie("business_registered") || "").trim().toLowerCase() === "true";
+        isBrokerUser = false;
       }
 
       if (!isBrokerUser) {

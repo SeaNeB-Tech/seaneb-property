@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { getAuthDiagnostics, getInMemoryAccessToken, refreshAccessToken } from "@/lib/api/client";
 
+const DEBUG_AUTH_ENABLED =
+  process.env.NODE_ENV === "development" &&
+  String(process.env.NEXT_PUBLIC_ENABLE_DEBUG_AUTH || "").trim().toLowerCase() === "true";
+
 function readCookies() {
   try {
     const pairs = document.cookie ? document.cookie.split("; ") : [];
@@ -49,6 +53,7 @@ export default function DebugAuthPage() {
   };
 
   useEffect(() => {
+    if (!DEBUG_AUTH_ENABLED) return undefined;
     const id = window.setTimeout(() => {
       captureState();
     }, 0);
@@ -67,7 +72,7 @@ export default function DebugAuthPage() {
     setError("");
     try {
       const accessToken = getInMemoryAccessToken();
-      const res = await fetch("/api/profile/me", {
+      const res = await fetch("/api/auth/me", {
         credentials: "include",
         headers: {
           "x-product-key": "property",
@@ -124,6 +129,14 @@ export default function DebugAuthPage() {
 
   const csrfCookie = cookies.find((c) => c.name === "csrf_token_property")?.value || "";
 
+  if (!DEBUG_AUTH_ENABLED) {
+    return (
+      <div style={{ padding: 24, fontFamily: "Inter, sans-serif" }}>
+        Debug auth tools are disabled.
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: 24, fontFamily: "Inter, sans-serif" }}>
       <h2>Auth Debug</h2>
@@ -131,7 +144,7 @@ export default function DebugAuthPage() {
 
       <div style={{ marginTop: 12 }}>
         <button onClick={refreshView} style={{ marginRight: 8 }}>Refresh</button>
-        <button onClick={checkProfile} style={{ marginRight: 8 }}>Call /api/profile/me</button>
+        <button onClick={checkProfile} style={{ marginRight: 8 }}>Call /api/auth/me</button>
         <button onClick={checkRefresh} style={{ marginRight: 8 }}>Call /api/auth/refresh</button>
         <button onClick={clearVolatile} style={{ marginRight: 8 }}>Clear volatile session keys</button>
       </div>

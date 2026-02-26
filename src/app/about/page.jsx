@@ -7,13 +7,15 @@ import { getAboutPageData } from "@/lib/marketing/getMarketingPageData";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 export const metadata = {
-  title: "About SeaNeB | Mission, Vision, and Trust",
-  description: "Learn SeaNeB's mission, vision, verification model, and how we help users discover verified real estate opportunities.",
+  title: "About SeaNeB Realty | Trusted Indian Property Platform",
+  description:
+    "Discover SeaNeB Realty, an Indian platform for verified listings, hyperlocal insights, and transparent property buying, selling, and renting.",
   openGraph: {
-    title: "About SeaNeB | Mission, Vision, and Trust",
-    description: "See how SeaNeB works from search to close with real-estate-first workflows.",
+    title: "About SeaNeB Realty | Trusted Indian Property Platform",
+    description:
+      "Learn how SeaNeB Realty builds trust with verification-first listing standards and hyperlocal Indian real estate discovery.",
     type: "website",
-    url: getSiteUrl("/about"),
+    url: getSiteUrl("/about-us"),
   },
 };
 
@@ -57,6 +59,12 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <article className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm">
+          <SectionHeading eyebrow="Brand Story" title="Why SeaNeB Realty Exists" description={data.story} />
+        </article>
+      </section>
+
       <section className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:px-8">
         <article className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm">
           <SectionHeading eyebrow="Mission" title="Our Mission" description={data.mission} />
@@ -68,15 +76,30 @@ export default async function AboutPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Workflow"
-          title="How SeaNeB Works"
-          description="A simple real-estate flow: Search, Connect, and Close."
+          eyebrow="Audience"
+          title="Who We Serve"
+          description="Built for core Indian real estate user groups, from first-time buyers to local market contributors."
         />
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {data.workflow.map((item, idx) => (
-            <article key={item.step} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">Step {idx + 1}</p>
-              <h3 className="mt-2 text-lg font-semibold text-slate-900">{item.step}</h3>
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {(data.whoWeServe || []).map((item) => (
+            <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+              <p className="mt-2 text-sm text-[#708090]">{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="USPs"
+          title="What Makes SeaNeB Realty Different"
+          description="Clear operating differences designed for credibility, relevance, and decision quality."
+        />
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {(data.usps || []).map((item) => (
+            <article key={item.heading} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-900">{item.heading}</h3>
               <p className="mt-2 text-sm text-[#708090]">{item.description}</p>
             </article>
           ))}
@@ -88,8 +111,8 @@ export default async function AboutPage() {
           <div>
             <SectionHeading
               eyebrow="Verification"
-              title="How We Build Trust"
-              description="Verification is embedded into listing quality and partner reliability."
+              title="Trust and Verification Approach"
+              description="Trust is built through standards, review logic, and transparent reporting controls."
             />
             <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-1">
               {data.verification.map((item) => (
@@ -148,18 +171,16 @@ export default async function AboutPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Team"
-          title="The Team Behind SeaNeB"
-          description="Cross-functional teams focused on trust, quality, and growth."
+          eyebrow="Ecosystem"
+          title="Community and Ecosystem Model"
+          description={data.community}
         />
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {data.team.map((member) => (
-            <article key={member.name} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900">{member.name}</h3>
-              <p className="mt-1 text-sm text-[#708090]">{member.role}</p>
-              <p className="mt-3 text-sm text-[#708090]">{member.focus}</p>
-            </article>
-          ))}
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <SectionHeading
+            eyebrow="Commitment"
+            title="Our Long-Term Commitment"
+            description={data.commitment}
+          />
         </div>
       </section>
 

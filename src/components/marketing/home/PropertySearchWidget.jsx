@@ -2,6 +2,23 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getStates } from "@/services/location.service";
+import { getCities as getCitySuggestions } from "@/services/city.service";
+
+const toSeoSlug = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
+
+const getValueByKeys = (row, keys) => {
+  for (const key of keys) {
+    const value = row?.[key];
+    if (String(value || "").trim()) return String(value).trim();
+  }
+  return "";
+};
 
 export default function PropertySearchWidget({ searchSection }) {
   const router = useRouter();
@@ -29,19 +46,105 @@ export default function PropertySearchWidget({ searchSection }) {
   const [budget, setBudget] = useState(budgetOptions[0] || "Budget");
   const [error, setError] = useState("");
 
-  const runSearch = () => {
+  const resolveLocationRoute = async (rawQuery) => {
+    const query = String(rawQuery || "").trim();
+    const normalized = toSeoSlug(query);
+    if (!normalized || normalized === "india" || normalized === "in") return "/in";
+
+    let states = [];
+    try {
+      states = await getStates("in");
+    } catch {
+      states = [];
+    }
+
+    const matchedState = states.find((state) => {
+      const stateSlug = toSeoSlug(state?.slug);
+      const stateName = toSeoSlug(state?.name);
+      return normalized === stateSlug || normalized === stateName;
+    });
+
+    if (matchedState?.slug) {
+      return `/in/${toSeoSlug(matchedState.slug)}`;
+    }
+
+    try {
+      const suggestions = await getCitySuggestions(query);
+      const exactCity = suggestions.find((city) => {
+        const citySlug = toSeoSlug(getValueByKeys(city, ["city_slug", "slug", "city_name", "name"]));
+        const cityName = toSeoSlug(getValueByKeys(city, ["city_name", "name", "label"]));
+        return normalized === citySlug || normalized === cityName;
+      });
+      const startsWithCity = suggestions.find((city) => {
+        const citySlug = toSeoSlug(getValueByKeys(city, ["city_slug", "slug", "city_name", "name"]));
+        const cityName = toSeoSlug(getValueByKeys(city, ["city_name", "name", "label"]));
+        return citySlug.startsWith(normalized) || cityName.startsWith(normalized);
+      });
+      const city = exactCity || startsWithCity;
+
+      if (!city) return null;
+
+      const citySlug = toSeoSlug(getValueByKeys(city, ["city_slug", "slug", "city_name", "name"]));
+      const rawState = getValueByKeys(city, ["state_slug", "state_code", "state", "state_name"]);
+      let stateSlug = toSeoSlug(rawState);
+
+      if (stateSlug && stateSlug.length === 2) {
+        // Keep known 2-letter state codes directly (e.g., gj, mh).
+      } else if (stateSlug) {
+        const resolvedState = states.find((state) => {
+          const sSlug = toSeoSlug(state?.slug);
+          const sName = toSeoSlug(state?.name);
+          return stateSlug === sSlug || stateSlug === sName;
+        });
+        stateSlug = toSeoSlug(resolvedState?.slug || stateSlug);
+      }
+
+      if (citySlug && stateSlug) {
+        return `/in/${citySlug}-${stateSlug}`;
+      }
+    } catch {
+      // Fallback handled by caller.
+    }
+
+    return null;
+  };
+
+  const runSearch = async () => {
     const query = String(keyword || "").trim();
     if (query.length < 2) {
       setError("Select filters and search by city, area or landmark.");
       return;
     }
 
+    const locationRoute = await resolveLocationRoute(query);
     const params = new URLSearchParams();
-    params.set("q", query);
-    params.set("tab", activeTab);
     params.set("mode", mode);
     params.set("type", propertyType);
     params.set("budget", budget);
+    const placeSlug = toSeoSlug(query);
+
+    if (activeTab === "rent") {
+      router.push(`/rent-property/${placeSlug}`);
+      return;
+    }
+
+    if (activeTab === "commercial") {
+      router.push(`/commercial-property/${placeSlug}`);
+      return;
+    }
+
+    if (activeTab === "post_property") {
+      router.push(`/sell-property/${placeSlug}`);
+      return;
+    }
+
+    if (locationRoute) {
+      router.push(locationRoute);
+      return;
+    }
+
+    params.set("q", query);
+    params.set("tab", activeTab);
     router.push(`/in?${params.toString()}`);
   };
 

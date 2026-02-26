@@ -4,19 +4,10 @@ import { API_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/apiBaseUrl";
 import { getAuthAppUrl } from "@/lib/authAppUrl";
 
 const REFRESH_ENDPOINT = "/auth/refresh";
-const DEFAULT_PRODUCT_KEY = "property";
-const ACCESS_TOKEN_STORAGE_KEY = "access_token_property";
+const DEFAULT_PRODUCT_KEY =
+  String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim().toLowerCase() || "property";
 
-const readStoredAccessToken = () => {
-  if (typeof window === "undefined") return "";
-  try {
-    return String(window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || "").trim();
-  } catch {
-    return "";
-  }
-};
-
-let inMemoryAccessToken = readStoredAccessToken();
+let inMemoryAccessToken = "";
 let refreshPromise = null;
 let lastRefreshStatus = "idle";
 let lastRefreshAt = 0;
@@ -49,16 +40,6 @@ const getProductKey = () => DEFAULT_PRODUCT_KEY;
 const setAccessToken = (token) => {
   const safeToken = String(token || "").trim();
   inMemoryAccessToken = safeToken;
-  if (typeof window === "undefined") return;
-  try {
-    if (safeToken) {
-      window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, safeToken);
-    } else {
-      window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
-    }
-  } catch {
-    // Ignore storage errors and keep in-memory token.
-  }
 };
 
 const redirectToLogin = () => {
