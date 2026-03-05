@@ -220,6 +220,9 @@ export default function MainNavbar() {
   }, [themeMode]);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined" && !window.confirm("Are you sure you want to log out?")) {
+      return;
+    }
     try {
       await logout({ redirect: true });
     } finally {

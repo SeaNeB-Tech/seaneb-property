@@ -138,7 +138,7 @@ export function ListingAuthProvider({ children }) {
     notifyAuthChanged();
 
     if (redirect && typeof window !== "undefined") {
-      window.location.href = "/auth/login";
+      window.location.href = "/";
     }
   }, []);
 

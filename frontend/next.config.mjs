@@ -115,6 +115,11 @@ const nextConfig = {
               permanent: false,
             },
             {
+              source: "/auth/business-reg",
+              destination: `${authAppBaseUrl}/auth/business-reg`,
+              permanent: false,
+            },
+            {
               source: "/auth/complete-profile",
               destination: `${authAppBaseUrl}/auth/complete-profile`,
               permanent: false,

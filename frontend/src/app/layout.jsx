@@ -4,10 +4,8 @@ import { SITE_URL } from "@/lib/siteUrl"
 import { Noto_Sans } from "next/font/google"
 import ListingAuthProviderClient from "@/components/providers/ListingAuthProviderClient"
 
-// make sure we have something valid; SITE_URL now always has a value, but
-// being defensive avoids runtime crashes if environment config is wrong.
-const siteUrl = SITE_URL || "http://localhost:3000";
-const THEME_COLOR = "#BF932A";
+const siteUrl = SITE_URL
+const THEME_COLOR = "#BF932A"
 const notoSans = Noto_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -16,8 +14,7 @@ const notoSans = Noto_Sans({
 })
 
 export const metadata = {
-  // If siteUrl is somehow still empty/invalid, don't try to build a URL
-  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+  metadataBase: new URL(siteUrl),
   title: "SeaNeB - Find Your Perfect Property | Real Estate Platform",
   description: "Discover verified apartments, houses, and commercial properties in your area. List, buy, sell, and rent properties with India's trusted real estate marketplace. Connect with qualified sellers instantly.",
   keywords: "real estate, property listing, buy property, sell property, rent property, apartments, houses, commercial properties, India real estate",

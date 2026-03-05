@@ -11,6 +11,9 @@ export default function AppHeader({ showLogout = true }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined" && !window.confirm("Are you sure you want to log out?")) {
+      return;
+    }
     try {
       setIsLoading(true);
       await logoutAndClearAuthSession();

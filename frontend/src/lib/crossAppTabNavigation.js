@@ -2,6 +2,7 @@
 
 const CROSS_TAB_LOGIN_SOURCE = "main-app";
 const CROSS_TAB_REGISTER_SOURCE = "main-app-register";
+const BUSINESS_REGISTER_PATH = "/auth/business-reg";
 
 export function openBusinessRegisterFlow() {
   if (typeof window === "undefined") return;
@@ -14,7 +15,7 @@ export function openBusinessRegisterFlow() {
   }
 
   const businessRegisterPath =
-    `/auth/business-register?source=${encodeURIComponent(CROSS_TAB_REGISTER_SOURCE)}`;
+    `${BUSINESS_REGISTER_PATH}?source=${encodeURIComponent(CROSS_TAB_REGISTER_SOURCE)}`;
   const directBusinessRegisterUrl = `${authAppUrl}${businessRegisterPath}`;
   window.location.assign(directBusinessRegisterUrl);
 }

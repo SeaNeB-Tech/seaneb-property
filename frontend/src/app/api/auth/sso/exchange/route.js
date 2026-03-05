@@ -5,6 +5,9 @@ import { createHash } from "node:crypto";
 const PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
 const BRIDGE_REPLAY_CACHE_TTL_MS = 2 * 60_000;
 const bridgeReplayCache = new Map();
+const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
+const COOKIE_SECURE = IS_PRODUCTION;
+const COOKIE_SAME_SITE = IS_PRODUCTION ? "none" : "lax";
 
 const tokenDigest = (value) =>
   createHash("sha256").update(String(value || ""), "utf8").digest("hex");
@@ -68,6 +71,41 @@ const readAccessTokenFromPayload = (payload = {}, headers = null) => {
       headerToken ||
       ""
   ).trim();
+};
+
+const readRefreshTokenFromPayload = (payload = {}) => {
+  const data = payload?.data || {};
+  const tokenObj = data?.token || payload?.token || {};
+  return String(
+    payload?.refreshToken ||
+      payload?.refresh_token ||
+      data?.refreshToken ||
+      data?.refresh_token ||
+      tokenObj?.refreshToken ||
+      tokenObj?.refresh_token ||
+      ""
+  ).trim();
+};
+
+const readCsrfFromPayload = (payload = {}, headers = null) => {
+  const data = payload?.data || {};
+  return String(
+    payload?.csrfToken ||
+      payload?.csrf_token ||
+      data?.csrfToken ||
+      data?.csrf_token ||
+      headers?.get("x-csrf-token") ||
+      headers?.get("csrf-token") ||
+      headers?.get("x-xsrf-token") ||
+      ""
+  ).trim();
+};
+
+const readExpiresInFromPayload = (payload = {}) => {
+  const data = payload?.data || {};
+  const value = payload?.expiresIn ?? payload?.expires_in ?? data?.expiresIn ?? data?.expires_in;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
 };
 
 const buildUpstreamCandidates = () => {
@@ -209,7 +247,11 @@ export async function POST(request) {
   }
 
   const accessToken = readAccessTokenFromPayload(upstreamPayload, upstreamResponse.headers);
-  return NextResponse.json(
+  const refreshToken = readRefreshTokenFromPayload(upstreamPayload);
+  const csrfToken = readCsrfFromPayload(upstreamPayload, upstreamResponse.headers);
+  const expiresIn = readExpiresInFromPayload(upstreamPayload);
+
+  const response = NextResponse.json(
     {
       success: true,
       ...(accessToken ? { accessToken, access_token: accessToken } : {}),
@@ -219,4 +261,40 @@ export async function POST(request) {
       headers: responseHeaders,
     }
   );
+
+  if (accessToken) {
+    response.cookies.set({
+      name: "access_token",
+      value: accessToken,
+      httpOnly: true,
+      sameSite: COOKIE_SAME_SITE,
+      secure: COOKIE_SECURE,
+      path: "/",
+      ...(expiresIn != null ? { maxAge: Math.max(1, Math.floor(expiresIn)) } : {}),
+    });
+  }
+
+  if (refreshToken) {
+    response.cookies.set({
+      name: "refresh_token_property",
+      value: refreshToken,
+      httpOnly: true,
+      sameSite: COOKIE_SAME_SITE,
+      secure: COOKIE_SECURE,
+      path: "/",
+    });
+  }
+
+  if (csrfToken) {
+    response.cookies.set({
+      name: "csrf_token_property",
+      value: csrfToken,
+      httpOnly: false,
+      sameSite: "lax",
+      secure: IS_PRODUCTION,
+      path: "/",
+    });
+  }
+
+  return response;
 }

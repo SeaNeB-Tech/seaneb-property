@@ -10,7 +10,10 @@ import { useListingAuth } from "@/hooks/auth/useListingAuth";
  */
 export default function CTASection({ title, description, primary, secondary }) {
   const { status: authStatus } = useListingAuth();
-  const authBusinessRegisterUrl = getAuthAppUrl("/auth/business-register");
+  const authBusinessRegisterUrls = new Set([
+    getAuthAppUrl("/auth/business-reg"),
+    getAuthAppUrl("/auth/business-register"),
+  ]);
   const authLoginUrl = getAuthAppUrl("/auth/login");
 
   const handleCtaClick = (event, href, action) => {
@@ -30,7 +33,7 @@ export default function CTASection({ title, description, primary, secondary }) {
     const targetHref = String(href || "").trim();
     if (!targetHref) return;
 
-    if (targetHref === authBusinessRegisterUrl) {
+    if (authBusinessRegisterUrls.has(targetHref)) {
       event.preventDefault();
       if (authStatus === "restoring") return;
       openBusinessRegisterFlow();
