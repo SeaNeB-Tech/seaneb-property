@@ -1,0 +1,23 @@
+{
+  "/[slug]/page": "app/[slug]/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/about/page": "app/about/page.js",
+  "/blogs/[slug]/page": "app/blogs/[slug]/page.js",
+  "/blogs/page": "app/blogs/page.js",
+  "/contact/page": "app/contact/page.js",
+  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
+  "/dashboard/broker/page": "app/dashboard/broker/page.js",
+  "/dashboard/help/page": "app/dashboard/help/page.js",
+  "/dashboard/listings/page": "app/dashboard/listings/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/products/page": "app/dashboard/products/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/debug-auth/page": "app/debug-auth/page.js",
+  "/home/page": "app/home/page.js",
+  "/in/[...slug]/page": "app/in/[...slug]/page.js",
+  "/in/page": "app/in/page.js",
+  "/page": "app/page.js",
+  "/partner/page": "app/partner/page.js",
+  "/solution/page": "app/solution/page.js"
+}

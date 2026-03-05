@@ -374,36 +374,63 @@ export default function HomePage({ data }) {
                       </div>
                     </div>
                     <div className="p-2">
-                      <Link
-                        href={dashboardUrl}
-                        onClick={handleMyAccountClick}
-                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
-                      >
-                        <span>My Account</span>
-                        <span className="text-slate-400">{"\u203A"}</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={handleBusinessAction}
-                        className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
-                      >
-                        <span>
-                          {!hasBusiness
-                            ? "Business Register"
-                            : dashboardMode === DASHBOARD_MODE_BUSINESS
-                              ? "Switch to User Dashboard"
-                              : "Switch to Business Dashboard"}
-                        </span>
-                        <span className="text-indigo-300">{"\u203A"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                      >
-                        <span>Sign Out</span>
-                        <span className="text-rose-300">{"\u203A"}</span>
-                      </button>
+                      {/* if on business dashboard only show listings link and sign-out */}
+                    {dashboardMode === DASHBOARD_MODE_BUSINESS ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            router.push("/home");
+                          }}
+                          className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-50"
+                        >
+                          <span>Visit Listings Home</span>
+                          <span className="text-amber-300">{"\u203A"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                        >
+                          <span>Sign Out</span>
+                          <span className="text-rose-300">{"\u203A"}</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href={dashboardUrl}
+                          onClick={handleMyAccountClick}
+                          className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+                        >
+                          <span>My Account</span>
+                          <span className="text-slate-400">{"\u203A"}</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={handleBusinessAction}
+                          className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+                        >
+                          <span>
+                            {!hasBusiness
+                              ? "Business Register"
+                              : dashboardMode === DASHBOARD_MODE_BUSINESS
+                                ? "Switch to User Dashboard"
+                                : "Go to Business Dashboard"}
+                          </span>
+                          <span className="text-indigo-300">{"\u203A"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                        >
+                          <span>Sign Out</span>
+                          <span className="text-rose-300">{"\u203A"}</span>
+                        </button>
+                      </>
+                    )}
                     </div>
                   </>
                 ) : (

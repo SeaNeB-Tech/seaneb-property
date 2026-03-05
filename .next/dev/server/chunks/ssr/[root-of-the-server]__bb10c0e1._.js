@@ -1,0 +1,529 @@
+module.exports = [
+"[externals]/next/dist/shared/lib/no-fallback-error.external.js [external] (next/dist/shared/lib/no-fallback-error.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/shared/lib/no-fallback-error.external.js", () => require("next/dist/shared/lib/no-fallback-error.external.js"));
+
+module.exports = mod;
+}),
+"[project]/src/app/layout.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/layout.jsx [app-rsc] (ecmascript)"));
+}),
+"[project]/src/app/error.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/error.jsx [app-rsc] (ecmascript)"));
+}),
+"[project]/src/app/not-found.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/not-found.jsx [app-rsc] (ecmascript)"));
+}),
+"[project]/src/app/contact/error.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/contact/error.jsx [app-rsc] (ecmascript)"));
+}),
+"[project]/src/app/contact/loading.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/contact/loading.jsx [app-rsc] (ecmascript)"));
+}),
+"[project]/src/components/marketing/shared/SectionHeading.jsx [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/**
+ * Reusable section heading for consistent typography.
+ */ __turbopack_context__.s([
+    "default",
+    ()=>SectionHeading
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js [app-rsc] (ecmascript)");
+;
+function SectionHeading({ eyebrow, title, description, align = "left" }) {
+    const alignClass = align === "center" ? "text-center" : "text-left";
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: alignClass,
+        children: [
+            eyebrow ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600",
+                children: eyebrow
+            }, void 0, false, {
+                fileName: "[project]/src/components/marketing/shared/SectionHeading.jsx",
+                lineNumber: 9,
+                columnNumber: 18
+            }, this) : null,
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                className: "mt-2 text-2xl font-bold text-slate-900 sm:text-3xl",
+                children: title
+            }, void 0, false, {
+                fileName: "[project]/src/components/marketing/shared/SectionHeading.jsx",
+                lineNumber: 10,
+                columnNumber: 7
+            }, this),
+            description ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "mt-3 text-sm text-slate-600 sm:text-base",
+                children: description
+            }, void 0, false, {
+                fileName: "[project]/src/components/marketing/shared/SectionHeading.jsx",
+                lineNumber: 11,
+                columnNumber: 22
+            }, this) : null
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/components/marketing/shared/SectionHeading.jsx",
+        lineNumber: 8,
+        columnNumber: 5
+    }, this);
+}
+}),
+"[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (client reference proxy) <module evaluation>", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+// This file is generated by next-core EcmascriptClientReferenceModule.
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-server.js [app-rsc] (ecmascript)");
+;
+const __TURBOPACK__default__export__ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call the default export of [project]/src/components/marketing/forms/ContactForm.jsx <module evaluation> from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/components/marketing/forms/ContactForm.jsx <module evaluation>", "default");
+}),
+"[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (client reference proxy)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+// This file is generated by next-core EcmascriptClientReferenceModule.
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-server.js [app-rsc] (ecmascript)");
+;
+const __TURBOPACK__default__export__ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call the default export of [project]/src/components/marketing/forms/ContactForm.jsx from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/components/marketing/forms/ContactForm.jsx", "default");
+}),
+"[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$forms$2f$ContactForm$2e$jsx__$5b$app$2d$rsc$5d$__$28$client__reference__proxy$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (client reference proxy) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$forms$2f$ContactForm$2e$jsx__$5b$app$2d$rsc$5d$__$28$client__reference__proxy$29$__ = __turbopack_context__.i("[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (client reference proxy)");
+;
+__turbopack_context__.n(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$forms$2f$ContactForm$2e$jsx__$5b$app$2d$rsc$5d$__$28$client__reference__proxy$29$__);
+}),
+"[project]/src/data/navpages/home.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"title":"Find Verified Properties Across India","description":"Search smarter with SeaNeB and connect directly with trusted brokers, builders, and owners.","image":"/assets/home/Gemini_Generated_Image_jnqk9ajnqk9ajnqk.png","imageAlt":"Property discovery dashboard over a modern cityscape","locations":[]},"searchSection":{"tabs":[{"key":"buy","label":"Buy"},{"key":"rent","label":"Rent"},{"key":"new_launch","label":"New Launch"},{"key":"commercial","label":"Commercial"},{"key":"plots_land","label":"Plots/Land"},{"key":"projects","label":"Projects"},{"key":"post_property","label":"Post Property"}],"recentSearches":["Buy in Anand","View all searches"],"tabConfig":{"buy":{"modeOptions":["Buy","Resale","Ready to Move"],"typeOptions":["All Residential","Apartment","Villa","Independent House","Plot"],"categoryOptions":["Residential Buy","Commercial Buy","Luxury Homes"],"placeholder":"Search ","propertyTypes":["Ready to move","New booking","Luxury homes","Gated community"],"investmentOptions":["Pre-Leased","High ROI","Low Risk","Near Metro"],"quickFilters":["Budget","Area","Construction Status","Posted By"]},"rent":{"modeOptions":["Rent","PG","Co-Living"],"typeOptions":["All Residential","Apartment","Independent House","Studio"],"categoryOptions":["Residential Rent","PG/Hostel","Commercial Rent"],"placeholder":"Search \"flats for rent in sector 77 Noida\"","propertyTypes":["Semi Furnished","Fully Furnished","Family","Bachelors"],"investmentOptions":["Near Office","Near Metro","Pet Friendly","Low Deposit"],"quickFilters":["Rent Budget","Area","Furnishing","Tenant Preference"]},"new_launch":{"modeOptions":["New Launch","Under Construction","Book Now"],"typeOptions":["All Projects","Apartment","Villa","Township"],"categoryOptions":["New Launch Projects","Pre-Launch","Ready Soon"],"placeholder":"Search \"new launch projects in Pune\"","propertyTypes":["RERA Approved","Phase 1","Possession 2026","Premium"],"investmentOptions":["Builder Offer","Pre-Launch Price","Flexible Payment","Early Access"],"quickFilters":["Budget","Builder","Possession","Configuration"]},"commercial":{"modeOptions":["Buy","Rent","Lease"],"typeOptions":["All Commercial","Office","Retail","Warehouse","Industrial"],"categoryOptions":["Office Space","Retail Shops","Warehouses"],"placeholder":"Search \"commercial office space in Mumbai\"","propertyTypes":["Bare shell","Co-working","Retail shop","Warehouse"],"investmentOptions":["Pre Leased","Business District","High Footfall","Grade A"],"quickFilters":["Budget","Area","Property Status","Posted By"]},"plots_land":{"modeOptions":["Buy","Investment","Agriculture"],"typeOptions":["Residential","Commercial","Agricultural"],"categoryOptions":["Residential Plots","Commercial Plots","Agricultural Land"],"placeholder":"Search \"plots in gated society\"","propertyTypes":["Corner Plot","Gated Society","Main Road","NA/NOC Ready"],"investmentOptions":["High Appreciation","Near Highway","Town Planning Zone","Low Entry"],"quickFilters":["Budget","Area","Facing","Posted By"]},"projects":{"modeOptions":["Projects","Ready Projects","Top Rated"],"typeOptions":["All Projects","Residential","Commercial","Mixed Use"],"categoryOptions":["Top Projects","RERA Projects","Builder Projects"],"placeholder":"Search \"top projects in Bengaluru\"","propertyTypes":["Top Builders","RERA Projects","Near Metro","Family Focused"],"investmentOptions":["High Demand","Fast Growing","Top Locality","Value Buy"],"quickFilters":["Budget","Builder","Project Status","Configuration"]},"post_property":{"modeOptions":["Sell","Rent Out","List Project"],"typeOptions":["Residential","Commercial","Plots/Land","Project"],"categoryOptions":["Owner","Broker","Builder"],"placeholder":"Describe your property to list it faster","propertyTypes":["Owner Listing","Broker Listing","Builder Listing","Urgent Sale"],"investmentOptions":["Featured Listing","Verified Badge","Lead Boost","Priority Support"],"quickFilters":["Property Type","Location","Pricing","Availability"]}}},"countriesSection":{"title":"Available Location","description":"Explore listings across India.","countries":["India"]},"homeInfoSection":{"eyebrow":"SeaNeB","title":"One Platform For Smarter Property Discovery","description":"Search, compare, and connect with confidence using a clean real-estate workflow built for users and partners.","points":["Verified business-first listings with structured details.","Fast discovery across cities and states across India.","Simple connect flow for buyers, renters, and brokers."]},"downloadAppSection":{"title":"SeaNeB App: Discover Property On The Go","description":"Get the app for free and explore verified properties anytime.","appStoreHref":"https://apps.apple.com","playStoreHref":"https://play.google.com"}});}),
+"[project]/src/data/navpages/about.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"eyebrow":"About SeaNeB","title":"A Modern Trust Layer for Real Estate Discovery","description":"SeaNeB helps property seekers and businesses connect with verified, structured, and local-first experiences.","image":"/about-images/about-image-3.jpg","imageAlt":"SeaNeB platform view over a connected city"},"media":{"storyImage":"/about-images/about-image-6.jpg","storyImageAlt":"Market analytics and listing performance insights","trustImage":"/about-images/about-image-2.jpg","trustImageAlt":"Digital trust and verification protection layer","discoveryImage":"/about-images/about-image-4.jpg","discoveryImageAlt":"Location-based property discovery across a city","marketImage":"/about-images/about-image-5.jpg","marketImageAlt":"City market pulse and growth trends at sunset"},"mission":"Make real estate discovery transparent, location-aware, and action-oriented for every user.","vision":"Become the most trusted property platform where verified data and faster connections drive better decisions.","workflow":[{"step":"Search","description":"Explore listings by country, state, city, and locality."},{"step":"Connect","description":"Reach verified businesses directly from listing pages."},{"step":"Close","description":"Compare options and move confidently with complete context."}],"verification":["Business profile checks for trust and transparency.","Listing detail quality checks to reduce spam and noise.","Location hierarchy mapping for accurate discovery."],"stats":[{"label":"Verified Businesses","value":"850+"},{"label":"Cities Active","value":"120+"},{"label":"Listings Reviewed","value":"30K+"},{"label":"Support Satisfaction","value":"96%"}],"team":[{"name":"Product Team","role":"Platform Experience","focus":"Search UX and trust workflows"},{"name":"Operations Team","role":"Verification","focus":"Listing and business quality checks"},{"name":"Growth Team","role":"Partner Success","focus":"Broker and builder onboarding"}],"cta":{"title":"Explore SeaNeB in your city","description":"Discover verified listings and partner-ready workflows.","primary":{"label":"Browse India","href":"/in"},"secondary":{"label":"See Solutions","href":"/solution"}}});}),
+"[project]/src/data/navpages/solution.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"eyebrow":"Solutions","title":"Fixing Traditional Real Estate Friction","description":"SeaNeB combines verified data, smart filters, and partner workflows for faster property decisions."},"problems":["Scattered and unverified listing information.","Slow broker response and unclear follow-up trails.","Poor locality-level visibility for buyers and renters."],"solutions":["Verified listing and business trust layers.","Structured local pages by state, city, and area.","Dashboard-backed lead and listing management tools."],"features":[{"title":"Smart Search","description":"Filter by location and intent for quicker shortlisting."},{"title":"Instant Alerts","description":"Stay updated when matching properties are published."},{"title":"Verified Listings","description":"Reduce risk with better listing context and trust signals."}],"workflow":["Create profile and define operating areas.","Publish listings with complete details.","Receive qualified interest and respond faster.","Track conversion and improve over time."],"benefits":["Higher listing visibility in relevant local searches.","Improved lead quality and response efficiency.","Better user trust through cleaner data quality."],"cta":{"title":"Launch your SeaNeB growth workflow","description":"Start as a partner and make your listings discoverable today.","primary":{"label":"Become a Partner","href":"/partner"},"secondary":{"label":"Contact Team","href":"/contact"}}});}),
+"[project]/src/data/navpages/blogs.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"eyebrow":"Blogs","title":"Real Estate Insights That Drive Better Decisions","description":"Read practical updates for buyers, renters, brokers, and builders."},"categories":["All","Buying","Renting","Commercial","Market Trends","Broker Growth"],"posts":[{"title":"Checklist Before Buying a Flat in 2026","excerpt":"Key checks to perform before finalizing your property purchase.","category":"Buying","readTime":"6 min read","href":"/blogs/checklist-before-buying-a-flat-in-2026"},{"title":"How to Compare Rental Listings Like a Pro","excerpt":"A quick framework to evaluate rent, location, and commute impact.","category":"Renting","readTime":"5 min read","href":"/blogs/how-to-compare-rental-listings-like-a-pro"},{"title":"Commercial Leasing Trends This Quarter","excerpt":"What businesses should watch in current office and retail markets.","category":"Commercial","readTime":"7 min read","href":"/blogs/commercial-leasing-trends-this-quarter"},{"title":"Lead Quality Playbook for Brokers","excerpt":"Simple listing and response tactics to improve conversion outcomes.","category":"Broker Growth","readTime":"8 min read","href":"/blogs/lead-quality-playbook-for-brokers"},{"title":"Locality Signals That Matter Most","excerpt":"Understand infra, demand, and price movement before deciding.","category":"Market Trends","readTime":"6 min read","href":"/blogs/locality-signals-that-matter-most"},{"title":"How to Price Your Property Listing Right","excerpt":"Avoid underpricing or overpricing with practical benchmarks.","category":"Broker Growth","readTime":"5 min read","href":"/blogs/how-to-price-your-property-listing-right"}],"popular":[{"title":"How SeaNeB Verification Works","excerpt":"Inside our quality and trust checks for listings.","category":"Market Trends","readTime":"4 min read","href":"/blogs/how-seaneb-verification-works"},{"title":"Faster Property Responses: Broker Guide","excerpt":"Operational habits that improve lead response rate.","category":"Broker Growth","readTime":"5 min read","href":"/blogs/faster-property-responses-broker-guide"}],"pagination":{"currentPage":1,"totalPages":5},"newsletter":{"title":"Get Weekly Property Insights","description":"Subscribe for practical market updates and product news."}});}),
+"[project]/src/data/navpages/partner.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"eyebrow":"Partner","title":"Grow With SeaNeB Partner Program","description":"For brokers, builders, and agents who want higher visibility and stronger lead quality."},"partnerTypes":[{"title":"Broker","description":"Get quality leads in your active localities."},{"title":"Builder","description":"Showcase inventory and project credibility."},{"title":"Agent","description":"Expand local reach with verified listings."}],"benefits":["Better local discoverability in search flows.","Dashboard-based listing and lead management.","Verification support to improve user trust."],"dashboardPreview":["Listing performance snapshot","Inquiry response queue","Market demand highlights"],"plans":[{"name":"Basic","price":"INR coming...","features":["Profile listing","1 active city","Email support"]},{"name":"Premium","price":"INR comimng...","features":["Priority visibility","5 active cities","Phone support"]},{"name":"Featured","price":"INR coming...","features":["Top placement","Unlimited cities","Dedicated manager"]}],"cta":{"title":"Start onboarding in minutes","description":"Create your SeaNeB partner profile and publish high-quality listings.","primary":{"label":"Register as Partner","href":"/partner"},"secondary":{"label":"Talk to Sales","href":"/contact"}}});}),
+"[project]/src/data/navpages/contact.json (json)", ((__turbopack_context__) => {
+
+__turbopack_context__.v({"hero":{"eyebrow":"Contact","title":"Talk to the SeaNeB Team","description":"We are here for support, onboarding, and partnership discussions."},"office":{"address":"SeaNeB Technologies Private Limited, 407 Jol, Anand 388120, Gujarat, India","email":"hello@seaneb.org","phone":"+91 (8511) SEANEB","hours":"Mon - Sat, 9:00 AM - 7:00 PM"},"support":["Help center for common product questions","Dedicated partner onboarding support","Technical issue escalation workflow"],"faqPreview":[{"question":"How quickly can I get a response?","answer":"Most requests get first response within 4 hours on business days."},{"question":"Can I request a partnership demo?","answer":"Yes, use the contact form and mention your business profile details."}]});}),
+"[project]/src/services/marketing.service.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "fetchAboutPageData",
+    ()=>fetchAboutPageData,
+    "fetchBlogsPageData",
+    ()=>fetchBlogsPageData,
+    "fetchContactPageData",
+    ()=>fetchContactPageData,
+    "fetchHomePageData",
+    ()=>fetchHomePageData,
+    "fetchPartnerPageData",
+    ()=>fetchPartnerPageData,
+    "fetchSolutionPageData",
+    ()=>fetchSolutionPageData
+]);
+/**
+ * Example API layer for marketing pages.
+ * Replace NEXT_PUBLIC_MARKETING_API_BASE with your backend URL.
+ */ const API_BASE = process.env.NEXT_PUBLIC_MARKETING_API_BASE;
+async function fetchFromMarketingAPI(path) {
+    if (!API_BASE) {
+        throw new Error("NEXT_PUBLIC_MARKETING_API_BASE is not configured");
+    }
+    const response = await fetch(`${API_BASE}${path}`, {
+        method: "GET",
+        next: {
+            revalidate: 300
+        },
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${path}: ${response.status}`);
+    }
+    return response.json();
+}
+async function fetchHomePageData() {
+    return fetchFromMarketingAPI("/marketing/home");
+}
+async function fetchAboutPageData() {
+    return fetchFromMarketingAPI("/marketing/about");
+}
+async function fetchSolutionPageData() {
+    return fetchFromMarketingAPI("/marketing/solution");
+}
+async function fetchBlogsPageData() {
+    return fetchFromMarketingAPI("/marketing/blogs");
+}
+async function fetchPartnerPageData() {
+    return fetchFromMarketingAPI("/marketing/partner");
+}
+async function fetchContactPageData() {
+    return fetchFromMarketingAPI("/marketing/contact");
+}
+}),
+"[project]/src/lib/marketing/getMarketingPageData.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "getAboutPageData",
+    ()=>getAboutPageData,
+    "getBlogsPageData",
+    ()=>getBlogsPageData,
+    "getContactPageData",
+    ()=>getContactPageData,
+    "getHomePageData",
+    ()=>getHomePageData,
+    "getPartnerPageData",
+    ()=>getPartnerPageData,
+    "getSolutionPageData",
+    ()=>getSolutionPageData
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$home$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/home.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$about$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/about.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$solution$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/solution.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$blogs$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/blogs.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$partner$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/partner.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$contact$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/data/navpages/contact.json (json)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/cache.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/services/marketing.service.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+;
+const REVALIDATE_SECONDS = 300;
+const createCachedLoader = (fetcher, cacheKey)=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["unstable_cache"])(fetcher, [
+        cacheKey
+    ], {
+        revalidate: REVALIDATE_SECONDS
+    });
+const loadOrFallback = async (loader, fallback)=>{
+    try {
+        return await loader();
+    } catch  {
+        return fallback;
+    }
+};
+const getCachedHomePageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchHomePageData"], "marketing-home-page");
+const getCachedAboutPageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchAboutPageData"], "marketing-about-page");
+const getCachedSolutionPageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchSolutionPageData"], "marketing-solution-page");
+const getCachedBlogsPageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchBlogsPageData"], "marketing-blogs-page");
+const getCachedPartnerPageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchPartnerPageData"], "marketing-partner-page");
+const getCachedContactPageData = createCachedLoader(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$marketing$2e$service$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fetchContactPageData"], "marketing-contact-page");
+async function getHomePageData() {
+    return loadOrFallback(getCachedHomePageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$home$2e$json__$28$json$29$__["default"]);
+}
+async function getAboutPageData() {
+    return loadOrFallback(getCachedAboutPageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$about$2e$json__$28$json$29$__["default"]);
+}
+async function getSolutionPageData() {
+    return loadOrFallback(getCachedSolutionPageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$solution$2e$json__$28$json$29$__["default"]);
+}
+async function getBlogsPageData() {
+    return loadOrFallback(getCachedBlogsPageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$blogs$2e$json__$28$json$29$__["default"]);
+}
+async function getPartnerPageData() {
+    return loadOrFallback(getCachedPartnerPageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$partner$2e$json__$28$json$29$__["default"]);
+}
+async function getContactPageData() {
+    return loadOrFallback(getCachedContactPageData, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$data$2f$navpages$2f$contact$2e$json__$28$json$29$__["default"]);
+}
+}),
+"[project]/src/app/contact/page.jsx [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>ContactPage,
+    "metadata",
+    ()=>metadata
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$MarketingPageShell$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/marketing/shared/MarketingPageShell.jsx [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$SectionHeading$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/marketing/shared/SectionHeading.jsx [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$forms$2f$ContactForm$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/marketing/forms/ContactForm.jsx [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$marketing$2f$getMarketingPageData$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/marketing/getMarketingPageData.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$siteUrl$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/siteUrl.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+const metadata = {
+    title: "Contact SeaNeB | Support and Partnership Help",
+    description: "Contact SeaNeB for product support, partner onboarding, and business inquiries.",
+    openGraph: {
+        title: "Contact SeaNeB | Support and Partnership Help",
+        description: "Reach SeaNeB support, get onboarding help, and connect with our team.",
+        type: "website",
+        url: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$siteUrl$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSiteUrl"])("/contact")
+    }
+};
+async function ContactPage() {
+    const data = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$marketing$2f$getMarketingPageData$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getContactPageData"])();
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$MarketingPageShell$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                className: "bg-gradient-to-r from-indigo-900 to-violet-800 text-white",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                            className: "text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200",
+                            children: data.hero.eyebrow
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/contact/page.jsx",
+                            lineNumber: 25,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                            className: "mt-3 text-4xl font-bold sm:text-5xl",
+                            children: data.hero.title
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/contact/page.jsx",
+                            lineNumber: 26,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                            className: "mt-4 max-w-3xl text-sm text-indigo-100 sm:text-lg",
+                            children: data.hero.description
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/contact/page.jsx",
+                            lineNumber: 27,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/src/app/contact/page.jsx",
+                    lineNumber: 24,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/src/app/contact/page.jsx",
+                lineNumber: 23,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                className: "mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:px-8",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$forms$2f$ContactForm$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 32,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "space-y-6",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
+                                className: "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$SectionHeading$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+                                        eyebrow: "Map",
+                                        title: "Office Location",
+                                        description: "Google map placeholder for office navigation."
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 36,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "mt-4 flex h-56 items-center justify-center rounded-xl bg-slate-200 text-sm font-medium text-slate-600",
+                                        children: "Map Embed Placeholder"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 37,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/contact/page.jsx",
+                                lineNumber: 35,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
+                                className: "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$SectionHeading$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+                                        eyebrow: "Office",
+                                        title: "Office Details"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 43,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "mt-3 text-sm text-slate-700",
+                                        children: data.office.address
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 44,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "mt-2 text-sm text-slate-700",
+                                        children: data.office.email
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 45,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "mt-2 text-sm text-slate-700",
+                                        children: data.office.phone
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 46,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "mt-2 text-sm text-slate-700",
+                                        children: data.office.hours
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 47,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/contact/page.jsx",
+                                lineNumber: 42,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 34,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/contact/page.jsx",
+                lineNumber: 31,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                className: "mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$SectionHeading$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+                        eyebrow: "FAQ",
+                        title: "FAQ Preview",
+                        description: "Answers to common support and onboarding questions."
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 53,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "mt-5 grid grid-cols-1 gap-4 md:grid-cols-2",
+                        children: data.faqPreview.map((item)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
+                                className: "rounded-xl border border-slate-200 bg-white p-5 shadow-sm",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                        className: "text-sm font-semibold text-slate-900",
+                                        children: item.question
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 57,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "mt-2 text-sm text-slate-700",
+                                        children: item.answer
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/contact/page.jsx",
+                                        lineNumber: 58,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, item.question, true, {
+                                fileName: "[project]/src/app/contact/page.jsx",
+                                lineNumber: 56,
+                                columnNumber: 13
+                            }, this))
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 54,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/contact/page.jsx",
+                lineNumber: 52,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                className: "mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$marketing$2f$shared$2f$SectionHeading$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+                        eyebrow: "Support",
+                        title: "Support Information",
+                        description: "Choose the right support path for faster resolution."
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 65,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "mt-5 grid grid-cols-1 gap-3 md:grid-cols-3",
+                        children: data.support.map((item)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm",
+                                children: item
+                            }, item, false, {
+                                fileName: "[project]/src/app/contact/page.jsx",
+                                lineNumber: 68,
+                                columnNumber: 13
+                            }, this))
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/contact/page.jsx",
+                        lineNumber: 66,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/contact/page.jsx",
+                lineNumber: 64,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/app/contact/page.jsx",
+        lineNumber: 22,
+        columnNumber: 5
+    }, this);
+}
+}),
+"[project]/src/app/contact/page.jsx [app-rsc] (ecmascript, Next.js Server Component)", ((__turbopack_context__) => {
+
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/contact/page.jsx [app-rsc] (ecmascript)"));
+}),
+];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__bb10c0e1._.js.map

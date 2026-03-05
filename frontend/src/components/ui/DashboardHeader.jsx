@@ -148,34 +148,64 @@ export default function DashboardHeader({ showLogout = true }) {
               <p className="mt-1 truncate text-sm font-semibold text-gray-900">{userDisplayName}</p>
               <p className="mt-1 truncate text-xs font-medium text-gray-500">{productName}</p>
               <p className="mt-1 truncate text-xs text-gray-600">{userEmail}</p>
-              {dashboardMode !== DASHBOARD_MODE_BUSINESS && (
-                <button
-                  type="button"
-                  onClick={handleModeSwitch}
-                  className="mt-4 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
-                >
-                  {hasBusiness ? "Switch to Business Dashboard" : "Business Register"}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileOpen(false);
-                  router.push("/home");
-                }}
-                className="mt-3 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
-              >
-                Visit Listings Home
-              </button>
-              {showLogout && (
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={handleLogout}
-                  className="mt-3 w-full rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-50"
-                >
-                  {isLoading ? "Logging out..." : "Logout"}
-                </button>
+
+              {/* if we're on the business dashboard only show the listings link (logout still allowed) */}
+              {dashboardMode === DASHBOARD_MODE_BUSINESS ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      router.push("/home");
+                    }}
+                    className="mt-4 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                  >
+                    Visit Listings Home
+                  </button>
+
+                  {showLogout && (
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={handleLogout}
+                      className="mt-3 w-full rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      {isLoading ? "Logging out..." : "Logout"}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {dashboardMode !== DASHBOARD_MODE_BUSINESS && (
+                    <button
+                      type="button"
+                      onClick={handleModeSwitch}
+                      className="mt-4 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+                    >
+                      {hasBusiness ? "Go to Business Dashboard" : "Business Register"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      router.push("/home");
+                    }}
+                    className="mt-3 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                  >
+                    Visit Listings Home
+                  </button>
+                  {showLogout && (
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={handleLogout}
+                      className="mt-3 w-full rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      {isLoading ? "Logging out..." : "Logout"}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
