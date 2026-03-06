@@ -45,6 +45,38 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   }
 };
 
+const getSetCookieList = (headers) => {
+  const getSetCookie = headers?.getSetCookie;
+  if (typeof getSetCookie === "function") {
+    return (getSetCookie.call(headers) || []).filter(Boolean);
+  }
+  const combinedCookieHeader = String(headers?.get("set-cookie") || "").trim();
+  if (!combinedCookieHeader) return [];
+  return combinedCookieHeader
+    .split(/,(?=\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+=)/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const readCookieValueFromSetCookieHeaders = (setCookieHeaders = [], candidateNames = []) => {
+  const loweredCandidates = candidateNames.map((name) => String(name || "").trim().toLowerCase());
+  for (const raw of setCookieHeaders) {
+    const firstPair = String(raw || "").split(";")[0] || "";
+    const idx = firstPair.indexOf("=");
+    if (idx < 0) continue;
+    const name = firstPair.slice(0, idx).trim();
+    const value = firstPair.slice(idx + 1).trim();
+    if (!name || !value) continue;
+    if (!loweredCandidates.includes(name.toLowerCase())) continue;
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+  return "";
+};
+
 const readAccessTokenFromPayload = (payload = {}, headers = null) => {
   const data = payload?.data || {};
   const tokenObj = data?.token || payload?.token || {};
@@ -246,9 +278,26 @@ export async function POST(request) {
     );
   }
 
-  const accessToken = readAccessTokenFromPayload(upstreamPayload, upstreamResponse.headers);
-  const refreshToken = readRefreshTokenFromPayload(upstreamPayload);
-  const csrfToken = readCsrfFromPayload(upstreamPayload, upstreamResponse.headers);
+  const upstreamSetCookies = getSetCookieList(upstreamResponse.headers);
+  const accessToken =
+    readAccessTokenFromPayload(upstreamPayload, upstreamResponse.headers) ||
+    readCookieValueFromSetCookieHeaders(upstreamSetCookies, ["access_token", "accessToken"]);
+  const refreshToken =
+    readRefreshTokenFromPayload(upstreamPayload) ||
+    readCookieValueFromSetCookieHeaders(upstreamSetCookies, [
+      "refresh_token_property",
+      "refresh_token",
+      "refreshToken_property",
+      "refreshToken",
+      "property_refresh_token",
+    ]);
+  const csrfToken =
+    readCsrfFromPayload(upstreamPayload, upstreamResponse.headers) ||
+    readCookieValueFromSetCookieHeaders(upstreamSetCookies, [
+      "csrf_token_property",
+      "csrf_token",
+      "csrfToken",
+    ]);
   const expiresIn = readExpiresInFromPayload(upstreamPayload);
 
   const response = NextResponse.json(

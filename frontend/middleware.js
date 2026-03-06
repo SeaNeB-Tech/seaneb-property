@@ -8,10 +8,44 @@ const REFRESH_COOKIE_KEYS = [
   "property_refresh_token",
 ];
 
-const hasAnyCookie = (request, names = []) =>
+const ACCESS_COOKIE_KEYS = [
+  "access_token",
+  "accessToken",
+  "auth_session",
+];
+
+const normalizeCookieName = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^__(host|secure)-/i, "");
+
+const hasAnyExactCookie = (request, names = []) =>
   names.some((name) => Boolean(String(request.cookies.get(name)?.value || "").trim()));
 
-const hasSessionCookie = (request) => hasAnyCookie(request, REFRESH_COOKIE_KEYS);
+const hasAnyPrefixedCookie = (request, prefixes = []) => {
+  const cookies = request.cookies.getAll();
+  if (!cookies.length) return false;
+  return cookies.some((cookie) => {
+    const name = normalizeCookieName(cookie?.name || "");
+    const value = String(cookie?.value || "").trim();
+    if (!name || !value) return false;
+    return prefixes.some((prefix) => {
+      const safePrefix = normalizeCookieName(prefix || "");
+      if (!safePrefix) return false;
+      return (
+        name === safePrefix ||
+        name.startsWith(`${safePrefix}_`) ||
+        name.startsWith(safePrefix) ||
+        name.includes(safePrefix)
+      );
+    });
+  });
+};
+
+const hasSessionCookie = (request) =>
+  hasAnyExactCookie(request, [...REFRESH_COOKIE_KEYS, ...ACCESS_COOKIE_KEYS]) ||
+  hasAnyPrefixedCookie(request, [...REFRESH_COOKIE_KEYS, ...ACCESS_COOKIE_KEYS]);
 
 const hasValidatedSession = async (request) => {
   try {

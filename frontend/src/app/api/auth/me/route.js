@@ -16,29 +16,53 @@ const isValidAuthorizationHeader = (value) => {
   return !["cookie_session", "null", "undefined", "invalid", "sentinel"].includes(lowered);
 };
 
+const normalizeCookieName = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^__(host|secure)-/i, "");
+
 const getCookieValueFromHeader = (cookieHeader, key) => {
   const source = String(cookieHeader || "");
   if (!source) return "";
+  const target = normalizeCookieName(key);
   const parts = source.split("; ");
   for (const part of parts) {
     const idx = part.indexOf("=");
     if (idx < 0) continue;
     const name = part.slice(0, idx).trim();
-    if (name !== key) continue;
+    const normalizedName = normalizeCookieName(name);
+    if (normalizedName !== target) continue;
     return part.slice(idx + 1).trim();
   }
   return "";
 };
 
 const hasRefreshCookie = (cookieHeader) => {
-  const keys = [
-    "refresh_token_property",
-    "refresh_token",
-    "refreshToken",
-    "refreshToken_property",
-    "property_refresh_token",
-  ];
-  return keys.some((key) => Boolean(getCookieValueFromHeader(cookieHeader, key)));
+  const source = String(cookieHeader || "");
+  if (!source) return false;
+  const parts = source.split("; ");
+  for (const part of parts) {
+    const idx = part.indexOf("=");
+    if (idx < 0) continue;
+    const rawName = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (!value) continue;
+    const name = normalizeCookieName(rawName);
+    if (!name) continue;
+    if (
+      name === "refresh_token_property" ||
+      name === "refresh_token" ||
+      name === "refreshtoken" ||
+      name === "refreshtoken_property" ||
+      name === "property_refresh_token" ||
+      name.startsWith("refresh_token") ||
+      name.includes("refresh_token")
+    ) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const resolveCsrfHeaderValue = (incomingHeader, cookieHeader) => {
