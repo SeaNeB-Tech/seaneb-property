@@ -1,5 +1,7 @@
 "use client";
 
+import { openSsoAuthTab } from "@/lib/newTabSso";
+
 const CROSS_TAB_LOGIN_SOURCE = "main-app";
 const CROSS_TAB_REGISTER_SOURCE = "main-app-register";
 const BUSINESS_REGISTER_PATH = "/auth/business-reg";
@@ -29,9 +31,9 @@ export const openAuthLoginTab = () => {
     return false;
   }
 
-  const loginUrl = `${authBase}/auth/login?source=${encodeURIComponent(CROSS_TAB_LOGIN_SOURCE)}`;
-  const popup = window.open(loginUrl, "_blank");
-  if (!popup) {
+  const loginPath = `/auth/login?source=${encodeURIComponent(CROSS_TAB_LOGIN_SOURCE)}`;
+  const opened = openSsoAuthTab(loginPath);
+  if (!opened) {
     console.warn("[cross-tab] Failed to open auth login tab.");
     return false;
   }

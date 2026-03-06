@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import BrandLogo from "./BrandLogo";
+import TermsConditionsModal from "./TermsConditionsModal";
 import { useAuthState } from "@/hooks/useAuthState";
 import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 import { guardDashboardNavigation } from "@/services/auth.service";
+
+const TERMS_TEXT_PATH = "/legal/terms-conditions-property.txt";
 
 const footerGroups = [
   {
@@ -34,7 +38,7 @@ const footerGroups = [
       { label: "Contact", href: "/contact" },
       { label: "FAQ", href: "/faq" },
       { label: "Privacy Policy", href: "/privacy-policy" },
-      { label: "Terms & Conditions", href: "#" },
+      { label: "Terms & Conditions", href: TERMS_TEXT_PATH },
     ],
   },
 ];
@@ -89,6 +93,7 @@ const socialLinks = [
 
 export default function GlobalFooter() {
   const pathname = usePathname();
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
   const isDashboardRoute = pathname?.startsWith("/dashboard");
   const isAuthenticated = useAuthState();
   if (isDashboardRoute) return null;
@@ -155,7 +160,15 @@ export default function GlobalFooter() {
               <ul className="space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    {link.href.startsWith("http") ? (
+                    {link.href === TERMS_TEXT_PATH ? (
+                      <button
+                        type="button"
+                        onClick={() => setTermsModalOpen(true)}
+                        className={footerTextLinkClass}
+                      >
+                        {link.label}
+                      </button>
+                    ) : link.href.startsWith("http") ? (
                       <a
                         href={link.href}
                         className={footerTextLinkClass}
@@ -188,6 +201,12 @@ export default function GlobalFooter() {
       <div className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
         Copyright {new Date().getFullYear()} SeaNeB. All rights reserved.
       </div>
+
+      <TermsConditionsModal
+        open={termsModalOpen}
+        onClose={() => setTermsModalOpen(false)}
+        textPath={TERMS_TEXT_PATH}
+      />
     </footer>
   );
 }
