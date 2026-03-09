@@ -6,6 +6,7 @@ import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 const AUTH_LOGIN_PATH = "/auth/login";
 const AUTH_SSO_SOURCE_KEY = "source";
 const AUTH_TAB_NAME = "seaneb-auth-tab";
+const AUTH_TAB_FLOW_PREFIX = `${AUTH_TAB_NAME}|flow=`;
 const AUTH_TAB_LOCK_KEY = "seaneb_auth_tab_opening";
 const AUTH_TAB_LOCK_TTL_MS = 2500;
 let authTabRef = null;
@@ -75,27 +76,49 @@ const buildPopupReturnUrl = () => {
   return callbackUrl.toString();
 };
 
+const buildAuthRequestContext = (path = AUTH_LOGIN_PATH, options = {}) => {
+  const incomingSource = String(options?.source || "").trim().toLowerCase();
+  const sourceFromPath = (() => {
+    try {
+      const parsedPath = new URL(String(path || AUTH_LOGIN_PATH), window.location.origin);
+      return String(parsedPath.searchParams.get(AUTH_SSO_SOURCE_KEY) || "").trim().toLowerCase();
+    } catch {
+      return "";
+    }
+  })();
+  const source = incomingSource || sourceFromPath || "main-app";
+  const returnTo = buildPopupReturnUrl();
+  if (!returnTo) return null;
+  try {
+    const returnToUrl = new URL(returnTo);
+    if (!isAllowedOrigin(returnToUrl.origin)) return null;
+  } catch {
+    return null;
+  }
+  return { source, returnTo };
+};
+
+const encodeAuthFlowForWindowName = (value) => {
+  try {
+    const payload = JSON.stringify(value || {});
+    return `${AUTH_TAB_FLOW_PREFIX}${window.btoa(unescape(encodeURIComponent(payload)))}`;
+  } catch {
+    return AUTH_TAB_NAME;
+  }
+};
+
 const buildAuthUrl = (path = AUTH_LOGIN_PATH) => {
   const safePath = String(path || "").trim().startsWith("/")
-    ? String(path || "").trim()
+    ? String(path || "").trim().split("?")[0]
     : AUTH_LOGIN_PATH;
   const target = new URL(getAuthAppUrl(safePath), window.location.origin);
   if (window.location.protocol === "https:" && target.protocol !== "https:") {
     return "";
   }
-  const returnTo = buildPopupReturnUrl();
-  if (!returnTo) return "";
-  try {
-    const returnToUrl = new URL(returnTo);
-    if (!isAllowedOrigin(returnToUrl.origin)) return "";
-  } catch {
-    return "";
-  }
-  target.searchParams.set("returnTo", returnTo);
   return target.toString();
 };
 
-export const openSsoAuthTab = (path = AUTH_LOGIN_PATH) => {
+export const openSsoAuthTab = (path = AUTH_LOGIN_PATH, options = {}) => {
   if (typeof window === "undefined") return false;
   const now = Date.now();
   try {
@@ -116,12 +139,18 @@ export const openSsoAuthTab = (path = AUTH_LOGIN_PATH) => {
   }
 
   const authUrl = buildAuthUrl(path);
-  if (!authUrl) {
+  const flowContext = buildAuthRequestContext(path, options);
+  if (!authUrl || !flowContext) {
     ssoDebugLog("sso.login_tab.rejected", { reason: "invalid_origin_or_protocol" });
     return false;
   }
   const tabRef = window.open(authUrl, AUTH_TAB_NAME);
   if (tabRef && typeof tabRef.focus === "function") {
+    try {
+      tabRef.name = encodeAuthFlowForWindowName(flowContext);
+    } catch {
+      // ignore cross-window naming issues
+    }
     authTabRef = tabRef;
     tabRef.focus();
     return true;

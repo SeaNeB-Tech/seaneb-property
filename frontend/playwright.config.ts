@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:1001";
+const baseURL = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+
+if (!baseURL) {
+  throw new Error("NEXT_PUBLIC_APP_URL is required for Playwright baseURL.");
+}
 
 export default defineConfig({
   testDir: "./tests/e2e",

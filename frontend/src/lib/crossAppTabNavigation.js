@@ -16,8 +16,7 @@ export function openBusinessRegisterFlow() {
     return;
   }
 
-  const businessRegisterPath =
-    `${BUSINESS_REGISTER_PATH}?source=${encodeURIComponent(CROSS_TAB_REGISTER_SOURCE)}`;
+  const businessRegisterPath = BUSINESS_REGISTER_PATH;
   const directBusinessRegisterUrl = `${authAppUrl}${businessRegisterPath}`;
   window.location.assign(directBusinessRegisterUrl);
 }
@@ -31,8 +30,8 @@ export const openAuthLoginTab = () => {
     return false;
   }
 
-  const loginPath = `/auth/login?source=${encodeURIComponent(CROSS_TAB_LOGIN_SOURCE)}`;
-  const opened = openSsoAuthTab(loginPath);
+  const loginPath = "/auth/login";
+  const opened = openSsoAuthTab(loginPath, { source: CROSS_TAB_LOGIN_SOURCE });
   if (!opened) {
     console.warn("[cross-tab] Failed to open auth login tab.");
     return false;
