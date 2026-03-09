@@ -6,6 +6,7 @@ const ENV_PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim()
 const DEFAULT_PRODUCT_KEY = ENV_PRODUCT_KEY || "property";
 const REFRESH_ENDPOINT = "/auth/refresh";
 const CSRF_COOKIE_CANDIDATES = ["csrf_token_property"];
+const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504, 522, 524]);
 
 let refreshPromise = null;
 let lastRefreshStatus = "idle";
@@ -101,6 +102,18 @@ const buildRefreshError = (message, status, payload = null) => {
   return error;
 };
 
+const parseRefreshResponse = async (response) => {
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  return payload;
+};
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const doRefresh = async () => {
   lastRefreshStatus = "pending";
   lastRefreshAt = Date.now();
@@ -109,32 +122,67 @@ const doRefresh = async () => {
   ssoDebugLog("refresh.attempt", { route: "/auth/refresh" });
 
   const csrfToken = getCsrfToken();
-  const headers = new Headers({
-    "Content-Type": "application/json",
-    "x-product-key": DEFAULT_PRODUCT_KEY,
-  });
-  if (csrfToken) {
-    headers.set("x-csrf-token", csrfToken);
+  const doAttempt = async ({ includeCsrf = true } = {}) => {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+      "x-product-key": DEFAULT_PRODUCT_KEY,
+    });
+    if (includeCsrf && csrfToken) {
+      headers.set("x-csrf-token", csrfToken);
+    }
+
+    const response = await fetch(toAbsoluteUrl(REFRESH_ENDPOINT), {
+      method: "POST",
+      headers,
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ product_key: DEFAULT_PRODUCT_KEY }),
+    });
+
+    const payload = await parseRefreshResponse(response);
+    return { response, payload };
+  };
+
+  let attempt = null;
+  try {
+    attempt = await doAttempt({ includeCsrf: true });
+  } catch (networkError) {
+    lastRefreshStatus = "failed";
+    lastRefreshAt = Date.now();
+    lastRefreshHttpStatus = 0;
+    lastRefreshError = String(networkError?.message || "Refresh request failed");
+    ssoDebugLog("refresh.failure", { route: "/auth/refresh", status: 0 });
+    throw buildRefreshError(lastRefreshError, 0, null);
   }
 
-  const response = await fetch(toAbsoluteUrl(REFRESH_ENDPOINT), {
-    method: "POST",
-    headers,
-    credentials: "include",
-    cache: "no-store",
-    body: JSON.stringify({ product_key: DEFAULT_PRODUCT_KEY }),
-  });
+  let { response, payload } = attempt;
 
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = null;
+  if ([401, 403].includes(Number(response.status || 0)) && csrfToken) {
+    try {
+      const retryWithoutCsrf = await doAttempt({ includeCsrf: false });
+      response = retryWithoutCsrf.response;
+      payload = retryWithoutCsrf.payload;
+    } catch {
+      // Keep the original auth error response.
+    }
+  }
+
+  if (TRANSIENT_STATUSES.has(Number(response.status || 0))) {
+    await sleep(200);
+    try {
+      const transientRetry = await doAttempt({ includeCsrf: false });
+      response = transientRetry.response;
+      payload = transientRetry.payload;
+    } catch {
+      // Keep the original transient error response.
+    }
   }
 
   if (!response.ok) {
     const status = Number(response.status || 0);
-    clearAccessToken();
+    if (status === 401 || status === 403) {
+      clearAccessToken();
+    }
     lastRefreshStatus = "failed";
     lastRefreshAt = Date.now();
     lastRefreshHttpStatus = status;

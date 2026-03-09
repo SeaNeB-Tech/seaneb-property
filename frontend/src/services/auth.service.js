@@ -107,7 +107,7 @@ export const validateSessionForDashboardNavigation = async () => {
     notifyAuthChanged();
     return true;
   }
-  return false;
+  return checkAuthenticatedSession();
 };
 
 export const clearAuthSessionCookies = () => {

@@ -8,6 +8,7 @@ import BrandLogo from "./BrandLogo";
 import TempUserAvatar from "./TempUserAvatar";
 import navbarLinks from "@/data/navbarLinks.json";
 import { getCookie } from "@/lib/core/cookies";
+import { getAuthAppUrl } from "@/lib/core/appUrls";
 import { useListingAuth } from "@/hooks/auth/useListingAuth";
 import { getCountries } from "@/services/property.service";
 import {
@@ -117,7 +118,7 @@ export default function MainNavbar() {
     "User";
   const userSeaNebId = String(profile?.seaneb_id || profile?.seanebId || fallbackSeaNebId || "").trim();
   const profilePhoto = String(profile?.profile_photo || profile?.profilePhoto || "").trim();
-  const profileUrl = "/dashboard/broker";
+  const profileUrl = getAuthAppUrl("/dashboard/broker");
   const canShowAuthenticated = hydrated && authStatus === "authenticated" && Boolean(profile);
   const downloadSectionHref = "/home#download";
 
@@ -242,7 +243,7 @@ export default function MainNavbar() {
     const isBusinessRegisteredNow = hasBusinessFromProfile(profile || {});
 
     if (isBusinessRegisteredNow) {
-      router.push(profileUrl);
+      window.location.assign(profileUrl);
       return;
     }
 

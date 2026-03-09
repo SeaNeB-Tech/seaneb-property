@@ -6,10 +6,12 @@ import {
   setAccessToken as setInMemoryAccessToken,
 } from "@/lib/auth/refreshHandler";
 import {
+  getAccessToken,
   clearAccessToken,
 } from "@/lib/auth/tokenStorage";
 import {
   attachAuthorizationHeader,
+  isUsableAccessToken,
   requestWithAuthSafeRetry,
 } from "@/lib/auth/apiClientSafe";
 
@@ -65,8 +67,22 @@ export const refreshSessionAndGetProfile = async () => {
 export const apiRequest = async (path, options = {}, control = {}) => {
   const method = String(options.method || "GET").toUpperCase();
   const isRefreshRequest = String(path || "") === REFRESH_ENDPOINT;
+  const isLoginRequest = String(path || "") === LOGIN_ENDPOINT;
   let hasRetried401 = control._retry === true;
-  const retryOn401 = control.retryOn401 === true && !hasRetried401;
+  const retryOn401 = control.retryOn401 !== false && !hasRetried401;
+  const requiresAuth = control.requireAuth !== false && !isRefreshRequest && !isLoginRequest;
+
+  if (
+    requiresAuth &&
+    !control.skipRefresh &&
+    !isUsableAccessToken(getAccessToken())
+  ) {
+    try {
+      await refreshAccessToken();
+    } catch {
+      // Let the actual request run; downstream 401 flow will decide whether to redirect.
+    }
+  }
 
   const makeRequest = async () => {
     const headers = buildHeaders({ headers: options.headers });
@@ -123,11 +139,8 @@ export const apiRequest = async (path, options = {}, control = {}) => {
     return response;
   }
 
-  const retryResponse = response;
-  if (retryResponse.status === 401) {
-    await triggerAuthFailure();
-  }
-  return retryResponse;
+  await triggerAuthFailure();
+  return response;
 };
 
 export const apiJson = async (path, options = {}, control = {}) => {

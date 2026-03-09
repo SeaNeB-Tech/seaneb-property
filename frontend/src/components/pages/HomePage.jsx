@@ -25,6 +25,7 @@ import NextSearchExperience from "@/components/marketing/home/NextSearchExperien
 import { getCountries } from "@/services/property.service";
 import { openBusinessRegisterFlow, openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 import { useListingAuth } from "@/hooks/auth/useListingAuth";
+import { getAuthAppUrl } from "@/lib/core/appUrls";
 
 const PropertyCategoriesSection = dynamic(() => import("./home/PropertyCategoriesSection"));
 const CountriesShowcaseSection = dynamic(() => import("./home/CountriesShowcaseSection"));
@@ -61,8 +62,8 @@ export default function HomePage({ data }) {
   const [countryList, setCountryList] = useState([]);
 
   const { status: authStatus, user: profile, logout } = useListingAuth();
-  const dashboardUrl = "/dashboard";
-  const businessDashboardUrl = "/dashboard/broker";
+  const dashboardUrl = getAuthAppUrl("/dashboard");
+  const businessDashboardUrl = getAuthAppUrl("/dashboard/broker");
   const canShowAuthenticated = hydrated && authStatus === "authenticated";
   const fallbackEmail = getCookie("verified_email") || getCookie("user_email") || "";
   const userEmail = profile?.email || fallbackEmail;
@@ -232,32 +233,32 @@ export default function HomePage({ data }) {
         if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
           setDashboardMode(DASHBOARD_MODE_USER);
           setDashboardModeState(DASHBOARD_MODE_USER);
-          router.push(dashboardUrl);
+          window.location.assign(dashboardUrl);
           return;
         }
 
         setDashboardMode(DASHBOARD_MODE_BUSINESS);
         setDashboardModeState(DASHBOARD_MODE_BUSINESS);
-        router.push(businessDashboardUrl);
+        window.location.assign(businessDashboardUrl);
       },
       onUnauthenticated: () => {
         openAuthLoginTab();
       },
     });
-  }, [authStatus, businessDashboardUrl, dashboardMode, dashboardUrl, hasBusiness, router]);
+  }, [businessDashboardUrl, dashboardMode, dashboardUrl, hasBusiness]);
 
   const handleMyAccountClick = useCallback((event) => {
     event.preventDefault();
     setIsProfileOpen(false);
     void guardDashboardNavigation({
       onAuthenticated: () => {
-        router.push(dashboardUrl);
+        window.location.assign(dashboardUrl);
       },
       onUnauthenticated: () => {
         openAuthLoginTab();
       },
     });
-  }, [dashboardUrl, router]);
+  }, [dashboardUrl]);
 
   const handleLoginClick = useCallback((event) => {
     event.preventDefault();

@@ -8,6 +8,7 @@ import {
 } from "@/services/user.service";
 import { useListingAuth } from "@/lib/auth/AuthProvider";
 import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
+import { getAuthAppUrl } from "@/lib/core/appUrls";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     let active = true;
     const safePath = String(pathname || "").trim();
+    const authDashboardUrl = getAuthAppUrl(safePath || "/dashboard");
     const isBusinessRoute =
       safePath === "/dashboard/broker" ||
       safePath.startsWith("/dashboard/listings") ||
@@ -26,6 +28,12 @@ export default function DashboardLayout({ children }) {
     const validate = async () => {
       if (!active) return;
       setRouteReady(false);
+
+      if (typeof window !== "undefined") {
+        const suffix = `${window.location.search || ""}${window.location.hash || ""}`;
+        window.location.replace(`${authDashboardUrl}${suffix}`);
+        return;
+      }
 
       if (!isReady) {
         return;

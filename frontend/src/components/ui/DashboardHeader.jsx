@@ -17,6 +17,7 @@ import { logoutAndClearAuthSession } from "@/services/auth.service";
 import { getDefaultProductName } from "@/services/property.service";
 import { useListingAuth } from "@/lib/auth/AuthProvider";
 import { openBusinessRegisterFlow } from "@/lib/crossAppTabNavigation";
+import { getAuthAppUrl } from "@/lib/core/appUrls";
 
 export default function DashboardHeader({ showLogout = true }) {
   const router = useRouter();
@@ -33,6 +34,8 @@ export default function DashboardHeader({ showLogout = true }) {
   const userEmail = profile?.email || fallbackEmail;
   const userDisplayName = profile?.full_name || userEmail;
   const productName = getDefaultProductName();
+  const authDashboardUrl = getAuthAppUrl("/dashboard");
+  const authBusinessDashboardUrl = getAuthAppUrl("/dashboard/broker");
 
   useEffect(() => {
     setDashboardModeState(getDashboardMode());
@@ -79,7 +82,7 @@ export default function DashboardHeader({ showLogout = true }) {
     if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
       setDashboardMode(DASHBOARD_MODE_USER);
       setDashboardModeState(DASHBOARD_MODE_USER);
-      router.push("/dashboard");
+      window.location.assign(authDashboardUrl);
       return;
     }
 
@@ -90,7 +93,7 @@ export default function DashboardHeader({ showLogout = true }) {
 
     setDashboardMode(DASHBOARD_MODE_BUSINESS);
     setDashboardModeState(DASHBOARD_MODE_BUSINESS);
-    router.push("/dashboard/broker");
+    window.location.assign(authBusinessDashboardUrl);
   };
 
   return (
