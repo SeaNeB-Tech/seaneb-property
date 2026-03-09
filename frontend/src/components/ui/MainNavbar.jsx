@@ -119,7 +119,6 @@ export default function MainNavbar() {
   const profilePhoto = String(profile?.profile_photo || profile?.profilePhoto || "").trim();
   const profileUrl = "/dashboard/broker";
   const canShowAuthenticated = hydrated && authStatus === "authenticated" && Boolean(profile);
-  const canShowRestoring = hydrated && authStatus === "restoring";
   const downloadSectionHref = "/home#download";
 
   const handleGetAppClick = (event) => {
@@ -239,7 +238,6 @@ export default function MainNavbar() {
   const handleRegisterBusinessClick = (event) => {
     if (event?.preventDefault) event.preventDefault();
     setIsProfileOpen(false);
-    if (authStatus === "restoring") return;
 
     const isBusinessRegisteredNow = hasBusinessFromProfile(profile || {});
 
@@ -336,7 +334,7 @@ export default function MainNavbar() {
                   <TempUserAvatar size="sm" />
                 )}
                 <span className="hidden pr-1 text-xs font-semibold sm:inline">
-                  {canShowAuthenticated ? "My Profile" : canShowRestoring ? "Restoring..." : "Sign In"}
+                  {canShowAuthenticated ? "My Profile" : "Sign In"}
                 </span>
               </button>
 
@@ -436,16 +434,6 @@ export default function MainNavbar() {
                         </button>
                       </div>
                     </>
-                  ) : canShowRestoring ? (
-                    <div className="rounded-xl border border-[#e4dfd6] bg-white p-3">
-                      <div className="flex items-center gap-2.5">
-                        <TempUserAvatar size="sm" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#2e2115]">Session restoring...</p>
-                          <p className="text-xs text-[#7a6c5c]">Loading your profile</p>
-                        </div>
-                      </div>
-                    </div>
                   ) : (
                     <div className="rounded-xl border border-[#e4dfd6] bg-white p-3">
                       <div className="flex items-center gap-2.5">

@@ -3,7 +3,7 @@ import { setCookie } from "@/lib/core/cookies";
 const listeners = new Set();
 
 let authUserState = {
-  status: "restoring",
+  status: "unauthenticated",
   profile: null,
 };
 
@@ -148,7 +148,7 @@ export const syncBusinessRegistrationCookie = (profile) => {
 export const getAuthUserStateSnapshot = () => authUserState;
 
 export const setAuthUserRestoring = () => {
-  authUserState = { status: "restoring", profile: null };
+  authUserState = { status: "unauthenticated", profile: null };
   emit();
 };
 

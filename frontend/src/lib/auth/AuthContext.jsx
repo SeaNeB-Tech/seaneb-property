@@ -13,7 +13,6 @@ import {
 import {
   setAuthUserAuthenticated,
   setAuthUserLoggedOut,
-  setAuthUserRestoring,
 } from "@/services/user.service";
 
 const AuthContext = createContext(null);
@@ -32,16 +31,12 @@ const isSsoCallbackRoute = () => {
 };
 
 export function ListingAuthProvider({ children }) {
-  const [status, setStatus] = useState("restoring");
+  const [status, setStatus] = useState("unauthenticated");
   const [user, setUser] = useState(null);
   const [accessToken, setAccessTokenState] = useState("");
   const [ssoError, setSsoError] = useState("");
+  const [isReady, setIsReady] = useState(false);
   const sessionSyncInFlightRef = useRef(null);
-  const statusRef = useRef(status);
-
-  useEffect(() => {
-    statusRef.current = status;
-  }, [status]);
 
   const applyUserProfile = useCallback((profilePayload) => {
     const nextUser = profilePayload?.data || profilePayload?.user || profilePayload || null;
@@ -68,11 +63,6 @@ export function ListingAuthProvider({ children }) {
     }
 
     const run = (async () => {
-      const shouldShowRestoring = force || statusRef.current !== "authenticated";
-      if (shouldShowRestoring) {
-        setStatus("restoring");
-        setAuthUserRestoring();
-      }
       try {
         let profilePayload = null;
         try {
@@ -87,6 +77,7 @@ export function ListingAuthProvider({ children }) {
             setAccessTokenState("");
             setStatus("unauthenticated");
             setAuthUserLoggedOut();
+            setIsReady(true);
             return false;
           }
 
@@ -98,14 +89,18 @@ export function ListingAuthProvider({ children }) {
           setAccessTokenState("");
           setStatus("unauthenticated");
           setAuthUserLoggedOut();
+          setIsReady(true);
           return false;
         }
-        return applyUserProfile(profilePayload);
+        const applied = applyUserProfile(profilePayload);
+        setIsReady(true);
+        return applied;
       } catch {
         setUser(null);
         setAccessTokenState("");
         setStatus("unauthenticated");
         setAuthUserLoggedOut();
+        setIsReady(true);
         return false;
       }
     })().finally(() => {
@@ -256,8 +251,9 @@ export function ListingAuthProvider({ children }) {
       user,
       accessToken,
       status,
+      isReady,
       ssoError,
-      isRestoring: status === "restoring",
+      isRestoring: false,
       isAuthenticated: status === "authenticated",
       restoreSession,
       retryBridgeSso: async () => false,
@@ -266,7 +262,7 @@ export function ListingAuthProvider({ children }) {
       applyAccessToken,
       setSsoError,
     }),
-    [user, accessToken, status, ssoError, restoreSession, logout, applyUserProfile, applyAccessToken]
+    [user, accessToken, status, isReady, ssoError, restoreSession, logout, applyUserProfile, applyAccessToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

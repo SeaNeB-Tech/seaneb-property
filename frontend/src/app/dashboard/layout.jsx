@@ -12,7 +12,7 @@ import { openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { status, user } = useListingAuth();
+  const { status, user, isReady } = useListingAuth();
   const [routeReady, setRouteReady] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
       if (!active) return;
       setRouteReady(false);
 
-      if (status === "restoring") {
+      if (!isReady) {
         return;
       }
 
@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }) {
     return () => {
       active = false;
     };
-  }, [pathname, router, status, user]);
+  }, [isReady, pathname, router, status, user]);
 
   if (!routeReady) {
     return <div className="min-h-screen bg-[#f8f5ec]" aria-busy="true" />;

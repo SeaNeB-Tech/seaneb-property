@@ -3,6 +3,7 @@ import {
   refreshAccessToken,
   setAuthFailureHandler,
   triggerAuthFailure,
+  setAccessToken as setInMemoryAccessToken,
 } from "@/lib/auth/refreshHandler";
 import {
   clearAccessToken,
@@ -78,6 +79,25 @@ export const apiRequest = async (path, options = {}, control = {}) => {
     });
 
     if (response.ok) {
+      // If backend included an Authorization header with a bearer token,
+      // hydrate it into our in-memory access token so subsequent requests
+      // (and post-login redirects) work without an extra refresh.
+      try {
+        const authHdr = String(response.headers.get("authorization") || response.headers.get("Authorization") || "").trim();
+        if (authHdr) {
+          const token = /^Bearer\s+/i.test(authHdr) ? authHdr.replace(/^Bearer\s+/i, "").trim() : authHdr;
+          if (token) {
+            try {
+              setInMemoryAccessToken(token);
+            } catch (e) {
+              // ignore token set failures
+            }
+          }
+        }
+      } catch (e) {
+        // ignore header parsing errors
+      }
+
       const cloned = response.clone();
       try {
         await cloned.json();

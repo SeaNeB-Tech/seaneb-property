@@ -75,7 +75,6 @@ export default function DashboardHeader({ showLogout = true }) {
 
   const handleModeSwitch = () => {
     setIsProfileOpen(false);
-    if (authStatus === "restoring") return;
 
     if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
       setDashboardMode(DASHBOARD_MODE_USER);

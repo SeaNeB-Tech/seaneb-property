@@ -87,9 +87,6 @@ export const guardDashboardNavigation = async ({
   onUnauthenticated,
 } = {}) => {
   const validationState = await validateSessionForDashboardNavigation();
-  if (validationState === "restoring") {
-    return false;
-  }
   const isAuthenticated = validationState === true;
   if (isAuthenticated) {
     if (typeof onAuthenticated === "function") {
@@ -106,9 +103,6 @@ export const guardDashboardNavigation = async ({
 
 export const validateSessionForDashboardNavigation = async () => {
   const snapshot = getAuthUserStateSnapshot();
-  if (snapshot?.status === "restoring") {
-    return "restoring";
-  }
   if (snapshot?.status === "authenticated") {
     notifyAuthChanged();
     return true;

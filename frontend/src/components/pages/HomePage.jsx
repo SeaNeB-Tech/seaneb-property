@@ -222,10 +222,6 @@ export default function HomePage({ data }) {
   const handleBusinessAction = useCallback(() => {
     setIsProfileOpen(false);
 
-    if (authStatus === "restoring") {
-      return;
-    }
-
     if (!hasBusiness) {
       openBusinessRegisterFlow();
       return;

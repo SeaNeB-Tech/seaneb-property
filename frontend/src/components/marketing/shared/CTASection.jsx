@@ -19,7 +19,6 @@ export default function CTASection({ title, description, primary, secondary }) {
   const handleCtaClick = (event, href, action) => {
     if (action === "open_auth_business_register") {
       event.preventDefault();
-      if (authStatus === "restoring") return;
       openBusinessRegisterFlow();
       return;
     }
@@ -35,7 +34,6 @@ export default function CTASection({ title, description, primary, secondary }) {
 
     if (authBusinessRegisterUrls.has(targetHref)) {
       event.preventDefault();
-      if (authStatus === "restoring") return;
       openBusinessRegisterFlow();
       return;
     }
