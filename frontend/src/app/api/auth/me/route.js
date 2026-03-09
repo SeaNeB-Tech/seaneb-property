@@ -137,6 +137,7 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     const cookies = getSetCookie.call(upstreamHeaders) || [];
     for (const cookie of cookies) {
       if (!cookie) continue;
+      if (/^\s*access_token=/i.test(cookie)) continue;
       targetHeaders.append("set-cookie", cookie);
     }
     return;
@@ -149,6 +150,7 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     .filter(Boolean);
   if (splitCookies.length === 0) return;
   for (const cookie of splitCookies) {
+    if (/^\s*access_token=/i.test(cookie)) continue;
     targetHeaders.append("set-cookie", cookie);
   }
 };
@@ -348,9 +350,11 @@ export async function GET(request) {
   appendSetCookieHeaders(responseHeaders, upstreamResponse.headers);
 
   const payload = await upstreamResponse.text();
-  return new NextResponse(payload, {
+  const response = new NextResponse(payload, {
     status: upstreamResponse.status,
     headers: responseHeaders,
   });
+  response.cookies.delete("access_token");
+  return response;
 }
 

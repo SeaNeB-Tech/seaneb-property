@@ -69,21 +69,16 @@ const isAuthCookieName = (name) => {
     key.startsWith("auth_session_")
   );
 };
-const isFrontendManagedAuthCookie = (name) => {
-  const key = String(name || "").trim().toLowerCase();
-  return key === "access_token";
-};
 const isEssentialCookieName = (name) => {
   const key = String(name || "").trim().toLowerCase();
   return (
-    key === "access_token" ||
     key === "refresh_token_property" ||
     key === "csrf_token_property"
   );
 };
 
 const isBlockedAuthCookieWrite = (name) => {
-  return isAuthCookieName(name) && !isFrontendManagedAuthCookie(name);
+  return isAuthCookieName(name);
 };
 
 const normalizePath = (path) => {
@@ -171,6 +166,10 @@ const clearRealCookieOnly = (name, options = {}) => {
   document.cookie = cookie;
 };
 
+if (isBrowser) {
+  clearRealCookieOnly("access_token");
+}
+
 export const setCookie = (name, value, options = {}) => {
   if (!isBrowser) return;
   if (isBlockedAuthCookieWrite(name)) {
@@ -229,7 +228,7 @@ export const getCookie = (name) => {
 export const removeCookie = (name, options = {}) => {
   if (!isBrowser) return;
   const key = String(name || "").trim().toLowerCase();
-  if (isAuthCookieName(name) && key !== "csrf_token_property" && !isFrontendManagedAuthCookie(name)) return;
+  if (isAuthCookieName(name) && key !== "csrf_token_property" && key !== "access_token") return;
   removeVolatileValue(name);
   const { path, domain, sameSite, secure } = resolveCookieOptions(options);
   let cookie = `${encodeURIComponent(name)}=; path=${path}; max-age=0`;

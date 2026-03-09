@@ -27,6 +27,7 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     const cookies = getSetCookie.call(upstreamHeaders) || [];
     for (const cookie of cookies) {
       if (!cookie) continue;
+      if (/^\s*access_token=/i.test(cookie)) continue;
       targetHeaders.append("set-cookie", cookie);
     }
     return;
@@ -41,6 +42,7 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     .filter(Boolean);
 
   for (const cookie of splitCookies) {
+    if (/^\s*access_token=/i.test(cookie)) continue;
     targetHeaders.append("set-cookie", cookie);
   }
 };
@@ -311,18 +313,6 @@ export async function POST(request) {
     }
   );
 
-  if (accessToken) {
-    response.cookies.set({
-      name: "access_token",
-      value: accessToken,
-      httpOnly: true,
-      sameSite: COOKIE_SAME_SITE,
-      secure: COOKIE_SECURE,
-      path: "/",
-      ...(expiresIn != null ? { maxAge: Math.max(1, Math.floor(expiresIn)) } : {}),
-    });
-  }
-
   if (refreshToken) {
     response.cookies.set({
       name: "refresh_token_property",
@@ -344,6 +334,8 @@ export async function POST(request) {
       path: "/",
     });
   }
+
+  response.cookies.delete("access_token");
 
   return response;
 }
