@@ -1,10 +1,19 @@
 import "../styles/globals.css"
 import GlobalFooter from "@/components/ui/GlobalFooter"
-import { SITE_URL } from "@/lib/siteUrl"
+import { SITE_URL, isUsableUrl } from "@/lib/siteUrl"
 import { Noto_Sans } from "next/font/google"
 import ListingAuthProviderClient from "@/components/providers/ListingAuthProviderClient"
 
 const siteUrl = SITE_URL
+const hasSiteUrl = isUsableUrl(siteUrl)
+const metadataBaseUrl = (() => {
+  if (!hasSiteUrl) return null
+  try {
+    return new URL(siteUrl)
+  } catch {
+    return null
+  }
+})()
 const THEME_COLOR = "#BF932A"
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -14,7 +23,7 @@ const notoSans = Noto_Sans({
 })
 
 export const metadata = {
-  metadataBase: new URL(siteUrl),
+  ...(metadataBaseUrl ? { metadataBase: metadataBaseUrl } : {}),
   title: "SeaNeB - Find Your Perfect Property | Real Estate Platform",
   description: "Discover verified apartments, houses, and commercial properties in your area. List, buy, sell, and rent properties with India's trusted real estate marketplace. Connect with qualified sellers instantly.",
   keywords: "real estate, property listing, buy property, sell property, rent property, apartments, houses, commercial properties, India real estate",
@@ -30,7 +39,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: siteUrl,
+    ...(hasSiteUrl ? { url: siteUrl } : {}),
     title: "SeaNeB - Find Your Perfect Property",
     description: "Discover verified apartments, houses, and commercial properties in your area.",
     siteName: "SeaNeB",
@@ -57,9 +66,13 @@ export const metadata = {
       follow: true,
     },
   },
-  alternates: {
-    canonical: siteUrl,
-  },
+  ...(hasSiteUrl
+    ? {
+        alternates: {
+          canonical: siteUrl,
+        },
+      }
+    : {}),
 };
 
 export const viewport = {

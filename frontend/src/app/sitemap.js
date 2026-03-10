@@ -1,5 +1,5 @@
 import blogsData from "@/data/navpages/blogs.json";
-import { getSiteUrl } from "@/lib/siteUrl";
+import { getSiteUrl, SITE_URL, isUsableUrl } from "@/lib/siteUrl";
 
 const toSlug = (value) =>
   String(value || "")
@@ -22,6 +22,7 @@ const getBlogSlugs = () => {
 };
 
 export default function sitemap() {
+  if (!isUsableUrl(SITE_URL)) return [];
   const now = new Date();
   const publicRoutes = [
     "/",
