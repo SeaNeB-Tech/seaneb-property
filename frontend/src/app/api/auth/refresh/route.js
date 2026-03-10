@@ -22,12 +22,12 @@ const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production"
 const COOKIE_DOMAIN = String(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "").trim() || (IS_PRODUCTION ? ".seaneb.com" : undefined);
 const normalizeSameSite = (value) => {
   const normalized = String(value || "").trim().toLowerCase();
-  if (normalized === "strict" || normalized === "none" || normalized === "lax") return normalized;
-  return IS_PRODUCTION ? "none" : "lax";
+  if (normalized === "none") return "none";
+  return "none";
 };
 const COOKIE_SAME_SITE = normalizeSameSite(process.env.NEXT_PUBLIC_COOKIE_SAMESITE);
 const COOKIE_SECURE = IS_PRODUCTION;
-const CSRF_COOKIE_SAME_SITE = "lax";
+const CSRF_COOKIE_SAME_SITE = "none";
 const CSRF_COOKIE_SECURE = process.env.NODE_ENV === "production";
 
 validateCookiePolicyRuntime({
@@ -375,7 +375,7 @@ export async function POST(request) {
         name: "csrf_token_property",
         value: csrfToken,
         httpOnly: false,
-        sameSite: "lax",
+        sameSite: "none",
         secure: process.env.NODE_ENV === "production",
         path: "/",
       });

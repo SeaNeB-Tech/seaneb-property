@@ -81,7 +81,7 @@ Cookies for local loopback hosts (e.g. 127.0.0.1)
    │  └─ (refresh_token: sent via httpOnly cookie)
    ├─ Settings:
    │  ├─ withCredentials: true
-   │  └─ SameSite: Lax
+   │  └─ SameSite: None
    └─────────────────────────────────────────
    
    Attempting POST /auth/refresh...
@@ -194,9 +194,7 @@ Server-side validation might:
 - Be checking wrong CSRF source
 
 ### Solution 4: SameSite Cookie Policy
-We set `SameSite=Lax` to allow cookies on top-level navigations. But:
-- If backend expects `SameSite=None` + `Secure=true`
-- Or if cookies are being blocked for other reasons
+Auth cookies should use `SameSite=None` (and `Secure=true` in production). If they are set to a different `SameSite` value, cross-site requests may fail.
 
 ## 📋 Information Needed from User
 

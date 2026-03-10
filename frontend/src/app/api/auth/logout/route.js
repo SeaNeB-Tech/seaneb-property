@@ -71,7 +71,7 @@ const clearAuthCookies = (response) => {
   const common = {
     path: "/",
     maxAge: 0,
-    sameSite: "lax",
+    sameSite: "none",
     secure,
   };
   response.cookies.set({ name: "access_token", value: "", httpOnly: true, ...common });

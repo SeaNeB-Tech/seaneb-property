@@ -7,7 +7,7 @@ const BRIDGE_REPLAY_CACHE_TTL_MS = 2 * 60_000;
 const bridgeReplayCache = new Map();
 const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
 const COOKIE_SECURE = IS_PRODUCTION;
-const COOKIE_SAME_SITE = IS_PRODUCTION ? "none" : "lax";
+const COOKIE_SAME_SITE = "none";
 
 const tokenDigest = (value) =>
   createHash("sha256").update(String(value || ""), "utf8").digest("hex");
@@ -341,7 +341,7 @@ export async function POST(request) {
       name: "csrf_token_property",
       value: csrfToken,
       httpOnly: false,
-      sameSite: "lax",
+      sameSite: "none",
       secure: IS_PRODUCTION,
       path: "/",
     });
