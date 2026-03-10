@@ -87,15 +87,13 @@ export function openBusinessRegisterFlow() {
   const businessRegisterUrl = new URL(BUSINESS_REGISTER_PATH, authAppUrl);
   businessRegisterUrl.searchParams.set("source", CROSS_TAB_REGISTER_SOURCE);
   businessRegisterUrl.searchParams.set("returnTo", window.location.href);
-
-  const opened = window.open(businessRegisterUrl.toString(), "_blank");
-  if (opened && typeof opened.focus === "function") {
-    opened.focus();
-    return;
+  // Always navigate to business registration in the same tab to keep flow consistent.
+  try {
+    window.location.assign(businessRegisterUrl.toString());
+  } catch (e) {
+    // As a last resort, set location.href
+    window.location.href = businessRegisterUrl.toString();
   }
-
-  // Popup blocked: fallback to same-tab navigation.
-  window.location.assign(businessRegisterUrl.toString());
 }
 
 export const openAuthLoginTab = () => {
@@ -107,13 +105,23 @@ export const openAuthLoginTab = () => {
     return false;
   }
 
-  const loginPath = "/auth/login";
-  const opened = openSsoAuthTab(loginPath, { source: CROSS_TAB_LOGIN_SOURCE });
-  if (!opened) {
-    console.warn("[cross-tab] Failed to open auth login tab.");
+  // Try opening login in a separate auth tab (preferred). If popup blocked, fall back to same-tab navigation.
+  try {
+    const loginPath = "/auth/login";
+    const opened = openSsoAuthTab(loginPath, { source: CROSS_TAB_LOGIN_SOURCE });
+    if (opened) return true;
+
+    // Popup/new-tab blocked: navigate in same tab as fallback.
+    const loginUrl = new URL(getAuthAppUrl(loginPath), window.location.origin);
+    loginUrl.searchParams.set("source", CROSS_TAB_LOGIN_SOURCE);
+    const returnTo = String(window.location.href || "").trim();
+    if (returnTo) loginUrl.searchParams.set("returnTo", returnTo);
+    window.location.assign(loginUrl.toString());
+    return true;
+  } catch (e) {
+    console.warn("[cross-tab] Failed to open auth login tab and fallback navigation failed.", e);
     return false;
   }
-  return true;
 };
 
 export const openAuthPathWithBridge = async (
