@@ -103,11 +103,15 @@ export const guardDashboardNavigation = async ({
 
 export const validateSessionForDashboardNavigation = async () => {
   const snapshot = getAuthUserStateSnapshot();
-  if (snapshot?.status === "authenticated") {
+  const isLocallyAuthenticated = snapshot?.status === "authenticated";
+
+  // Always validate with backend before dashboard navigation.
+  // Local auth snapshot can be stale across tabs after registration/login/logout.
+  const hasServerSession = await checkAuthenticatedSession();
+  if (!hasServerSession && isLocallyAuthenticated) {
     notifyAuthChanged();
-    return true;
   }
-  return checkAuthenticatedSession();
+  return hasServerSession;
 };
 
 export const clearAuthSessionCookies = () => {

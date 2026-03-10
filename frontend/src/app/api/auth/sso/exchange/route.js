@@ -154,6 +154,18 @@ const buildUpstreamCandidates = () => {
     urls.push(`${normalized}/sso/exchange`);
     urls.push(`${normalized}/auth/sso/exchange`);
     urls.push(`${normalized}/v1/sso/exchange`);
+    try {
+      const parsed = new URL(normalized);
+      const origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
+      if (origin) {
+        urls.push(`${origin}/api/v1/sso/exchange`);
+        urls.push(`${origin}/v1/sso/exchange`);
+        urls.push(`${origin}/auth/sso/exchange`);
+        urls.push(`${origin}/sso/exchange`);
+      }
+    } catch {
+      // keep normalized candidates only
+    }
   }
 
   return urls;

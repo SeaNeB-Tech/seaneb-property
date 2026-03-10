@@ -23,7 +23,7 @@ import {
 import { guardDashboardNavigation } from "@/services/auth.service";
 import NextSearchExperience from "@/components/marketing/home/NextSearchExperience";
 import { getCountries } from "@/services/property.service";
-import { openBusinessRegisterFlow, openAuthLoginTab } from "@/lib/crossAppTabNavigation";
+import { openAuthPathWithBridge, openBusinessRegisterFlow, openAuthLoginTab } from "@/lib/crossAppTabNavigation";
 import { useListingAuth } from "@/hooks/auth/useListingAuth";
 import { getAuthAppUrl } from "@/lib/core/appUrls";
 
@@ -229,17 +229,17 @@ export default function HomePage({ data }) {
     }
 
     void guardDashboardNavigation({
-      onAuthenticated: () => {
+      onAuthenticated: async () => {
         if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
           setDashboardMode(DASHBOARD_MODE_USER);
           setDashboardModeState(DASHBOARD_MODE_USER);
-          window.location.assign(dashboardUrl);
+          await openAuthPathWithBridge("/dashboard", { fallbackUrl: dashboardUrl });
           return;
         }
 
         setDashboardMode(DASHBOARD_MODE_BUSINESS);
         setDashboardModeState(DASHBOARD_MODE_BUSINESS);
-        window.location.assign(businessDashboardUrl);
+        await openAuthPathWithBridge("/dashboard/broker", { fallbackUrl: businessDashboardUrl });
       },
       onUnauthenticated: () => {
         openAuthLoginTab();
@@ -251,8 +251,8 @@ export default function HomePage({ data }) {
     event.preventDefault();
     setIsProfileOpen(false);
     void guardDashboardNavigation({
-      onAuthenticated: () => {
-        window.location.assign(dashboardUrl);
+      onAuthenticated: async () => {
+        await openAuthPathWithBridge("/dashboard", { fallbackUrl: dashboardUrl });
       },
       onUnauthenticated: () => {
         openAuthLoginTab();

@@ -16,7 +16,7 @@ import BrandLogo from "./BrandLogo";
 import { logoutAndClearAuthSession } from "@/services/auth.service";
 import { getDefaultProductName } from "@/services/property.service";
 import { useListingAuth } from "@/lib/auth/AuthProvider";
-import { openBusinessRegisterFlow } from "@/lib/crossAppTabNavigation";
+import { openAuthPathWithBridge, openBusinessRegisterFlow } from "@/lib/crossAppTabNavigation";
 import { getAuthAppUrl } from "@/lib/core/appUrls";
 
 export default function DashboardHeader({ showLogout = true }) {
@@ -82,7 +82,7 @@ export default function DashboardHeader({ showLogout = true }) {
     if (dashboardMode === DASHBOARD_MODE_BUSINESS) {
       setDashboardMode(DASHBOARD_MODE_USER);
       setDashboardModeState(DASHBOARD_MODE_USER);
-      window.location.assign(authDashboardUrl);
+      void openAuthPathWithBridge("/dashboard", { fallbackUrl: authDashboardUrl });
       return;
     }
 
@@ -93,7 +93,7 @@ export default function DashboardHeader({ showLogout = true }) {
 
     setDashboardMode(DASHBOARD_MODE_BUSINESS);
     setDashboardModeState(DASHBOARD_MODE_BUSINESS);
-    window.location.assign(authBusinessDashboardUrl);
+    void openAuthPathWithBridge("/dashboard/broker", { fallbackUrl: authBusinessDashboardUrl });
   };
 
   return (

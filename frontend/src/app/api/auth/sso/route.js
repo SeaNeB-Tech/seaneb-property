@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/core/apiBaseUrl";
 
 const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   const getSetCookie = upstreamHeaders?.getSetCookie;
@@ -59,6 +60,18 @@ const buildUpstreamCandidates = (apiBaseUrl) => {
     `${normalized}/auth/sso`,
     `${normalized}/sso`,
   ];
+  try {
+    const parsed = new URL(normalized);
+    const origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
+    if (origin) {
+      list.push(`${origin}/api/v1/sso`);
+      list.push(`${origin}/v1/sso`);
+      list.push(`${origin}/auth/sso`);
+      list.push(`${origin}/sso`);
+    }
+  } catch {
+    // keep normalized candidates only
+  }
   return Array.from(new Set(list.filter(Boolean)));
 };
 
@@ -70,23 +83,27 @@ export async function POST(req) {
     body = {};
   }
 
-  const apiBaseUrl = String(process.env.NEXT_PUBLIC_API_BASE_URL || "").trim().replace(/\/+$/, "");
-  if (!apiBaseUrl) {
+  const baseCandidates = Array.from(
+    new Set([API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL].filter(Boolean))
+  ).map((base) => String(base || "").trim().replace(/\/+$/, ""));
+  if (baseCandidates.length === 0) {
     return NextResponse.json(
       {
         error: {
           code: "API_BASE_URL_MISSING",
-          message: "NEXT_PUBLIC_API_BASE_URL is not configured",
+          message: "API base URL is not configured",
         },
       },
       { status: 500 }
     );
   }
 
-  const productKey = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim();
+  const productKey = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
   const cookieHeader = req.headers.get("cookie") || "";
   const csrfToken = resolveCsrfHeaderValue(req.headers.get("x-csrf-token"), cookieHeader);
-  const upstreamCandidates = buildUpstreamCandidates(apiBaseUrl);
+  const upstreamCandidates = Array.from(
+    new Set(baseCandidates.flatMap((base) => buildUpstreamCandidates(base)))
+  );
 
   let lastStatus = 502;
   let lastPayload = {

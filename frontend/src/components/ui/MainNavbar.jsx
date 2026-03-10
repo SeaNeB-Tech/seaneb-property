@@ -15,7 +15,8 @@ import {
   hasBusinessFromProfile,
   syncBusinessRegistrationCookie,
 } from "@/services/user.service";
-import { openBusinessRegisterFlow, openAuthLoginTab } from "@/lib/crossAppTabNavigation";
+import { openAuthPathWithBridge, openBusinessRegisterFlow, openAuthLoginTab } from "@/lib/crossAppTabNavigation";
+import { guardDashboardNavigation } from "@/services/auth.service";
 
 const THEME_STORAGE_KEY = "seaneb_theme_mode";
 const THEME_MODES = {
@@ -243,7 +244,14 @@ export default function MainNavbar() {
     const isBusinessRegisteredNow = hasBusinessFromProfile(profile || {});
 
     if (isBusinessRegisteredNow) {
-      window.location.assign(profileUrl);
+      void guardDashboardNavigation({
+        onAuthenticated: async () => {
+          await openAuthPathWithBridge("/dashboard/broker", { fallbackUrl: profileUrl });
+        },
+        onUnauthenticated: () => {
+          openAuthLoginTab();
+        },
+      });
       return;
     }
 
