@@ -86,6 +86,7 @@ export function openBusinessRegisterFlow() {
 
   const businessRegisterUrl = new URL(BUSINESS_REGISTER_PATH, authAppUrl);
   businessRegisterUrl.searchParams.set("source", CROSS_TAB_REGISTER_SOURCE);
+  businessRegisterUrl.searchParams.set("returnTo", window.location.href);
 
   const opened = window.open(businessRegisterUrl.toString(), "_blank");
   if (opened && typeof opened.focus === "function") {

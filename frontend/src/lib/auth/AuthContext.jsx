@@ -148,11 +148,19 @@ export function ListingAuthProvider({ children }) {
 
     const allowedAuthOrigin = (() => {
       const configured = String(process.env.NEXT_PUBLIC_AUTH_ORIGIN || "").trim();
-      if (!configured) {
-        console.warn("[auth] NEXT_PUBLIC_AUTH_ORIGIN is missing; cross-tab listener disabled.");
-        return "";
+      if (configured) return configured;
+
+      const authAppUrl = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+      if (authAppUrl) {
+        try {
+          return new URL(authAppUrl).origin;
+        } catch {
+          // ignore invalid auth URL
+        }
       }
-      return configured;
+
+      console.warn("[auth] Auth origin is missing; cross-tab listener disabled.");
+      return "";
     })();
 
     const consumePopupSignal = () => {
