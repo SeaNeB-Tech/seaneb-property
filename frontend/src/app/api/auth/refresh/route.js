@@ -28,7 +28,7 @@ const normalizeSameSite = (value) => {
 const COOKIE_SAME_SITE = normalizeSameSite(process.env.NEXT_PUBLIC_COOKIE_SAMESITE);
 const COOKIE_SECURE = IS_PRODUCTION;
 const CSRF_COOKIE_SAME_SITE = "none";
-const CSRF_COOKIE_SECURE = process.env.NODE_ENV === "production";
+const CSRF_COOKIE_SECURE = COOKIE_SECURE;
 
 validateCookiePolicyRuntime({
   refreshSecure: COOKIE_SECURE,
@@ -375,8 +375,8 @@ export async function POST(request) {
         name: "csrf_token_property",
         value: csrfToken,
         httpOnly: false,
-        sameSite: "none",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: COOKIE_SECURE ? "none" : "lax",
+        secure: COOKIE_SECURE,
         path: "/",
       });
     }

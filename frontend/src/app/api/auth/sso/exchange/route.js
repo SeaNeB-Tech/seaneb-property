@@ -330,7 +330,7 @@ export async function POST(request) {
       name: "refresh_token_property",
       value: refreshToken,
       httpOnly: true,
-      sameSite: COOKIE_SAME_SITE,
+      sameSite: COOKIE_SECURE ? "none" : "lax",
       secure: COOKIE_SECURE,
       path: "/",
     });
@@ -341,8 +341,8 @@ export async function POST(request) {
       name: "csrf_token_property",
       value: csrfToken,
       httpOnly: false,
-      sameSite: "none",
-      secure: IS_PRODUCTION,
+      sameSite: COOKIE_SECURE ? "none" : "lax",
+      secure: COOKIE_SECURE,
       path: "/",
     });
   }
