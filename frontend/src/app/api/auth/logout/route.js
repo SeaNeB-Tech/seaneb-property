@@ -74,6 +74,7 @@ const clearAuthCookies = (response, request) => {
     maxAge: 0,
     sameSite: cookieOptions.sameSite,
     secure: cookieOptions.secure,
+    ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
   };
   response.cookies.set({ name: "access_token", value: "", httpOnly: true, ...common });
   response.cookies.set({ name: "refresh_token_property", value: "", httpOnly: true, ...common });

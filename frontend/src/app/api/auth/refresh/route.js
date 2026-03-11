@@ -369,7 +369,7 @@ export async function POST(request) {
         sameSite: cookieOptions.sameSite,
         secure: cookieOptions.secure,
         path: "/",
-        ...(COOKIE_DOMAIN ? { domain: sanitizeCookieDomain(COOKIE_DOMAIN) } : {}),
+        ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
       });
     }
     if (csrfToken) {
@@ -380,6 +380,7 @@ export async function POST(request) {
         sameSite: cookieOptions.sameSite,
         secure: cookieOptions.secure,
         path: "/",
+        ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
       });
     }
 

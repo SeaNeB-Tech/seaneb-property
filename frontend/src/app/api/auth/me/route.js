@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { API_REMOTE_BASE_URL } from "@/lib/core/apiBaseUrl";
+import { getCookieOptions } from "@/lib/auth/cookieOptions";
 
 const PRODUCT_KEY =
   String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
@@ -354,6 +355,48 @@ export async function GET(request) {
     status: upstreamResponse.status,
     headers: responseHeaders,
   });
+  const cookieOptions = getCookieOptions(request);
+  try {
+    const setCookies = getSetCookieList(responseHeaders);
+    const refreshToken = readCookieValueFromSetCookieHeaders(setCookies, [
+      "refresh_token_property",
+      "refresh_token",
+      "refreshToken_property",
+      "refreshToken",
+      "property_refresh_token",
+    ]);
+    const csrfToken = readCookieValueFromSetCookieHeaders(setCookies, [
+      "csrf_token_property",
+      "csrf_token",
+      "csrfToken",
+    ]);
+
+    if (refreshToken) {
+      response.cookies.set({
+        name: "refresh_token_property",
+        value: refreshToken,
+        httpOnly: true,
+        sameSite: cookieOptions.sameSite,
+        secure: cookieOptions.secure,
+        ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
+        path: "/",
+      });
+    }
+
+    if (csrfToken) {
+      response.cookies.set({
+        name: "csrf_token_property",
+        value: csrfToken,
+        httpOnly: false,
+        sameSite: cookieOptions.sameSite,
+        secure: cookieOptions.secure,
+        ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
+        path: "/",
+      });
+    }
+  } catch {
+    // best-effort cookie hydration
+  }
   response.cookies.delete("access_token");
   return response;
 }

@@ -330,6 +330,7 @@ export async function POST(request) {
       httpOnly: true,
       sameSite: cookieOptions.sameSite,
       secure: cookieOptions.secure,
+      ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
       path: "/",
     });
   }
@@ -341,6 +342,7 @@ export async function POST(request) {
       httpOnly: false,
       sameSite: cookieOptions.sameSite,
       secure: cookieOptions.secure,
+      ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
       path: "/",
     });
   }

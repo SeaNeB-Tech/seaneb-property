@@ -87,6 +87,7 @@ export function openBusinessRegisterFlow() {
   const businessRegisterUrl = new URL(BUSINESS_REGISTER_PATH, authAppUrl);
   businessRegisterUrl.searchParams.set("source", CROSS_TAB_REGISTER_SOURCE);
   businessRegisterUrl.searchParams.set("returnTo", window.location.href);
+  businessRegisterUrl.searchParams.set("force", "1");
   // Always navigate to business registration in the same tab to keep flow consistent.
   try {
     window.location.assign(businessRegisterUrl.toString());

@@ -8,6 +8,12 @@ const envSameSite = process.env.NEXT_PUBLIC_COOKIE_SAMESITE || "None";
 const COOKIE_CHANGE_EVENT = "property:cookie-change";
 const STORAGE_PREFIX = "property:volatile:";
 const volatileMemoryStore = new Map();
+const REAL_COOKIE_KEYS = new Set([
+  "refresh_token_property",
+  "csrf_token_property",
+  // Server-visible marker to allow profile completion right after OTP verification.
+  "post_otp_verified",
+]);
 if (isBrowser) {
   try {
     const removeIfExists = (storage, key) => {
@@ -71,10 +77,7 @@ const isAuthCookieName = (name) => {
 };
 const isEssentialCookieName = (name) => {
   const key = String(name || "").trim().toLowerCase();
-  return (
-    key === "refresh_token_property" ||
-    key === "csrf_token_property"
-  );
+  return REAL_COOKIE_KEYS.has(key);
 };
 
 const isBlockedAuthCookieWrite = (name) => {
@@ -92,6 +95,8 @@ const resolveDomain = (domain) => {
 
   const host = String(window.location.hostname || "").toLowerCase();
   const isIpv4Loopback = /^127(?:\.\d{1,3}){3}$/.test(host);
+  const isIpv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
+  const isIpv6 = host.includes(":");
   const isLoopbackHost =
     isIpv4Loopback ||
     host === "::1" ||
@@ -99,6 +104,8 @@ const resolveDomain = (domain) => {
 
   // Domain cookies on loopback hosts often break auth sharing in multi-port setup.
   if (isLoopbackHost) return "";
+  // Domain cookies are rejected on raw IP hosts. Keep host-only cookies.
+  if (isIpv4 || isIpv6) return "";
   return safeDomain;
 };
 
