@@ -139,6 +139,12 @@ const readExpiresInFromPayload = (payload = {}) => {
   return Number.isFinite(num) ? num : null;
 };
 
+const readAuthAppBaseUrl = () => {
+  const raw = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+  if (!raw) return "";
+  return raw.replace(/\/+$/, "");
+};
+
 const buildUpstreamCandidates = () => {
   const bases = Array.from(
     new Set([API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL].filter(Boolean))
@@ -272,6 +278,92 @@ export async function POST(request) {
   appendSetCookieHeaders(responseHeaders, upstreamResponse.headers);
 
   if (!upstreamResponse.ok) {
+    const authAppBase = readAuthAppBaseUrl();
+    if (authAppBase) {
+      try {
+        const fallbackUrl = `${authAppBase}/api/auth/exchange-bridge-token`;
+        const fallbackResponse = await fetch(fallbackUrl, {
+          method: "POST",
+          headers,
+          body,
+          cache: "no-store",
+        });
+
+        let fallbackPayload = {};
+        try {
+          fallbackPayload = await fallbackResponse.json();
+        } catch {
+          fallbackPayload = {};
+        }
+
+        const fallbackHeaders = new Headers();
+        appendSetCookieHeaders(fallbackHeaders, fallbackResponse.headers);
+
+        if (fallbackResponse.ok) {
+          const fallbackSetCookies = getSetCookieList(fallbackResponse.headers);
+          const accessToken =
+            readAccessTokenFromPayload(fallbackPayload, fallbackResponse.headers) ||
+            readCookieValueFromSetCookieHeaders(fallbackSetCookies, ["access_token", "accessToken"]);
+          const refreshToken =
+            readRefreshTokenFromPayload(fallbackPayload) ||
+            readCookieValueFromSetCookieHeaders(fallbackSetCookies, [
+              "refresh_token_property",
+              "refresh_token",
+              "refreshToken_property",
+              "refreshToken",
+              "property_refresh_token",
+            ]);
+          const csrfToken =
+            readCsrfFromPayload(fallbackPayload, fallbackResponse.headers) ||
+            readCookieValueFromSetCookieHeaders(fallbackSetCookies, [
+              "csrf_token_property",
+              "csrf_token",
+              "csrfToken",
+            ]);
+
+          const response = NextResponse.json(
+            {
+              success: true,
+              ...(accessToken ? { accessToken, access_token: accessToken } : {}),
+            },
+            {
+              status: 200,
+              headers: fallbackHeaders,
+            }
+          );
+
+          if (refreshToken) {
+            response.cookies.set({
+              name: "refresh_token_property",
+              value: refreshToken,
+              httpOnly: true,
+              sameSite: cookieOptions.sameSite,
+              secure: cookieOptions.secure,
+              ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
+              path: "/",
+            });
+          }
+
+          if (csrfToken) {
+            response.cookies.set({
+              name: "csrf_token_property",
+              value: csrfToken,
+              httpOnly: false,
+              sameSite: cookieOptions.sameSite,
+              secure: cookieOptions.secure,
+              ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
+              path: "/",
+            });
+          }
+
+          response.cookies.delete("access_token");
+          return response;
+        }
+      } catch {
+        // fall through to return upstream error
+      }
+    }
+
     bridgeReplayCache.delete(digest);
     const message = String(
       upstreamPayload?.error?.message || upstreamPayload?.message || "SSO exchange failed"

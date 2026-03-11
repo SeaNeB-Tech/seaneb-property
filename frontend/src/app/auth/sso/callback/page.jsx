@@ -101,14 +101,19 @@ const runSsoExchange = async (bridgeToken) => {
   }
 
   if (!response.ok) {
+    const status = Number(response.status || 0);
     const message = String(
-      payload?.error?.message || payload?.message || "Bridge exchange failed"
+      payload?.error?.message ||
+        payload?.message ||
+        `Bridge exchange failed (status ${status || "unknown"})`
     ).trim();
     const error = new Error(message);
-    error.status = Number(response.status || 0);
+    error.status = status;
+    error.payload = payload;
     ssoDebugLog("sso.exchange.failure", {
       route: "/api/auth/sso/exchange",
       status: error.status,
+      code: payload?.error?.code || payload?.code || "",
     });
     throw error;
   }
@@ -210,7 +215,32 @@ export default function SsoCallbackPage() {
         await restoreListingSession({ accessToken: exchangedAccessToken });
         completeSuccessFlow();
       })
-      .catch((error) => {
+      .catch(async (error) => {
+        const status = Number(error?.status || 0);
+        const code = String(error?.payload?.error?.code || error?.payload?.code || "").trim();
+        const isReplay =
+          status === 409 ||
+          code === "BRIDGE_TOKEN_REPLAYED" ||
+          /replay/i.test(String(error?.message || ""));
+
+        const trySessionRestore = async () => {
+          try {
+            await restoreListingSession({ accessToken: "" });
+            completeSuccessFlow();
+            return true;
+          } catch {
+            return false;
+          }
+        };
+
+        if (isReplay) {
+          const restored = await trySessionRestore();
+          if (restored) return;
+        }
+
+        const restored = await trySessionRestore();
+        if (restored) return;
+
         const reason = String(error?.message || "Bridge exchange failed").trim();
         publishSsoResult({
           ok: false,
