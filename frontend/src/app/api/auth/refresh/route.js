@@ -5,6 +5,7 @@ import {
   validateSetCookieHeadersRuntime,
 } from "@/lib/auth/cookieRuntimeSafety";
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
+import { getCookieOptions, sanitizeCookieDomain } from "@/lib/auth/cookieOptions";
 
 const PRODUCT_KEY =
   String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
@@ -204,6 +205,7 @@ const readRefreshTokenFromPayload = (payload = {}) => {
 };
 
 export async function POST(request) {
+  const cookieOptions = getCookieOptions(request);
   const upstreamUrl = `${API_REMOTE_BASE_URL}/auth/refresh`;
   ssoDebugLog("refresh.attempt", { route: "/api/auth/refresh" });
 
@@ -364,10 +366,10 @@ export async function POST(request) {
         name: "refresh_token_property",
         value: refreshToken,
         httpOnly: true,
-        sameSite: COOKIE_SAME_SITE,
-        secure: COOKIE_SECURE,
+        sameSite: cookieOptions.sameSite,
+        secure: cookieOptions.secure,
         path: "/",
-        ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+        ...(COOKIE_DOMAIN ? { domain: sanitizeCookieDomain(COOKIE_DOMAIN) } : {}),
       });
     }
     if (csrfToken) {
@@ -375,8 +377,8 @@ export async function POST(request) {
         name: "csrf_token_property",
         value: csrfToken,
         httpOnly: false,
-        sameSite: COOKIE_SECURE ? "none" : "lax",
-        secure: COOKIE_SECURE,
+        sameSite: cookieOptions.sameSite,
+        secure: cookieOptions.secure,
         path: "/",
       });
     }
@@ -419,4 +421,8 @@ export async function POST(request) {
     }
   );
 }
+
+
+
+
 

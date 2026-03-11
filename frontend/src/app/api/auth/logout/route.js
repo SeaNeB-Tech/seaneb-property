@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/core/apiBaseUrl";
+import { getCookieOptions } from "@/lib/auth/cookieOptions";
 
 const normalizeProductKey = () =>
   String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
@@ -66,13 +67,13 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   }
 };
 
-const clearAuthCookies = (response) => {
-  const secure = process.env.NODE_ENV === "production";
+const clearAuthCookies = (response, request) => {
+  const cookieOptions = getCookieOptions(request);
   const common = {
     path: "/",
     maxAge: 0,
-    sameSite: "none",
-    secure,
+    sameSite: cookieOptions.sameSite,
+    secure: cookieOptions.secure,
   };
   response.cookies.set({ name: "access_token", value: "", httpOnly: true, ...common });
   response.cookies.set({ name: "refresh_token_property", value: "", httpOnly: true, ...common });
@@ -167,7 +168,7 @@ export async function POST(request) {
   });
   const status = Number(upstreamResponse.status || 0);
   if ((status >= 200 && status < 300) || status === 401 || status === 403) {
-    clearAuthCookies(response);
+    clearAuthCookies(response, request);
   }
   return response;
 }

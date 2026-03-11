@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/core/apiBaseUrl";
 import { createHash } from "node:crypto";
+import { getCookieOptions } from "@/lib/auth/cookieOptions";
 
 const PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
 const BRIDGE_REPLAY_CACHE_TTL_MS = 2 * 60_000;
 const bridgeReplayCache = new Map();
-const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
-const COOKIE_SECURE = IS_PRODUCTION;
-const COOKIE_SAME_SITE = "none";
-
 const tokenDigest = (value) =>
   createHash("sha256").update(String(value || ""), "utf8").digest("hex");
 
@@ -198,6 +195,7 @@ const tryExchangeUpstream = async ({ headers, body }) => {
 };
 
 export async function POST(request) {
+  const cookieOptions = getCookieOptions(request);
   cleanupReplayCache();
   let payload = {};
   try {
@@ -330,8 +328,8 @@ export async function POST(request) {
       name: "refresh_token_property",
       value: refreshToken,
       httpOnly: true,
-      sameSite: COOKIE_SECURE ? "none" : "lax",
-      secure: COOKIE_SECURE,
+      sameSite: cookieOptions.sameSite,
+      secure: cookieOptions.secure,
       path: "/",
     });
   }
@@ -341,8 +339,8 @@ export async function POST(request) {
       name: "csrf_token_property",
       value: csrfToken,
       httpOnly: false,
-      sameSite: COOKIE_SECURE ? "none" : "lax",
-      secure: COOKIE_SECURE,
+      sameSite: cookieOptions.sameSite,
+      secure: cookieOptions.secure,
       path: "/",
     });
   }
@@ -351,3 +349,7 @@ export async function POST(request) {
 
   return response;
 }
+
+
+
+

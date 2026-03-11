@@ -30,6 +30,14 @@ const isSsoCallbackRoute = () => {
   return path === SSO_CALLBACK_PATH;
 };
 
+const hasAuthHint = () => {
+  const token = String(getAccessToken() || "").trim();
+  if (token) return true;
+  if (typeof document === "undefined") return false;
+  const source = String(document.cookie || "").toLowerCase();
+  return source.includes("csrf_token_property=") || source.includes("refresh_token_property=");
+};
+
 export function ListingAuthProvider({ children }) {
   const [status, setStatus] = useState("unauthenticated");
   const [user, setUser] = useState(null);
@@ -64,12 +72,30 @@ export function ListingAuthProvider({ children }) {
 
     const run = (async () => {
       try {
+        if (!force && !hasAuthHint()) {
+          setUser(null);
+          setAccessTokenState("");
+          setStatus("unauthenticated");
+          setAuthUserLoggedOut();
+          setIsReady(true);
+          return false;
+        }
+
         let profilePayload = null;
         try {
           profilePayload = await authApi.me({ retryOn401: false });
         } catch (error) {
           const status = Number(error?.status || 0);
           if (status !== 401 && status !== 403) throw error;
+
+          if (!hasAuthHint()) {
+            setUser(null);
+            setAccessTokenState("");
+            setStatus("unauthenticated");
+            setAuthUserLoggedOut();
+            setIsReady(true);
+            return false;
+          }
 
           const refreshed = await refreshSession();
           if (!refreshed) {

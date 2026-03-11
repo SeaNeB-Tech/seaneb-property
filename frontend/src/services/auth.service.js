@@ -1,6 +1,7 @@
 import { authApi, refreshSession } from "@/lib/auth/apiClient";
 import { clearAccessToken } from "@/lib/auth/refreshHandler";
-import { removeCookie } from "@/lib/core/cookies";
+import { getAccessToken } from "@/lib/auth/tokenStorage";
+import { getCookie, removeCookie } from "@/lib/core/cookies";
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 import { getAuthUserStateSnapshot } from "@/services/user.service";
 
@@ -35,6 +36,16 @@ const removeStorageKey = (storage, key) => {
   }
 };
 
+const hasAuthHint = () => {
+  const token = String(getAccessToken() || "").trim();
+  if (token) return true;
+  if (typeof document === "undefined") return false;
+  return Boolean(
+    String(getCookie("csrf_token_property") || "").trim() ||
+      String(getCookie("refresh_token_property") || "").trim()
+  );
+};
+
 export const clearClientSessionArtifacts = () => {
   clearAccessToken();
 
@@ -55,6 +66,10 @@ export const clearClientSessionArtifacts = () => {
 };
 
 export const checkAuthenticatedSession = async () => {
+  if (!hasAuthHint()) {
+    return false;
+  }
+
   try {
     await authApi.me({ retryOn401: false });
     notifyAuthChanged();

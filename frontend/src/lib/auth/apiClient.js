@@ -135,7 +135,7 @@ export const apiRequest = async (path, options = {}, control = {}) => {
     },
   });
 
-  if (response.status !== 401 || !retryOn401 || isRefreshRequest) {
+  if (response.status !== 401 || !retryOn401 || isRefreshRequest || String(path || "") === ME_ENDPOINT) {
     return response;
   }
 
