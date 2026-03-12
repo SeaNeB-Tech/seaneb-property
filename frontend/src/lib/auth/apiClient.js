@@ -25,6 +25,39 @@ const REFRESH_ENDPOINT = "/auth/refresh";
 const LOGOUT_ENDPOINT = "/auth/logout";
 const ME_ENDPOINT = "/auth/me";
 
+// =============== CROSS-ORIGIN DETECTION ===============
+const isCrossOrigin = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    const apiUrl = new URL(API_BASE_URL);
+    return window.location.origin !== apiUrl.origin;
+  } catch {
+    return false;
+  }
+};
+
+// =============== COOKIE HELPERS ===============
+const getCookieValue = (name) => {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[2]) : "";
+};
+
+const hasRefreshTokenCookie = () => {
+  return Boolean(getCookieValue("refresh_token_property"));
+};
+
+const hasCsrfTokenCookie = () => {
+  return Boolean(getCookieValue("csrf_token_property"));
+};
+
+// Log once on load
+if (typeof window !== "undefined") {
+  console.log("[API] Running in cross-origin mode:", isCrossOrigin());
+  console.log("[API] Has refresh cookie on load:", hasRefreshTokenCookie());
+  console.log("[API] Has CSRF cookie on load:", hasCsrfTokenCookie());
+}
+
 const toAbsoluteUrl = (path) => {
   const target = String(path || "").trim();
   if (!target) throw new Error("Missing request path");
@@ -33,6 +66,7 @@ const toAbsoluteUrl = (path) => {
   return RESOLVED_API_BASE_URL ? `${RESOLVED_API_BASE_URL}${target}` : target;
 };
 
+// =============== HEADER BUILDER WITH CORS SUPPORT ===============
 const buildHeaders = ({ headers }) => {
   const next = attachAuthorizationHeader(headers);
   if (!next.has("Content-Type")) {
@@ -40,6 +74,11 @@ const buildHeaders = ({ headers }) => {
   }
 
   next.set("x-product-key", DEFAULT_PRODUCT_KEY);
+  
+  // Add origin header for CORS (critical for cross-origin requests)
+  if (typeof window !== "undefined") {
+    next.set("Origin", window.location.origin);
+  }
 
   return next;
 };
@@ -47,11 +86,20 @@ const buildHeaders = ({ headers }) => {
 const normalizeProfilePayload = (profilePayload) =>
   profilePayload?.data || profilePayload?.user || profilePayload || null;
 
+// =============== REFRESH SESSION WITH COOKIE CHECK ===============
 export const refreshSession = async () => {
+  // Don't attempt refresh if no refresh token cookie exists
+  if (!hasRefreshTokenCookie()) {
+    console.log("[API] No refresh token cookie found, cannot refresh");
+    clearAccessToken();
+    return false;
+  }
+
   try {
     await refreshAccessToken();
     return true;
-  } catch {
+  } catch (error) {
+    console.error("[API] Refresh failed:", error);
     clearAccessToken();
     return false;
   }
@@ -60,69 +108,124 @@ export const refreshSession = async () => {
 export const refreshSessionAndGetProfile = async () => {
   const refreshed = await refreshSession();
   if (!refreshed) return null;
-  const profile = await authApi.me({ retryOn401: false });
+  const profile = await authApi.me({ retryOn401: false, skipRefresh: true });
   return normalizeProfilePayload(profile);
 };
 
+// =============== MAKE ACTUAL FETCH REQUEST ===============
+const makeFetchRequest = async (path, options = {}) => {
+  const headers = buildHeaders({ headers: options.headers });
+  const url = toAbsoluteUrl(path);
+  const method = options.method || "GET";
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[API] Making ${method} request to ${path}`, {
+      url,
+      hasToken: isUsableAccessToken(getAccessToken()),
+      hasRefreshCookie: hasRefreshTokenCookie(),
+    });
+  }
+  
+  const response = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: "include", // ABSOLUTELY CRITICAL for cookies
+    cache: options.cache || "no-store",
+  });
+
+  // Extract token from response if present
+  if (response.ok) {
+    try {
+      const authHdr = String(response.headers.get("authorization") || response.headers.get("Authorization") || "").trim();
+      if (authHdr) {
+        const token = /^Bearer\s+/i.test(authHdr) ? authHdr.replace(/^Bearer\s+/i, "").trim() : authHdr;
+        if (token && isUsableAccessToken(token)) {
+          setInMemoryAccessToken(token);
+        }
+      }
+    } catch (e) {
+      // ignore header parsing errors
+    }
+  }
+
+  return response;
+};
+
+// =============== SPECIAL HANDLER FOR /AUTH/ME ===============
+const handleMeRequest = async (path, options = {}, control = {}) => {
+  console.log("[API] Handling /auth/me request");
+  
+  // First try with existing token
+  let response = await makeFetchRequest(path, options);
+  
+  // If 401 and we have a refresh cookie, try refresh once
+  if (response.status === 401 && hasRefreshTokenCookie() && !control._refreshed) {
+    console.log("[API] /auth/me returned 401, attempting refresh");
+    try {
+      await refreshAccessToken();
+      control._refreshed = true;
+      // Retry with new token
+      response = await makeFetchRequest(path, options);
+      console.log("[API] /auth/me retry after refresh status:", response.status);
+    } catch (refreshError) {
+      console.error("[API] Refresh failed for /auth/me:", refreshError);
+    }
+  }
+  
+  return response;
+};
+
+// =============== MAIN API REQUEST FUNCTION ===============
 export const apiRequest = async (path, options = {}, control = {}) => {
   const method = String(options.method || "GET").toUpperCase();
   const isRefreshRequest = String(path || "") === REFRESH_ENDPOINT;
   const isLoginRequest = String(path || "") === LOGIN_ENDPOINT;
+  const isMeRequest = String(path || "") === ME_ENDPOINT;
   let hasRetried401 = control._retry === true;
   const retryOn401 = control.retryOn401 !== false && !hasRetried401;
   const requiresAuth = control.requireAuth !== false && !isRefreshRequest && !isLoginRequest;
 
+  // Log auth status for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[API] ${method} ${path}`, {
+      hasToken: isUsableAccessToken(getAccessToken()),
+      hasRefreshCookie: hasRefreshTokenCookie(),
+      hasCsrfCookie: hasCsrfTokenCookie(),
+      requiresAuth,
+      isRefreshRequest,
+      isMeRequest,
+      isCrossOrigin: isCrossOrigin(),
+    });
+  }
+
+  // SPECIAL HANDLING FOR /AUTH/ME
+  if (isMeRequest) {
+    return handleMeRequest(path, options, control);
+  }
+
+  // For non-me requests, try to ensure we have a token
   if (
     requiresAuth &&
     !control.skipRefresh &&
     !isUsableAccessToken(getAccessToken())
   ) {
     try {
-      await refreshAccessToken();
-    } catch {
-      // Let the actual request run; downstream 401 flow will decide whether to redirect.
+      // Only attempt refresh if we have a refresh token cookie
+      if (hasRefreshTokenCookie()) {
+        console.log("[API] No access token but refresh cookie exists, attempting refresh");
+        await refreshAccessToken();
+      } else {
+        console.log("[API] No refresh cookie, skipping refresh attempt");
+      }
+    } catch (error) {
+      console.error("[API] Pre-request refresh failed:", error);
+      // Let the actual request run
     }
   }
 
   const makeRequest = async () => {
-    const headers = buildHeaders({ headers: options.headers });
-    const response = await fetch(toAbsoluteUrl(path), {
-      ...options,
-      method,
-      headers,
-      credentials: "include",
-      cache: options.cache || "no-store",
-    });
-
-    if (response.ok) {
-      // If backend included an Authorization header with a bearer token,
-      // hydrate it into our in-memory access token so subsequent requests
-      // (and post-login redirects) work without an extra refresh.
-      try {
-        const authHdr = String(response.headers.get("authorization") || response.headers.get("Authorization") || "").trim();
-        if (authHdr) {
-          const token = /^Bearer\s+/i.test(authHdr) ? authHdr.replace(/^Bearer\s+/i, "").trim() : authHdr;
-          if (token) {
-            try {
-              setInMemoryAccessToken(token);
-            } catch (e) {
-              // ignore token set failures
-            }
-          }
-        }
-      } catch (e) {
-        // ignore header parsing errors
-      }
-
-      const cloned = response.clone();
-      try {
-        await cloned.json();
-      } catch {
-        // ignore non-json
-      }
-    }
-
-    return response;
+    return makeFetchRequest(path, options);
   };
 
   const response = await requestWithAuthSafeRetry({
@@ -135,7 +238,8 @@ export const apiRequest = async (path, options = {}, control = {}) => {
     },
   });
 
-  if (response.status !== 401 || !retryOn401 || isRefreshRequest || String(path || "") === ME_ENDPOINT) {
+  // Don't trigger auth failure for auth endpoints
+  if (response.status !== 401 || !retryOn401 || isRefreshRequest || isMeRequest) {
     return response;
   }
 
@@ -143,6 +247,7 @@ export const apiRequest = async (path, options = {}, control = {}) => {
   return response;
 };
 
+// =============== JSON HELPER ===============
 export const apiJson = async (path, options = {}, control = {}) => {
   const response = await apiRequest(path, options, control);
   let payload = null;
@@ -162,6 +267,7 @@ export const apiJson = async (path, options = {}, control = {}) => {
   return payload;
 };
 
+// =============== AUTH API METHODS ===============
 export const authApi = {
   login: (credentials) =>
     apiJson(
@@ -172,7 +278,16 @@ export const authApi = {
       },
       { retryOn401: false }
     ),
-  me: (control = {}) => apiJson(ME_ENDPOINT, { method: "GET" }, control),
+  
+  me: (control = {}) => {
+    // Don't retry on 401 for /auth/me - we handle it specially
+    return apiJson(ME_ENDPOINT, { method: "GET" }, { 
+      ...control, 
+      retryOn401: false,
+      skipRefresh: true // Let our special handler manage refresh
+    });
+  },
+  
   exchangeSso: async (bridgeToken) => {
     const response = await fetch("/api/auth/sso/exchange", {
       method: "POST",
@@ -180,6 +295,8 @@ export const authApi = {
       cache: "no-store",
       headers: {
         "content-type": "application/json",
+        "Origin": typeof window !== "undefined" ? window.location.origin : "",
+        "x-product-key": DEFAULT_PRODUCT_KEY,
       },
       body: JSON.stringify({
         bridge_token: String(bridgeToken || "").trim(),
@@ -205,6 +322,7 @@ export const authApi = {
 
     return payload;
   },
+  
   logout: async () => {
     const result = await apiJson(
       LOGOUT_ENDPOINT,
@@ -225,4 +343,3 @@ if (typeof globalThis !== "undefined" && !globalThis.__SEANEB_AUTH_SAFE_MODE_API
   globalThis.__SEANEB_AUTH_SAFE_MODE_API_CLIENT_FE__ = true;
   console.info("[AUTH SAFE MODE] using shared auth layer");
 }
-

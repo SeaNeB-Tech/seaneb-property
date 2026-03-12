@@ -6,7 +6,8 @@ import { getAccessToken } from "@/lib/auth/tokenStorage";
 
 const CROSS_TAB_LOGIN_SOURCE = "main-app";
 const CROSS_TAB_REGISTER_SOURCE = "main-app-register";
-const BUSINESS_REGISTER_PATH = "/auth/business-reg";
+// =============== FIX: Match actual business registration path ===============
+const BUSINESS_REGISTER_PATH = "/auth/business-register"; // Changed from "/auth/business-reg"
 const DEFAULT_PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
 
 const readBridgeTokenFromPayload = (payload = {}) => {
@@ -37,9 +38,11 @@ const readBridgeTokenFromPayload = (payload = {}) => {
   return "";
 };
 
+// =============== FIX: Add error handling ===============
 const mintBridgeToken = async () => {
   const endpoints = ["/api/auth/sso", "/api/v1/sso", "/api/sso"];
   const accessToken = String(getAccessToken() || "").trim();
+  
   for (const endpoint of endpoints) {
     try {
       const response = await fetch(endpoint, {
@@ -50,6 +53,8 @@ const mintBridgeToken = async () => {
           "content-type": "application/json",
           "x-product-key": DEFAULT_PRODUCT_KEY,
           ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
+          // =============== FIX: Add Origin header for CORS ===============
+          ...(typeof window !== "undefined" ? { "Origin": window.location.origin } : {}),
         },
         body: JSON.stringify({
           product_key: DEFAULT_PRODUCT_KEY,
@@ -66,7 +71,8 @@ const mintBridgeToken = async () => {
       const payload = await response.json().catch(() => ({}));
       const bridgeToken = readBridgeTokenFromPayload(payload);
       if (bridgeToken) return bridgeToken;
-    } catch {
+    } catch (error) {
+      console.warn(`[cross-tab] Endpoint ${endpoint} failed:`, error.message);
       // Try next endpoint.
     }
   }
@@ -88,6 +94,10 @@ export function openBusinessRegisterFlow() {
   businessRegisterUrl.searchParams.set("source", CROSS_TAB_REGISTER_SOURCE);
   businessRegisterUrl.searchParams.set("returnTo", window.location.href);
   businessRegisterUrl.searchParams.set("force", "1");
+  
+  // =============== FIX: Add product key to URL ===============
+  businessRegisterUrl.searchParams.set("product_key", DEFAULT_PRODUCT_KEY);
+  
   // Always navigate to business registration in the same tab to keep flow consistent.
   try {
     window.location.assign(businessRegisterUrl.toString());
@@ -115,6 +125,7 @@ export const openAuthLoginTab = () => {
     // Popup/new-tab blocked: navigate in same tab as fallback.
     const loginUrl = new URL(getAuthAppUrl(loginPath), window.location.origin);
     loginUrl.searchParams.set("source", CROSS_TAB_LOGIN_SOURCE);
+    loginUrl.searchParams.set("product_key", DEFAULT_PRODUCT_KEY);
     const returnTo = String(window.location.href || "").trim();
     if (returnTo) loginUrl.searchParams.set("returnTo", returnTo);
     window.location.assign(loginUrl.toString());
@@ -125,6 +136,7 @@ export const openAuthLoginTab = () => {
   }
 };
 
+// =============== FIX: Add error handling to openAuthPathWithBridge ===============
 export const openAuthPathWithBridge = async (
   targetPath = "/dashboard",
   { fallbackUrl: _fallbackUrl = "" } = {}
@@ -137,12 +149,18 @@ export const openAuthPathWithBridge = async (
 
   const callbackUrl = new URL(getAuthAppUrl("/auth/sso/callback"), window.location.origin);
   callbackUrl.searchParams.set("source", safePath);
+  callbackUrl.searchParams.set("product_key", DEFAULT_PRODUCT_KEY);
 
-  const bridgeToken = await mintBridgeToken();
-  if (bridgeToken) {
-    callbackUrl.searchParams.set("bridge_token", bridgeToken);
-    window.location.assign(callbackUrl.toString());
-    return true;
+  try {
+    const bridgeToken = await mintBridgeToken();
+    if (bridgeToken) {
+      callbackUrl.searchParams.set("bridge_token", bridgeToken);
+      window.location.assign(callbackUrl.toString());
+      return true;
+    }
+  } catch (error) {
+    console.warn("[cross-tab] Bridge token minting failed:", error);
+    // Fall through to login flow
   }
 
   // If bridge mint fails, avoid direct dashboard jump (it can loop to login).
@@ -150,6 +168,7 @@ export const openAuthPathWithBridge = async (
   const loginUrl = new URL(getAuthAppUrl("/auth/login"), window.location.origin);
   loginUrl.searchParams.set("source", "main-app");
   loginUrl.searchParams.set("returnTo", safePath);
+  loginUrl.searchParams.set("product_key", DEFAULT_PRODUCT_KEY);
   window.location.assign(loginUrl.toString());
   return true;
 };
