@@ -295,7 +295,7 @@ export default async function InSlugPage({ params }) {
       return <StatePage countrySlug="in" stateSlug={one} />;
     }
 
-    return <StatePage countrySlug="in" stateSlug={one} />;
+    return notFound();
   }
 
   return notFound();

@@ -44,7 +44,7 @@ The CSRF token should be persisted in cookies, but the `/auth/refresh` endpoint 
 
 **Expected screenshot:**
 ```
-Cookies for local loopback hosts (e.g. 127.0.0.1)
+Cookies for local loopback hosts
 ┌────────────────────┬──────────────────────┐
 │ Name               │ Value                │
 ├────────────────────┼──────────────────────┤
