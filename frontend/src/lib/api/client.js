@@ -9,6 +9,7 @@ import {
   refreshAccessToken as refreshAccessTokenShared,
   getRefreshDiagnostics,
 } from "@/lib/auth/refreshHandler";
+import { clearAuthFailureArtifacts } from "@/services/auth.service";
 
 const DEFAULT_PRODUCT_KEY = "property";
 const CSRF_COOKIE_CANDIDATES = [
@@ -112,7 +113,11 @@ api.interceptors.response.use(
       // Retry original request
       return api(original);
     } catch (refreshError) {
-      clearAccessToken();
+      try {
+        clearAuthFailureArtifacts();
+      } catch {
+        clearAccessToken();
+      }
       // Redirect to login if needed
       if (typeof window !== "undefined") {
         window.location.href = "/auth/login";

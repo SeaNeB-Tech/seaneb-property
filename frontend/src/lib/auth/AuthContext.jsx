@@ -13,6 +13,8 @@ import {
   notifyAuthChanged,
   subscribeAuthState,
   AUTH_LOGOUT_STORAGE_KEY,
+  clearAuthFailureArtifacts,
+  shouldClearAuthOnError,
 } from "@/services/auth.service";
 import {
   setAuthUserAuthenticated,
@@ -105,6 +107,9 @@ export function ListingAuthProvider({ children }) {
 
           const refreshed = await refreshSession();
           if (!refreshed) {
+            if (shouldClearAuthOnError(error)) {
+              clearAuthFailureArtifacts();
+            }
             return resetUnauthenticated();
           }
 
@@ -112,6 +117,7 @@ export function ListingAuthProvider({ children }) {
         }
 
         if (!profilePayload) {
+          clearAuthFailureArtifacts();
           return resetUnauthenticated();
         }
         const applied = applyUserProfile(profilePayload);
