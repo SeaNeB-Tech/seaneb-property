@@ -267,7 +267,7 @@ export function ListingAuthProvider({ children }) {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("message", onMessage);
     };
-  }, [restoreSession]);
+  }, [applyAccessToken, restoreSession]);
 
   useEffect(() => {
     void restoreSession({ force: true });

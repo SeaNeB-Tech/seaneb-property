@@ -1,3 +1,4 @@
+import Link from "next/link";
 import MarketingPageShell from "@/components/marketing/shared/MarketingPageShell";
 import { getSiteUrl } from "@/lib/siteUrl";
 
@@ -98,9 +99,9 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <strong>How do you exercise your rights?</strong> The easiest way to exercise your rights is by visiting{" "}
-                <a href="/contact" className="font-medium text-slate-900 underline underline-offset-2">
+                <Link href="/contact" className="font-medium text-slate-900 underline underline-offset-2">
                   our contact page
-                </a>
+                </Link>
                 , or by contacting us using the details in this notice.
               </li>
             </ul>
@@ -365,9 +366,9 @@ export default function PrivacyPolicyPage() {
             </p>
             <p className="mt-3">
               To request to review, update, or delete your personal information, please visit{" "}
-              <a href="/contact" className="font-medium text-slate-900 underline underline-offset-2">
+              <Link href="/contact" className="font-medium text-slate-900 underline underline-offset-2">
                 /contact
-              </a>
+              </Link>
               .
             </p>
           </section>
