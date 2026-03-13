@@ -5,6 +5,10 @@ import {
   getAccessToken,
   clearAccessToken,
 } from "@/lib/auth/tokenStorage";
+import {
+  refreshAccessToken as refreshAccessTokenShared,
+  getRefreshDiagnostics,
+} from "@/lib/auth/refreshHandler";
 
 const DEFAULT_PRODUCT_KEY = "property";
 const CSRF_COOKIE_CANDIDATES = [
@@ -121,3 +125,5 @@ api.interceptors.response.use(
 export default api;
 export const getInMemoryAccessToken = () => getAccessToken();
 export const clearInMemoryAccessToken = () => clearAccessToken();
+export const refreshAccessToken = (...args) => refreshAccessTokenShared(...args);
+export const getAuthDiagnostics = () => getRefreshDiagnostics();
