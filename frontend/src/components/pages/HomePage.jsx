@@ -180,10 +180,29 @@ export default function HomePage({ data }) {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setHasScrolled(window.scrollY > 18);
-    onScroll();
+    let rafId = 0;
+    let last = window.scrollY > 18;
+    setHasScrolled(last);
+
+    const update = () => {
+      rafId = 0;
+      const next = window.scrollY > 18;
+      if (next !== last) {
+        last = next;
+        setHasScrolled(next);
+      }
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(update);
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const handleInstall = useCallback(async () => {

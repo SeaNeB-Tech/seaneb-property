@@ -2,13 +2,17 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { authApi, setAuthFailureHandler } from "@/lib/auth/apiClient";
-import { getAccessToken, setAccessToken as setInMemoryAccessToken } from "@/lib/auth/tokenStorage";
-import { closeSsoAuthTab } from "@/lib/newTabSso";
+import {
+  getAccessToken,
+  setAccessToken as setInMemoryAccessToken,
+  clearAccessToken,
+} from "@/lib/auth/tokenStorage";
 import {
   refreshSession,
   logoutAndClearAuthSession,
   notifyAuthChanged,
   subscribeAuthState,
+  AUTH_LOGOUT_STORAGE_KEY,
 } from "@/services/auth.service";
 import {
   setAuthUserAuthenticated,
@@ -19,6 +23,7 @@ const AuthContext = createContext(null);
 const AUTH_SSO_RESULT_KEY = "seaneb_sso_exchange_result";
 const AUTH_SSO_MESSAGE_TYPE = "seaneb:sso:exchange";
 const LOGIN_SUCCESS_MESSAGE_TYPE = "SEANEB_LOGIN_SUCCESS";
+const LOGOUT_MESSAGE_TYPE = "SEANEB_LOGOUT";
 const RETURN_HOME_MESSAGE_TYPE = "SEANEB_RETURN_HOME";
 const BUSINESS_REGISTER_SUCCESS_MESSAGE_TYPE = "SEANEB_BUSINESS_REGISTER_SUCCESS";
 const BUSINESS_REGISTER_LOCK_KEY = "seaneb_business_register_flow_lock_until";
@@ -32,10 +37,7 @@ const isSsoCallbackRoute = () => {
 
 const hasAuthHint = () => {
   const token = String(getAccessToken() || "").trim();
-  if (token) return true;
-  if (typeof document === "undefined") return false;
-  const source = String(document.cookie || "").toLowerCase();
-  return source.includes("csrf_token_property=") || source.includes("refresh_token_property=");
+  return Boolean(token);
 };
 
 export function ListingAuthProvider({ children }) {
@@ -46,20 +48,26 @@ export function ListingAuthProvider({ children }) {
   const [isReady, setIsReady] = useState(false);
   const sessionSyncInFlightRef = useRef(null);
 
+  const resetUnauthenticated = useCallback(() => {
+    setUser(null);
+    setAccessTokenState("");
+    setStatus("unauthenticated");
+    setAuthUserLoggedOut();
+    setIsReady(true);
+    return false;
+  }, []);
+
   const applyUserProfile = useCallback((profilePayload) => {
     const nextUser = profilePayload?.data || profilePayload?.user || profilePayload || null;
     if (!nextUser) {
-      setUser(null);
-      setStatus("unauthenticated");
-      setAuthUserLoggedOut();
-      return false;
+      return resetUnauthenticated();
     }
     setAccessTokenState(String(getAccessToken() || "").trim());
     setUser(nextUser);
     setStatus("authenticated");
     setAuthUserAuthenticated(nextUser);
     return true;
-  }, []);
+  }, [resetUnauthenticated]);
 
   const restoreSession = useCallback(async ({ force = false } = {}) => {
     if (isSsoCallbackRoute()) {
@@ -72,13 +80,16 @@ export function ListingAuthProvider({ children }) {
 
     const run = (async () => {
       try {
-        if (!force && !hasAuthHint()) {
-          setUser(null);
-          setAccessTokenState("");
-          setStatus("unauthenticated");
-          setAuthUserLoggedOut();
-          setIsReady(true);
-          return false;
+        const sessionHint = await authApi.session().catch(() => null);
+        const hasRefreshSession = Boolean(sessionHint?.hasRefreshSession);
+
+        const hasSessionSignal = hasRefreshSession || hasAuthHint();
+        if (!hasSessionSignal) {
+          return resetUnauthenticated();
+        }
+
+        if (hasRefreshSession && !String(getAccessToken() || "").trim()) {
+          await refreshSession();
         }
 
         let profilePayload = null;
@@ -88,46 +99,26 @@ export function ListingAuthProvider({ children }) {
           const status = Number(error?.status || 0);
           if (status !== 401 && status !== 403) throw error;
 
-          if (!hasAuthHint()) {
-            setUser(null);
-            setAccessTokenState("");
-            setStatus("unauthenticated");
-            setAuthUserLoggedOut();
-            setIsReady(true);
-            return false;
+          if (!hasSessionSignal) {
+            return resetUnauthenticated();
           }
 
           const refreshed = await refreshSession();
           if (!refreshed) {
-            setUser(null);
-            setAccessTokenState("");
-            setStatus("unauthenticated");
-            setAuthUserLoggedOut();
-            setIsReady(true);
-            return false;
+            return resetUnauthenticated();
           }
 
           profilePayload = await authApi.me({ retryOn401: false });
         }
 
         if (!profilePayload) {
-          setUser(null);
-          setAccessTokenState("");
-          setStatus("unauthenticated");
-          setAuthUserLoggedOut();
-          setIsReady(true);
-          return false;
+          return resetUnauthenticated();
         }
         const applied = applyUserProfile(profilePayload);
         setIsReady(true);
         return applied;
       } catch {
-        setUser(null);
-        setAccessTokenState("");
-        setStatus("unauthenticated");
-        setAuthUserLoggedOut();
-        setIsReady(true);
-        return false;
+        return resetUnauthenticated();
       }
     })().finally(() => {
       sessionSyncInFlightRef.current = null;
@@ -135,7 +126,7 @@ export function ListingAuthProvider({ children }) {
 
     sessionSyncInFlightRef.current = run;
     return run;
-  }, [applyUserProfile]);
+  }, [applyUserProfile, resetUnauthenticated]);
 
   const applyAccessToken = useCallback((token) => {
     const safeToken = setInMemoryAccessToken(token);
@@ -190,12 +181,17 @@ export function ListingAuthProvider({ children }) {
     })();
 
     const consumePopupSignal = () => {
-      closeSsoAuthTab();
       void restoreSession({ force: true });
       notifyAuthChanged();
     };
 
     const onStorage = (event) => {
+      if (event.key === AUTH_LOGOUT_STORAGE_KEY) {
+        clearAccessToken();
+        void restoreSession({ force: true });
+        return;
+      }
+
       if (event.key !== AUTH_SSO_RESULT_KEY) return;
       const payload = (() => {
         try {
@@ -212,14 +208,21 @@ export function ListingAuthProvider({ children }) {
       const messageType = String(event?.data?.type || "");
       if (messageType === LOGIN_SUCCESS_MESSAGE_TYPE) {
         if (!allowedAuthOrigin || event.origin !== allowedAuthOrigin) return;
+        const token = String(event?.data?.accessToken || "").trim();
+        if (token) {
+          applyAccessToken(token);
+        } else {
+          void restoreSession({ force: true });
+        }
+        notifyAuthChanged();
+        return;
+      }
+
+      if (messageType === LOGOUT_MESSAGE_TYPE) {
+        if (!allowedAuthOrigin || event.origin !== allowedAuthOrigin) return;
+        clearAccessToken();
         void restoreSession({ force: true });
         notifyAuthChanged();
-        if (typeof window !== "undefined") {
-          const path = String(window.location.pathname || "").trim();
-          if (path !== "/" && path !== "/home") {
-            window.location.href = "/";
-          }
-        }
         return;
       }
 

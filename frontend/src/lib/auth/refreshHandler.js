@@ -37,6 +37,26 @@ const hasCsrfTokenCookie = () => {
   return Boolean(getCookieValue("csrf_token_property"));
 };
 
+const getSessionHint = async () => {
+  try {
+    const response = await fetch("/api/auth/session", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    });
+    if (!response.ok) return false;
+    const payload = await response.json().catch(() => ({}));
+    return Boolean(payload?.hasRefreshSession);
+  } catch {
+    return false;
+  }
+};
+
+const hasRefreshSessionHint = async () => {
+  if (hasRefreshTokenCookie()) return true;
+  return getSessionHint();
+};
+
 // =============== NEW: Cross-origin detection (no path changes) ===============
 const isCrossOrigin = () => {
   if (typeof window === "undefined") return false;
@@ -166,13 +186,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // =============== IMPROVED: Main refresh function with retry logic (no path changes) ===============
 const doRefresh = async (retryCount = 0) => {
   // =============== NEW: Check for refresh token before attempting ===============
-  if (!hasRefreshTokenCookie()) {
-    console.log("[refreshHandler] No refresh token cookie found, cannot refresh");
+  if (!(await hasRefreshSessionHint())) {
+    console.log("[refreshHandler] No refresh session detected, cannot refresh");
     lastRefreshStatus = "failed";
     lastRefreshAt = Date.now();
     lastRefreshHttpStatus = 0;
-    lastRefreshError = "No refresh token available";
-    throw buildRefreshError("No refresh token available", 0, null);
+    lastRefreshError = "No refresh session available";
+    throw buildRefreshError("No refresh session available", 0, null);
   }
 
   lastRefreshStatus = "pending";
@@ -348,10 +368,9 @@ export const clearAccessToken = () => {
 };
 
 export const refreshAccessToken = async () => {
-  // =============== NEW: Don't attempt if no cookie ===============
-  if (!hasRefreshTokenCookie()) {
-    console.log("[refreshHandler] No refresh cookie, skipping refresh");
-    throw new Error("No refresh token available");
+  if (!(await hasRefreshSessionHint())) {
+    console.log("[refreshHandler] No refresh session, skipping refresh");
+    throw new Error("No refresh session available");
   }
 
   refreshPromise = _refreshLock.run();
@@ -367,9 +386,8 @@ export const refreshAccessToken = async () => {
 export const ensureAccessToken = async () => {
   if (getAccessToken()) return true;
   
-  // =============== NEW: Check cookie before attempting ===============
-  if (!hasRefreshTokenCookie()) {
-    console.log("[refreshHandler] No refresh cookie, cannot ensure token");
+  if (!(await hasRefreshSessionHint())) {
+    console.log("[refreshHandler] No refresh session, cannot ensure token");
     return false;
   }
   

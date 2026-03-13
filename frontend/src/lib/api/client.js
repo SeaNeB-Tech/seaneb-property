@@ -7,6 +7,31 @@ import {
 } from "@/lib/auth/tokenStorage";
 
 const DEFAULT_PRODUCT_KEY = "property";
+const CSRF_COOKIE_CANDIDATES = [
+  "csrf_token_property",
+  "csrf_token",
+  "csrfToken",
+  "csrf-token",
+  "XSRF-TOKEN",
+  "xsrf-token",
+  "XSRF_TOKEN",
+  "_csrf",
+];
+
+const readCsrfToken = () => {
+  if (typeof document === "undefined") return "";
+  for (const name of CSRF_COOKIE_CANDIDATES) {
+    const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+    if (match && match[2]) {
+      try {
+        return decodeURIComponent(match[2]);
+      } catch {
+        return match[2];
+      }
+    }
+  }
+  return "";
+};
 
 // Create axios instance
 const api = axios.create({
@@ -22,6 +47,16 @@ api.interceptors.request.use((config) => {
   config.withCredentials = true;
   config.headers = config.headers || {};
   config.headers["x-product-key"] = DEFAULT_PRODUCT_KEY;
+
+  const method = String(config.method || "get").toUpperCase();
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    const csrfToken = readCsrfToken();
+    if (csrfToken) {
+      config.headers["x-csrf-token"] = csrfToken;
+      config.headers["x-xsrf-token"] = csrfToken;
+      config.headers["csrf-token"] = csrfToken;
+    }
+  }
   
   // Add auth token if available
   const token = getAccessToken();

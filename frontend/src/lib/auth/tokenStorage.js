@@ -3,23 +3,11 @@ import {
   getAccessToken as getInMemoryAccessToken,
   setAccessToken as setInMemoryAccessToken,
 } from "@/lib/auth/refreshHandler";
-import { getCookie, removeCookie, setCookie } from "@/lib/auth/cookieManager";
-
-const REFRESH_TOKEN_COOKIE_KEYS = ["refresh_token_property"];
-
 const logSafeMode = () => {
   if (typeof globalThis === "undefined") return;
   if (globalThis.__SEANEB_AUTH_SAFE_MODE_TOKEN_STORAGE_FE__) return;
   globalThis.__SEANEB_AUTH_SAFE_MODE_TOKEN_STORAGE_FE__ = true;
   console.info("[AUTH SAFE MODE] using shared auth layer");
-};
-
-const readFirstCookie = (keys = []) => {
-  for (const key of keys) {
-    const value = String(getCookie(key) || "").trim();
-    if (value) return value;
-  }
-  return "";
 };
 
 export const getAccessToken = () => {
@@ -41,16 +29,19 @@ export const clearAccessToken = (options = {}) => {
 
 export const getRefreshToken = () => {
   logSafeMode();
-  return readFirstCookie(REFRESH_TOKEN_COOKIE_KEYS);
+  return "";
 };
 
 export const setRefreshToken = (token, options = {}) => {
   logSafeMode();
-  setCookie("refresh_token_property", token, options);
+  void token;
+  void options;
+  console.warn("[AUTH SAFE MODE] refresh token is HTTP-only; client-side set is ignored.");
 };
 
 export const clearRefreshToken = (options = {}) => {
   logSafeMode();
-  removeCookie("refresh_token_property", options);
+  void options;
+  console.warn("[AUTH SAFE MODE] refresh token is HTTP-only; client-side clear is ignored.");
 };
 

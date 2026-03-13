@@ -191,15 +191,10 @@ export default function SsoCallbackPage() {
       publishSsoResult({ ok: true, source });
       if (window.opener && !window.opener.closed) {
         try {
-          window.close();
+          window.opener.location.href = source;
         } catch {
-          // no-op
+          // ignore opener navigation failures
         }
-        timerId = window.setTimeout(() => {
-          setState("manual_close");
-          setMessage("Authentication completed. You can close this tab.");
-        }, 200);
-        return;
       }
       window.location.replace(source);
     };
@@ -266,19 +261,9 @@ export default function SsoCallbackPage() {
         </h1>
         <p className="mt-2 text-sm text-white/80">{message}</p>
         {state !== "working" ? (
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                window.close();
-              } catch {
-                // no-op
-              }
-            }}
-            className="mt-4 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900"
-          >
-            Close Tab
-          </button>
+          <p className="mt-4 text-xs text-white/60">
+            You can close this tab manually if you opened login in a separate tab.
+          </p>
         ) : null}
       </div>
     </main>

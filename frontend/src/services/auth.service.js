@@ -7,6 +7,7 @@ import { getAuthUserStateSnapshot } from "@/services/user.service";
 
 const AUTH_CHANGE_EVENT = "seaneb:auth-changed";
 const LOGOUT_IN_PROGRESS_KEY = "seaneb_logout_in_progress";
+export const AUTH_LOGOUT_STORAGE_KEY = "seaneb:auth-logout";
 
 const CLIENT_SESSION_KEYS = [
   "post_otp_verified",
@@ -184,6 +185,13 @@ export const logoutAndClearAuthSession = async () => {
       forceDeleteAuthCookies();
       clearClientSessionArtifacts();
       clearAuthSessionCookies();
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(AUTH_LOGOUT_STORAGE_KEY, String(Date.now()));
+        } catch {
+          // ignore storage errors
+        }
+      }
       ssoDebugLog("logout.completed", { route: "/api/auth/logout" });
     }
     if (typeof window !== "undefined") {

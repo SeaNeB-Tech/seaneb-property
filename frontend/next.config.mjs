@@ -102,6 +102,9 @@ const nextConfig = {
       },
     ],
   },
+  compiler: {
+    removeConsole: isProduction ? { exclude: ["error", "warn"] } : false,
+  },
   async redirects() {
     return [
       ...(authAppBaseUrl

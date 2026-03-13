@@ -24,6 +24,18 @@ const LOGIN_ENDPOINT = "/auth/login";
 const REFRESH_ENDPOINT = "/auth/refresh";
 const LOGOUT_ENDPOINT = "/auth/logout";
 const ME_ENDPOINT = "/auth/me";
+const SESSION_ENDPOINT = "/auth/session";
+
+const CSRF_COOKIE_CANDIDATES = [
+  "csrf_token_property",
+  "csrf_token",
+  "csrfToken",
+  "csrf-token",
+  "XSRF-TOKEN",
+  "xsrf-token",
+  "XSRF_TOKEN",
+  "_csrf",
+];
 
 // =============== CROSS-ORIGIN DETECTION ===============
 const isCrossOrigin = () => {
@@ -49,6 +61,14 @@ const hasRefreshTokenCookie = () => {
 
 const hasCsrfTokenCookie = () => {
   return Boolean(getCookieValue("csrf_token_property"));
+};
+
+const readCsrfTokenCookie = () => {
+  for (const name of CSRF_COOKIE_CANDIDATES) {
+    const value = String(getCookieValue(name) || "").trim();
+    if (value) return value;
+  }
+  return "";
 };
 
 // Log once on load
@@ -88,13 +108,6 @@ const normalizeProfilePayload = (profilePayload) =>
 
 // =============== REFRESH SESSION WITH COOKIE CHECK ===============
 export const refreshSession = async () => {
-  // Don't attempt refresh if no refresh token cookie exists
-  if (!hasRefreshTokenCookie()) {
-    console.log("[API] No refresh token cookie found, cannot refresh");
-    clearAccessToken();
-    return false;
-  }
-
   try {
     await refreshAccessToken();
     return true;
@@ -117,6 +130,16 @@ const makeFetchRequest = async (path, options = {}) => {
   const headers = buildHeaders({ headers: options.headers });
   const url = toAbsoluteUrl(path);
   const method = options.method || "GET";
+  const methodUpper = String(method).toUpperCase();
+
+  if (!["GET", "HEAD", "OPTIONS"].includes(methodUpper)) {
+    const csrfToken = readCsrfTokenCookie();
+    if (csrfToken) {
+      headers.set("x-csrf-token", csrfToken);
+      headers.set("x-xsrf-token", csrfToken);
+      headers.set("csrf-token", csrfToken);
+    }
+  }
   
   if (process.env.NODE_ENV === 'development') {
     console.log(`[API] Making ${method} request to ${path}`, {
@@ -160,7 +183,7 @@ const handleMeRequest = async (path, options = {}, control = {}) => {
   let response = await makeFetchRequest(path, options);
   
   // If 401 and we have a refresh cookie, try refresh once
-  if (response.status === 401 && hasRefreshTokenCookie() && !control._refreshed) {
+  if (response.status === 401 && !control._refreshed) {
     console.log("[API] /auth/me returned 401, attempting refresh");
     try {
       await refreshAccessToken();
@@ -211,13 +234,8 @@ export const apiRequest = async (path, options = {}, control = {}) => {
     !isUsableAccessToken(getAccessToken())
   ) {
     try {
-      // Only attempt refresh if we have a refresh token cookie
-      if (hasRefreshTokenCookie()) {
-        console.log("[API] No access token but refresh cookie exists, attempting refresh");
-        await refreshAccessToken();
-      } else {
-        console.log("[API] No refresh cookie, skipping refresh attempt");
-      }
+      console.log("[API] No access token; attempting refresh");
+      await refreshAccessToken();
     } catch (error) {
       console.error("[API] Pre-request refresh failed:", error);
       // Let the actual request run
@@ -287,6 +305,13 @@ export const authApi = {
       skipRefresh: true // Let our special handler manage refresh
     });
   },
+
+  session: () =>
+    apiJson(
+      SESSION_ENDPOINT,
+      { method: "GET" },
+      { retryOn401: false, requireAuth: false, skipRefresh: true }
+    ),
   
   exchangeSso: async (bridgeToken) => {
     const response = await fetch("/api/auth/sso/exchange", {
