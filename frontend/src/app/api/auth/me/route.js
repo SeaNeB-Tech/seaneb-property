@@ -1,11 +1,46 @@
 import { NextResponse } from "next/server";
 import { API_REMOTE_BASE_URL } from "@/lib/core/apiBaseUrl";
-import { getCookieOptions } from "@/lib/auth/cookieOptions";
+import { getCookieOptions, sanitizeCookieDomain } from "@/lib/auth/cookieOptions";
 
 const PRODUCT_KEY =
   String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
 const normalizeProductKey = (value) =>
   String(value || "").trim() || PRODUCT_KEY;
+
+const REFRESH_COOKIE_KEYS = [
+  "refresh_token_property",
+  "refresh_token",
+  "refreshToken",
+  "refreshToken_property",
+  "property_refresh_token",
+  "refreshtoken",
+  "refreshtoken_property",
+];
+const ACCESS_COOKIE_KEYS = [
+  "access_token",
+  "accessToken",
+  "token",
+  "auth_session",
+  "auth_session_property",
+];
+const CSRF_COOKIE_KEYS = [
+  "csrf_token_property",
+  "csrf_token",
+  "csrfToken",
+  "csrfToken_property",
+  "property_csrf_token",
+  "csrftoken",
+  "csrf-token",
+  "xsrf-token",
+  "x-xsrf-token",
+  "XSRF-TOKEN",
+  "X-XSRF-TOKEN",
+  "XSRF_TOKEN",
+  "_csrf",
+];
+const CLEAR_AUTH_COOKIE_KEYS = Array.from(
+  new Set([...REFRESH_COOKIE_KEYS, ...ACCESS_COOKIE_KEYS, ...CSRF_COOKIE_KEYS])
+);
 
 const isValidAuthorizationHeader = (value) => {
   const raw = String(value || "").trim();
@@ -22,6 +57,126 @@ const normalizeCookieName = (value) =>
     .trim()
     .toLowerCase()
     .replace(/^__(host|secure)-/i, "");
+
+const getRequestHost = (request) =>
+  String(request?.headers?.get?.("x-forwarded-host") || request?.headers?.get?.("host") || "")
+    .trim();
+
+const normalizeHost = (host) => String(host || "").trim().replace(/:\d+$/, "").toLowerCase();
+
+const isIpHost = (host) => {
+  const value = normalizeHost(host);
+  if (!value) return false;
+  if (value.includes(":")) return true; // IPv6
+  return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(value);
+};
+
+const isLoopbackHost = (host) => {
+  const value = normalizeHost(host);
+  return value === "localhost" || value === "::1" || /^127(?:\.\d{1,3}){3}$/.test(value);
+};
+
+const domainMatchesHost = (domain, host) => {
+  const safeHost = normalizeHost(host);
+  const safeDomain = String(domain || "").trim().replace(/^\./, "").toLowerCase();
+  if (!safeHost || !safeDomain) return false;
+  return safeHost === safeDomain || safeHost.endsWith(`.${safeDomain}`);
+};
+
+const normalizeSameSiteValue = (value) => {
+  const raw = String(value || "").trim();
+  const lowered = raw.toLowerCase();
+  if (lowered === "none") return "None";
+  if (lowered === "lax") return "Lax";
+  if (lowered === "strict") return "Strict";
+  return raw || "Lax";
+};
+
+const getClearCookieDomains = (request, cookieOptions) => {
+  const domains = new Set([""]);
+  const host = normalizeHost(getRequestHost(request));
+
+  if (host && !isIpHost(host) && !isLoopbackHost(host)) {
+    domains.add(host);
+    const maybeParent = host.includes(".") ? `.${host.split(".").slice(-2).join(".")}` : "";
+    if (maybeParent) domains.add(maybeParent);
+  }
+
+  const configuredDomain = sanitizeCookieDomain(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "");
+  if (configuredDomain && domainMatchesHost(configuredDomain, host)) {
+    domains.add(configuredDomain);
+  }
+  if (cookieOptions?.domain && domainMatchesHost(cookieOptions.domain, host)) {
+    domains.add(cookieOptions.domain);
+  }
+
+  return Array.from(domains);
+};
+
+const buildExpiredCookieLine = (name, domain, cookieOptions) => {
+  const safeName = String(name || "").trim();
+  if (!safeName) return "";
+  const sameSite = normalizeSameSiteValue(cookieOptions?.sameSite || "Lax");
+  const secure = typeof cookieOptions?.secure === "boolean" ? cookieOptions.secure : false;
+  const parts = [
+    `${safeName}=`,
+    "Path=/",
+    "Max-Age=0",
+    "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+    `SameSite=${sameSite}`,
+  ];
+  if (domain) parts.push(`Domain=${domain}`);
+  if (secure) parts.push("Secure");
+  return parts.join("; ");
+};
+
+const appendClearAuthCookies = (headers, request, cookieOptions) => {
+  const domains = getClearCookieDomains(request, cookieOptions);
+  for (const name of CLEAR_AUTH_COOKIE_KEYS) {
+    for (const domain of domains) {
+      const line = buildExpiredCookieLine(name, domain, cookieOptions);
+      if (line) headers.append("set-cookie", line);
+    }
+  }
+};
+
+const hasAuthCookiesInHeader = (cookieHeader) => {
+  const source = String(cookieHeader || "").trim();
+  if (!source) return false;
+  const allowed = new Set(CLEAR_AUTH_COOKIE_KEYS.map(normalizeCookieName));
+  const parts = source.split("; ");
+  for (const part of parts) {
+    const idx = part.indexOf("=");
+    if (idx < 0) continue;
+    const name = normalizeCookieName(part.slice(0, idx));
+    if (allowed.has(name)) return true;
+  }
+  return false;
+};
+
+const responseMentionsMissingUser = (text) => {
+  const normalized = String(text || "").toLowerCase();
+  if (!normalized) return false;
+  if (normalized.includes("user_not_found")) return true;
+  if (normalized.includes("profile_not_found")) return true;
+  if (normalized.includes("account_not_found")) return true;
+  if (normalized.includes("user deleted") || normalized.includes("user_deleted")) return true;
+  if (normalized.includes("account deleted") || normalized.includes("account_deleted")) return true;
+  if (normalized.includes("profile deleted") || normalized.includes("profile_deleted")) return true;
+  if (
+    normalized.includes("not found") &&
+    (normalized.includes("user") || normalized.includes("profile") || normalized.includes("account"))
+  ) {
+    return true;
+  }
+  if (
+    normalized.includes("does not exist") &&
+    (normalized.includes("user") || normalized.includes("profile") || normalized.includes("account"))
+  ) {
+    return true;
+  }
+  return false;
+};
 
 const getCookieValueFromHeader = (cookieHeader, key) => {
   const source = String(cookieHeader || "");
@@ -209,6 +364,7 @@ export async function GET(request) {
     request.headers.get("x-product-key") || request.headers.get("X-Product-Key") || PRODUCT_KEY
   );
   const incomingCookie = String(request.headers.get("cookie") || "").trim();
+  const hasAuthCookies = hasAuthCookiesInHeader(incomingCookie);
   const incomingAuthorizationRaw = String(
     request.headers.get("authorization") || request.headers.get("Authorization") || ""
   ).trim();
@@ -351,11 +507,19 @@ export async function GET(request) {
   appendSetCookieHeaders(responseHeaders, upstreamResponse.headers);
 
   const payload = await upstreamResponse.text();
+  const cookieOptions = getCookieOptions(request);
+  const status = Number(upstreamResponse.status || 0);
+  const shouldClearAuth =
+    hasAuthCookies &&
+    ([401, 403, 404, 410].includes(status) || responseMentionsMissingUser(payload));
+  if (shouldClearAuth) {
+    appendClearAuthCookies(responseHeaders, request, cookieOptions);
+  }
+
   const response = new NextResponse(payload, {
     status: upstreamResponse.status,
     headers: responseHeaders,
   });
-  const cookieOptions = getCookieOptions(request);
   try {
     const setCookies = getSetCookieList(responseHeaders);
     const refreshToken = readCookieValueFromSetCookieHeaders(setCookies, [
