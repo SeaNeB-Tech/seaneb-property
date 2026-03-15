@@ -14,6 +14,7 @@ import {
   isUsableAccessToken,
   requestWithAuthSafeRetry,
 } from "@/lib/auth/apiClientSafe";
+import { clearSessionHintCache, getSessionHint } from "@/lib/auth/sessionHint";
 
 const normalizeBaseUrl = (value) => String(value || "").trim().replace(/\/+$/, "");
 const RESOLVED_API_BASE_URL = normalizeBaseUrl(API_BASE_URL || "");
@@ -24,7 +25,6 @@ const LOGIN_ENDPOINT = "/auth/login";
 const REFRESH_ENDPOINT = "/auth/refresh";
 const LOGOUT_ENDPOINT = "/auth/logout";
 const ME_ENDPOINT = "/auth/me";
-const SESSION_ENDPOINT = "/auth/session";
 
 const CSRF_COOKIE_CANDIDATES = [
   "csrf_token_property",
@@ -295,7 +295,9 @@ export const authApi = {
         body: JSON.stringify({ ...(credentials || {}), product_key: DEFAULT_PRODUCT_KEY }),
       },
       { retryOn401: false }
-    ),
+    ).finally(() => {
+      clearSessionHintCache();
+    }),
   
   me: (control = {}) => {
     // Don't retry on 401 for /auth/me - we handle it specially
@@ -306,12 +308,7 @@ export const authApi = {
     });
   },
 
-  session: () =>
-    apiJson(
-      SESSION_ENDPOINT,
-      { method: "GET" },
-      { retryOn401: false, requireAuth: false, skipRefresh: true }
-    ),
+  session: (control = {}) => getSessionHint({ force: control?.force === true }),
   
   exchangeSso: async (bridgeToken) => {
     const response = await fetch("/api/auth/sso/exchange", {
@@ -358,6 +355,7 @@ export const authApi = {
       { retryOn401: false }
     );
     clearAccessToken();
+    clearSessionHintCache();
     return result;
   },
 };

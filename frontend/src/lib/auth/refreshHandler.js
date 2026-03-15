@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "@/lib/core/apiBaseUrl";
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 import { createRefreshLock } from "@/lib/auth/refreshLock";
+import { getSessionHint } from "@/lib/auth/sessionHint";
 
 const ENV_PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim();
 const DEFAULT_PRODUCT_KEY = ENV_PRODUCT_KEY || "property";
@@ -37,24 +38,10 @@ const hasCsrfTokenCookie = () => {
   return Boolean(getCookieValue("csrf_token_property"));
 };
 
-const getSessionHint = async () => {
-  try {
-    const response = await fetch("/api/auth/session", {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    });
-    if (!response.ok) return false;
-    const payload = await response.json().catch(() => ({}));
-    return Boolean(payload?.hasRefreshSession);
-  } catch {
-    return false;
-  }
-};
-
 const hasRefreshSessionHint = async () => {
   if (hasRefreshTokenCookie()) return true;
-  return getSessionHint();
+  const hint = await getSessionHint();
+  return Boolean(hint?.hasRefreshSession);
 };
 
 // =============== NEW: Cross-origin detection (no path changes) ===============

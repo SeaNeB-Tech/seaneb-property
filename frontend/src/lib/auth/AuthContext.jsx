@@ -82,7 +82,7 @@ export function ListingAuthProvider({ children }) {
 
     const run = (async () => {
       try {
-        const sessionHint = await authApi.session().catch(() => null);
+        const sessionHint = await authApi.session({ force }).catch(() => null);
         const hasRefreshSession = Boolean(sessionHint?.hasRefreshSession);
 
         const hasSessionSignal = hasRefreshSession || hasAuthHint();
