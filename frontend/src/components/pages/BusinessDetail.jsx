@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import MainNavbar from "@/components/ui/MainNavbar";
 import { getBusinessDetailsBySeanebId } from "@/services/property.service";
 
 export default function BusinessDetail({ businessSlug }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [details, setDetails] = useState(null);
+  const [backOverride, setBackOverride] = useState("");
+  const backToAreaKey = "seaneb:back_to_area";
 
   const fallbackName = useMemo(
     () =>
@@ -62,6 +66,39 @@ export default function BusinessDetail({ businessSlug }) {
     };
   }, [businessSlug]);
 
+  useEffect(() => {
+    const fromParam = String(searchParams?.get("from") || "").trim();
+    const safeFrom = fromParam.startsWith("/in/") ? fromParam : "";
+
+    if (safeFrom) {
+      setBackOverride(safeFrom);
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem(backToAreaKey, safeFrom);
+        } catch {
+          // ignore storage errors
+        }
+      }
+    } else if (!backOverride && typeof window !== "undefined") {
+      try {
+        const stored = String(window.sessionStorage.getItem(backToAreaKey) || "").trim();
+        if (stored.startsWith("/in/")) {
+          setBackOverride(stored);
+        }
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    if (fromParam && pathname) {
+      const nextParams = new URLSearchParams(searchParams?.toString() || "");
+      nextParams.delete("from");
+      const nextQuery = nextParams.toString();
+      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      router.replace(nextUrl, { scroll: false });
+    }
+  }, [searchParams, pathname, router, backOverride]);
+
   const business = details?.business || {};
   const hierarchy = details?.hierarchy || {};
   const area = hierarchy?.area || {};
@@ -88,8 +125,7 @@ export default function BusinessDetail({ businessSlug }) {
   const stateSlug = toSeoSlug(state?.state_slug || state?.slug || state?.state_name || state?.name);
   const computedBackHref =
     areaSlug && citySlug ? `/in/${areaSlug}-${citySlug}` : citySlug && stateSlug ? `/in/${citySlug}-${stateSlug}` : "/in";
-  const fromParam = String(searchParams.get("from") || "").trim();
-  const backToAreaHref = fromParam.startsWith("/in/") ? fromParam : computedBackHref;
+  const backToAreaHref = backOverride || computedBackHref;
 
   const detailRows = [
     ["SeaNeB ID", details?.seaneb_id || businessSlug || "-"],

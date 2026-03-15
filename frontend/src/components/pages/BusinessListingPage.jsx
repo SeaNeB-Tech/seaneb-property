@@ -17,6 +17,7 @@ export default function BusinessListingPage({ title, subtitle, businesses = [] }
   const searchParams = useSearchParams();
   const queryText = searchParams?.toString() || "";
   const fromPath = `${pathname || "/in"}${queryText ? `?${queryText}` : ""}`;
+  const backToAreaKey = "seaneb:back_to_area";
 
   return (
     <section className={locationTw.wrapper} aria-labelledby="property-listing-title">
@@ -36,9 +37,17 @@ export default function BusinessListingPage({ title, subtitle, businesses = [] }
           businesses.map((business) => (
             <Link
               key={business.id}
-              href={`/${business.slug}?from=${encodeURIComponent(fromPath)}`}
+              href={`/${business.slug}`}
               className={locationTw.card}
               aria-label={`View details of ${business.title}`}
+              onClick={() => {
+                if (typeof window === "undefined") return;
+                try {
+                  window.sessionStorage.setItem(backToAreaKey, fromPath);
+                } catch {
+                  // ignore storage errors
+                }
+              }}
             >
               <div className={locationTw.imageWrap}>
                 <Image
