@@ -100,6 +100,9 @@ export async function POST(req) {
 
   const productKey = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "property").trim() || "property";
   const cookieHeader = req.headers.get("cookie") || "";
+  const authorizationHeader = String(
+    req.headers.get("authorization") || req.headers.get("Authorization") || ""
+  ).trim();
   const csrfToken = resolveCsrfHeaderValue(req.headers.get("x-csrf-token"), cookieHeader);
   const upstreamCandidates = Array.from(
     new Set(baseCandidates.flatMap((base) => buildUpstreamCandidates(base)))
@@ -123,6 +126,7 @@ export async function POST(req) {
           cookie: cookieHeader,
           ...(productKey ? { "x-product-key": productKey } : {}),
           ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+          ...(authorizationHeader ? { authorization: authorizationHeader } : {}),
         },
         body: JSON.stringify({
           ...body,
