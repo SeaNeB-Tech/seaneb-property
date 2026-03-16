@@ -45,6 +45,32 @@ const CLEAR_AUTH_COOKIE_KEYS = Array.from(
   new Set([...REFRESH_COOKIE_KEYS, ...ACCESS_COOKIE_KEYS, ...CSRF_COOKIE_KEYS])
 );
 
+// --- Server-side refresh deduplication to prevent race conditions on hard refresh ---
+const _refreshDedup = new Map();
+const REFRESH_DEDUP_TTL_MS = 5000;
+let _lastSuccessfulRefreshAt = 0;
+
+const getRefreshFingerprint = (cookieHeader) => {
+  for (const key of REFRESH_COOKIE_KEYS) {
+    const val = getCookieValueFromHeader(cookieHeader, key);
+    if (val && val.length > 8) return val.slice(-16);
+  }
+  return "";
+};
+
+// Periodic cleanup of stale dedup entries
+if (typeof globalThis !== "undefined") {
+  const _dedupCleanup = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of _refreshDedup) {
+      if (now - (entry.completedAt || entry.startedAt || 0) > REFRESH_DEDUP_TTL_MS * 6) {
+        _refreshDedup.delete(key);
+      }
+    }
+  }, 60000);
+  if (_dedupCleanup?.unref) _dedupCleanup.unref();
+}
+
 const isValidAuthorizationHeader = (value) => {
   const raw = String(value || "").trim();
   if (!raw) return false;
@@ -59,19 +85,12 @@ const COOKIE_DOMAIN = String(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "").trim()
 const normalizeSameSite = (value) => {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "none") return "none";
-  return "none";
+  if (normalized === "lax") return "lax";
+  if (normalized === "strict") return "strict";
+  return "lax"; // Safe default: Lax works over HTTP; None requires Secure
 };
-const COOKIE_SAME_SITE = normalizeSameSite(process.env.NEXT_PUBLIC_COOKIE_SAMESITE);
-const COOKIE_SECURE = IS_PRODUCTION;
-const CSRF_COOKIE_SAME_SITE = "none";
-const CSRF_COOKIE_SECURE = COOKIE_SECURE;
-
-validateCookiePolicyRuntime({
-  refreshSecure: COOKIE_SECURE,
-  refreshSameSite: COOKIE_SAME_SITE,
-  csrfSecure: CSRF_COOKIE_SECURE,
-  csrfSameSite: CSRF_COOKIE_SAME_SITE,
-});
+// Cookie policy is now resolved per-request via getCookieOptions(request)
+// to ensure SameSite and Secure are always consistent (Lax for HTTP, None+Secure for HTTPS).
 
 const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   const getSetCookie = upstreamHeaders?.getSetCookie;
@@ -200,8 +219,8 @@ const getClearCookieDomains = (request, cookieOptions) => {
 const buildExpiredCookieLine = (name, domain, cookieOptions) => {
   const safeName = String(name || "").trim();
   if (!safeName) return "";
-  const sameSite = normalizeSameSiteValue(cookieOptions?.sameSite || (COOKIE_SECURE ? "None" : "Lax"));
-  const secure = typeof cookieOptions?.secure === "boolean" ? cookieOptions.secure : COOKIE_SECURE;
+  const sameSite = normalizeSameSiteValue(cookieOptions?.sameSite || "Lax");
+  const secure = typeof cookieOptions?.secure === "boolean" ? cookieOptions.secure : false;
   const parts = [
     `${safeName}=`,
     "Path=/",
@@ -285,14 +304,16 @@ const resolveCsrfHeaderValue = (incomingHeader, cookieHeader) => {
   const fromHeader = String(incomingHeader || "").trim();
   if (fromHeader) return fromHeader;
 
-  const fromCookieRaw =
-    getCookieValueFromHeader(cookieHeader, "csrf_token_property");
-  if (!fromCookieRaw) return "";
-  try {
-    return decodeURIComponent(fromCookieRaw);
-  } catch {
-    return fromCookieRaw;
+  for (const key of CSRF_COOKIE_KEYS) {
+    const fromCookieRaw = getCookieValueFromHeader(cookieHeader, key);
+    if (!fromCookieRaw) continue;
+    try {
+      return decodeURIComponent(fromCookieRaw);
+    } catch {
+      return fromCookieRaw;
+    }
   }
+  return "";
 };
 
 const readTokenFromPayload = (payload = {}, headers = null) => {
@@ -394,6 +415,40 @@ export async function POST(request) {
     );
   }
 
+  // --- Dedup: prevent concurrent refresh with the same token ---
+  const fingerprint = getRefreshFingerprint(incomingCookie);
+  if (fingerprint) {
+    const existing = _refreshDedup.get(fingerprint);
+    if (existing) {
+      // Wait for in-flight request if it exists and isn't too old
+      if (existing.promise && existing.startedAt && Date.now() - existing.startedAt < 30000) {
+        try { await existing.promise; } catch {}
+      }
+      const entry = _refreshDedup.get(fingerprint);
+      if (entry?.completedAt && Date.now() - entry.completedAt < REFRESH_DEDUP_TTL_MS && entry.ok) {
+        ssoDebugLog("refresh.deduplicated", { route: "/api/auth/refresh" });
+        return NextResponse.json(
+          { success: true, deduplicated: true },
+          { status: 200, headers: { "cache-control": "no-store" } }
+        );
+      }
+    }
+  }
+
+  // Register this request as in-flight for dedup
+  let _dedupResolve;
+  if (fingerprint) {
+    const _dedupPromise = new Promise((r) => { _dedupResolve = r; });
+    _refreshDedup.set(fingerprint, { promise: _dedupPromise, resolve: _dedupResolve, startedAt: Date.now() });
+  }
+  const _completeDedup = (ok) => {
+    if (!fingerprint) return;
+    const entry = _refreshDedup.get(fingerprint);
+    _refreshDedup.set(fingerprint, { completedAt: Date.now(), ok });
+    entry?.resolve?.();
+    if (ok) _lastSuccessfulRefreshAt = Date.now();
+  };
+
   const incomingAuthorizationRaw = String(
     request.headers.get("authorization") || request.headers.get("Authorization") || ""
   ).trim();
@@ -472,6 +527,7 @@ export async function POST(request) {
   }
 
   if (!upstreamResponse) {
+    _completeDedup(false);
     ssoDebugLog("refresh.failure", { route: "/api/auth/refresh", status: 502 });
     return NextResponse.json(
       {
@@ -587,12 +643,15 @@ export async function POST(request) {
     });
     response.cookies.delete("access_token");
 
+    _completeDedup(true);
     return response;
   }
 
   const status = Number(upstreamResponse.status || 0);
   const invalidRefresh = [401, 403].includes(status);
-  const shouldClear = hasAuthCookies && [401, 403, 404, 410].includes(status);
+  // Guard: don't clear cookies if a recent refresh just succeeded (likely race condition)
+  const isRecentSuccessfulRefresh = Date.now() - _lastSuccessfulRefreshAt < REFRESH_DEDUP_TTL_MS;
+  const shouldClear = hasAuthCookies && [401, 403, 404, 410].includes(status) && !isRecentSuccessfulRefresh;
   if (shouldClear) {
     appendClearAuthCookies(responseHeaders, request, cookieOptions);
     validateSetCookieHeadersRuntime(responseHeaders);
@@ -607,6 +666,7 @@ export async function POST(request) {
     route: "/api/auth/refresh",
     status: invalidRefresh ? 401 : Number(upstreamResponse.status || 0),
   });
+  _completeDedup(false);
   return NextResponse.json(
     {
       error: {

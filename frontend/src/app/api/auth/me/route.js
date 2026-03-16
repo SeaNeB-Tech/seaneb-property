@@ -224,14 +224,17 @@ const hasRefreshCookie = (cookieHeader) => {
 const resolveCsrfHeaderValue = (incomingHeader, cookieHeader) => {
   const fromHeader = String(incomingHeader || "").trim();
   if (fromHeader) return fromHeader;
-  const fromCookieRaw =
-    getCookieValueFromHeader(cookieHeader, "csrf_token_property");
-  if (!fromCookieRaw) return "";
-  try {
-    return decodeURIComponent(fromCookieRaw);
-  } catch {
-    return fromCookieRaw;
+
+  for (const key of CSRF_COOKIE_KEYS) {
+    const fromCookieRaw = getCookieValueFromHeader(cookieHeader, key);
+    if (!fromCookieRaw) continue;
+    try {
+      return decodeURIComponent(fromCookieRaw);
+    } catch {
+      return fromCookieRaw;
+    }
   }
+  return "";
 };
 
 const readCsrfFromPayload = (payload = {}, headers = null) => {
@@ -585,4 +588,3 @@ export async function GET(request) {
   response.cookies.delete("access_token");
   return response;
 }
-

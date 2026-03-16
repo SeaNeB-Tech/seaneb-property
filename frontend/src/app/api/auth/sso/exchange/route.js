@@ -213,8 +213,6 @@ export async function POST(request) {
   const bridgeToken = String(
     payload?.bridge_token || payload?.bridgeToken || ""
   ).trim();
-  const deviceId = String(payload?.device_id || payload?.deviceId || "").trim();
-  const deviceType = String(payload?.device_type || payload?.deviceType || "").trim();
 
   if (!bridgeToken) {
     return NextResponse.json(
@@ -253,8 +251,6 @@ export async function POST(request) {
     bridge_token: bridgeToken,
     target_product_key: PRODUCT_KEY,
     product_key: PRODUCT_KEY,
-    device_id: deviceId,
-    device_type: deviceType,
   });
 
   const upstreamResponse = await tryExchangeUpstream({ headers, body });

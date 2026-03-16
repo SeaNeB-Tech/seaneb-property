@@ -13,6 +13,8 @@ const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504, 522, 524]);
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 const INVALID_TOKENS = new Set(["cookie_session", "null", "undefined", "invalid", "sentinel"]);
+const REFRESH_DEDUP_STORAGE_KEY = "seaneb:refresh_last_at";
+const REFRESH_DEDUP_WINDOW_MS = 3000;
 
 let refreshPromise = null;
 let lastRefreshStatus = "idle";
@@ -28,6 +30,19 @@ const getCookieValue = (name) => {
   if (typeof document === "undefined") return "";
   const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
   return match ? decodeURIComponent(match[2]) : "";
+};
+
+const wasRecentlyRefreshed = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    const ts = Number(window.sessionStorage.getItem(REFRESH_DEDUP_STORAGE_KEY) || 0);
+    return ts > 0 && Date.now() - ts < REFRESH_DEDUP_WINDOW_MS;
+  } catch { return false; }
+};
+
+const markRefreshCompleted = () => {
+  if (typeof window === "undefined") return;
+  try { window.sessionStorage.setItem(REFRESH_DEDUP_STORAGE_KEY, String(Date.now())); } catch {}
 };
 
 const hasRefreshTokenCookie = () => {
@@ -182,6 +197,14 @@ const doRefresh = async (retryCount = 0) => {
     throw buildRefreshError("No refresh session available", 0, null);
   }
 
+  // Skip if a refresh was just completed (survives hard refresh via sessionStorage)
+  if (wasRecentlyRefreshed() && retryCount === 0) {
+    console.log("[refreshHandler] Skipping refresh — recently completed (dedup)");
+    lastRefreshStatus = "success";
+    lastRefreshAt = Date.now();
+    return "DEDUP";
+  }
+
   lastRefreshStatus = "pending";
   lastRefreshAt = Date.now();
   lastRefreshHttpStatus = 0;
@@ -318,6 +341,7 @@ const doRefresh = async (retryCount = 0) => {
     lastRefreshAt = Date.now();
     lastRefreshHttpStatus = Number(response.status || 200);
     lastRefreshError = "";
+    markRefreshCompleted();
     ssoDebugLog("refresh.success", {
       route: "/auth/refresh",
       status: Number(response.status || 200),
@@ -332,6 +356,7 @@ const doRefresh = async (retryCount = 0) => {
   lastRefreshAt = Date.now();
   lastRefreshHttpStatus = Number(response.status || 200);
   lastRefreshError = "";
+  markRefreshCompleted();
   ssoDebugLog("refresh.success", {
     route: "/auth/refresh",
     status: Number(response.status || 200),

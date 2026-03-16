@@ -8,6 +8,7 @@ const CENTRAL_API_URL =
   process.env.NEXT_PUBLIC_CENTRAL_URL ||
   process.env.NEXT_PUBLIC_CENTRAL_API_URL ||
   "";
+const DEFAULT_FALLBACK_URL = "https://central-api.seaneb.com/api/v1";
 
 const normalizeUrl = (value) => String(value || "").trim().replace(/\/+$/, "");
 const isUsableUrl = (value) => {
@@ -21,16 +22,30 @@ const isUsableUrl = (value) => {
 
 const NEXT_ENV = String(process.env.NEXT_ENV || "").trim().toLowerCase();
 const API_BASE = NEXT_ENV === "development" ? DEV_API_URL : CENTRAL_API_URL;
-const API_FALLBACK =
-  NEXT_ENV === "development" ? CENTRAL_API_URL : DEV_API_URL;
+const API_FALLBACK = NEXT_ENV === "development" ? CENTRAL_API_URL : DEV_API_URL;
 
-export const API_REMOTE_BASE_URL = normalizeUrl(BACKEND_API_URL || API_BASE);
-export const API_REMOTE_FALLBACK_BASE_URL =
-  normalizeUrl(API_FALLBACK) === API_REMOTE_BASE_URL
-    ? ""
-    : normalizeUrl(API_FALLBACK);
-export const API_REMOTE_CANDIDATE_BASE_URLS = Array.from(
-  new Set([API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL].filter(Boolean))
-);
+const pushUnique = (list, value) => {
+  const normalized = normalizeUrl(value);
+  if (!isUsableUrl(normalized)) return;
+  if (!list.includes(normalized)) list.push(normalized);
+};
+
+const candidateBaseUrls = [];
+pushUnique(candidateBaseUrls, BACKEND_API_URL);
+pushUnique(candidateBaseUrls, API_BASE);
+pushUnique(candidateBaseUrls, API_FALLBACK);
+pushUnique(candidateBaseUrls, CENTRAL_API_URL);
+pushUnique(candidateBaseUrls, DEV_API_URL);
+pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_API_BASE_URL);
+pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_CENTRAL_API_URL);
+pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_DEV_URL);
+
+if (!candidateBaseUrls.length) {
+  pushUnique(candidateBaseUrls, DEFAULT_FALLBACK_URL);
+}
+
+export const API_REMOTE_BASE_URL = candidateBaseUrls[0] || "";
+export const API_REMOTE_FALLBACK_BASE_URL = candidateBaseUrls[1] || "";
+export const API_REMOTE_CANDIDATE_BASE_URLS = candidateBaseUrls.slice();
 
 export const API_BASE_URL = typeof window !== "undefined" ? "/api" : API_REMOTE_BASE_URL;

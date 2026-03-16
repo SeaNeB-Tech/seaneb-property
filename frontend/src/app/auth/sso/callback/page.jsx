@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 import { setAccessToken } from "@/lib/auth/tokenStorage";
-import { getDeviceInfo } from "@/lib/deviceInfo";
 import { clearAuthFailureArtifacts, shouldClearAuthOnError } from "@/services/auth.service";
 
 const AUTH_SSO_RESULT_KEY = "seaneb_sso_exchange_result";
@@ -82,7 +81,6 @@ const readBridgePayloadFromCurrentUrl = () => {
 };
 
 const runSsoExchange = async (bridgeToken) => {
-  const deviceInfo = getDeviceInfo();
   ssoDebugLog("sso.exchange.start", { route: "/api/auth/sso/exchange" });
   const response = await fetch("/api/auth/sso/exchange", {
     method: "POST",
@@ -93,8 +91,6 @@ const runSsoExchange = async (bridgeToken) => {
     },
     body: JSON.stringify({
       bridge_token: String(bridgeToken || "").trim(),
-      device_id: deviceInfo.device_id,
-      device_type: deviceInfo.device_type,
     }),
   });
 

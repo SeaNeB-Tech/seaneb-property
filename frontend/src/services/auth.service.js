@@ -278,11 +278,13 @@ const collectAuthCookieNames = () => {
 
 const forceExpireCookie = (name, domain = "") => {
   if (typeof document === "undefined") return;
-  const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  const base = `${encodeURIComponent(name)}=; path=/; max-age=0; SameSite=None`;
-  document.cookie = `${base}${secure}`;
+  const isSecure = window.location.protocol === "https:";
+  const sameSite = isSecure ? "None" : "Lax";
+  const securePart = isSecure ? "; Secure" : "";
+  const base = `${encodeURIComponent(name)}=; path=/; max-age=0; SameSite=${sameSite}${securePart}`;
+  document.cookie = base;
   if (domain) {
-    document.cookie = `${base}; domain=${domain}${secure}`;
+    document.cookie = `${base}; domain=${domain}`;
   }
 };
 

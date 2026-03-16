@@ -142,8 +142,9 @@ const nextConfig = {
     if (!safeApiBaseUrl) return [];
     return [
       {
-        source: "/api/:path*",
-        destination: `${safeApiBaseUrl}/:path*`,
+        // Exclude paths with local route handlers (auth/*, v1/*, location/*)
+        source: "/api/((?!auth|v1|location).*)",
+        destination: `${safeApiBaseUrl}/$1`,
       },
     ];
   },
