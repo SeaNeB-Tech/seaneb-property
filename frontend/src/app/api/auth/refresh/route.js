@@ -98,7 +98,6 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     const cookies = getSetCookie.call(upstreamHeaders) || [];
     for (const cookie of cookies) {
       if (!cookie) continue;
-      if (/^\s*access_token=/i.test(cookie)) continue;
       targetHeaders.append("set-cookie", cookie);
     }
     return;
@@ -116,7 +115,6 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
 
   if (splitCookies.length === 0) return;
   for (const cookie of splitCookies) {
-    if (/^\s*access_token=/i.test(cookie)) continue;
     targetHeaders.append("set-cookie", cookie);
   }
 };
@@ -363,11 +361,16 @@ const readExpiresInFromPayload = (payload = {}) => {
 
 const readCsrfFromPayload = (payload = {}, headers = null) => {
   const data = payload?.data || {};
+  const tokenObj = data?.token || payload?.token || {};
   const token = String(
+    payload?.csrf_token_property ||
+      data?.csrf_token_property ||
     payload?.csrfToken ||
       payload?.csrf_token ||
       data?.csrfToken ||
       data?.csrf_token ||
+      tokenObj?.csrfToken ||
+      tokenObj?.csrf_token ||
       headers?.get("x-csrf-token") ||
       headers?.get("csrf-token") ||
       headers?.get("x-xsrf-token") ||
@@ -397,6 +400,7 @@ export async function POST(request) {
 
   const incomingCookie = String(request.headers.get("cookie") || "").trim();
   const hasAuthCookies = hasAuthCookiesInHeader(incomingCookie);
+  const hasRefreshCookieInRequest = hasRefreshCookie(incomingCookie);
   if (!hasRefreshCookie(incomingCookie)) {
     ssoDebugLog("refresh.failure", { route: "/api/auth/refresh", status: 401 });
     const responseHeaders = new Headers();
@@ -455,10 +459,13 @@ export async function POST(request) {
   const incomingAuthorization = isValidAuthorizationHeader(incomingAuthorizationRaw)
     ? incomingAuthorizationRaw
     : "";
-  const incomingCsrf = resolveCsrfHeaderValue(
-    String(request.headers.get("x-csrf-token") || "").trim(),
-    incomingCookie
-  );
+  const incomingCsrfHeader = String(
+    request.headers.get("x-csrf-token") ||
+      request.headers.get("x-xsrf-token") ||
+      request.headers.get("csrf-token") ||
+      ""
+  ).trim();
+  const incomingCsrf = resolveCsrfHeaderValue(incomingCsrfHeader, incomingCookie);
 
   let requestBody = "";
   try {
@@ -641,8 +648,6 @@ export async function POST(request) {
       status: 200,
       hasAccessToken: Boolean(accessToken),
     });
-    response.cookies.delete("access_token");
-
     _completeDedup(true);
     return response;
   }
@@ -651,7 +656,7 @@ export async function POST(request) {
   const invalidRefresh = [401, 403].includes(status);
   // Guard: don't clear cookies if a recent refresh just succeeded (likely race condition)
   const isRecentSuccessfulRefresh = Date.now() - _lastSuccessfulRefreshAt < REFRESH_DEDUP_TTL_MS;
-  const shouldClear = hasAuthCookies && [401, 403, 404, 410].includes(status) && !isRecentSuccessfulRefresh;
+  const shouldClear = hasRefreshCookieInRequest && [401, 403, 404, 410].includes(status) && !isRecentSuccessfulRefresh;
   if (shouldClear) {
     appendClearAuthCookies(responseHeaders, request, cookieOptions);
     validateSetCookieHeadersRuntime(responseHeaders);

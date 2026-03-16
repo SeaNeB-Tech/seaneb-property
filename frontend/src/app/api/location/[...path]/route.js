@@ -20,7 +20,8 @@ const readJsonSafely = async (response) => {
 };
 
 export async function GET(request, { params }) {
-  const pathSegments = Array.isArray(params?.path) ? params.path : [];
+  const resolvedParams = await params;
+  const pathSegments = Array.isArray(resolvedParams?.path) ? resolvedParams.path : [];
   const search = String(request.nextUrl.search || "");
 
   if (!pathSegments.length) {

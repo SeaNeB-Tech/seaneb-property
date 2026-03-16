@@ -239,11 +239,16 @@ const resolveCsrfHeaderValue = (incomingHeader, cookieHeader) => {
 
 const readCsrfFromPayload = (payload = {}, headers = null) => {
   const data = payload?.data || {};
+  const tokenObj = data?.token || payload?.token || {};
   return String(
+    payload?.csrf_token_property ||
+      data?.csrf_token_property ||
     payload?.csrfToken ||
       payload?.csrf_token ||
       data?.csrfToken ||
       data?.csrf_token ||
+      tokenObj?.csrfToken ||
+      tokenObj?.csrf_token ||
       headers?.get("x-csrf-token") ||
       headers?.get("csrf-token") ||
       headers?.get("x-xsrf-token") ||
@@ -296,7 +301,6 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     const cookies = getSetCookie.call(upstreamHeaders) || [];
     for (const cookie of cookies) {
       if (!cookie) continue;
-      if (/^\s*access_token=/i.test(cookie)) continue;
       targetHeaders.append("set-cookie", cookie);
     }
     return;
@@ -309,7 +313,6 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
     .filter(Boolean);
   if (splitCookies.length === 0) return;
   for (const cookie of splitCookies) {
-    if (/^\s*access_token=/i.test(cookie)) continue;
     targetHeaders.append("set-cookie", cookie);
   }
 };
@@ -389,16 +392,20 @@ export async function GET(request) {
   );
   const incomingCookie = String(request.headers.get("cookie") || "").trim();
   const hasAuthCookies = hasAuthCookiesInHeader(incomingCookie);
+  const hasRefreshCookieInRequest = hasRefreshCookie(incomingCookie);
   const incomingAuthorizationRaw = String(
     request.headers.get("authorization") || request.headers.get("Authorization") || ""
   ).trim();
   const incomingAuthorization = isValidAuthorizationHeader(incomingAuthorizationRaw)
     ? incomingAuthorizationRaw
     : "";
-  const incomingCsrf = resolveCsrfHeaderValue(
-    String(request.headers.get("x-csrf-token") || "").trim(),
-    incomingCookie
-  );
+  const incomingCsrfHeader = String(
+    request.headers.get("x-csrf-token") ||
+      request.headers.get("x-xsrf-token") ||
+      request.headers.get("csrf-token") ||
+      ""
+  ).trim();
+  const incomingCsrf = resolveCsrfHeaderValue(incomingCsrfHeader, incomingCookie);
 
   const headers = new Headers();
   headers.set("x-product-key", incomingProductKey);
@@ -410,6 +417,7 @@ export async function GET(request) {
   let upstreamResponse = null;
   let networkError = null;
   let refreshAttempted = false;
+  let refreshSucceeded = false;
   for (const upstreamUrl of upstreamCandidates) {
     try {
       let response = await fetch(upstreamUrl, {
@@ -471,6 +479,7 @@ export async function GET(request) {
           appendSetCookieHeaders(cookieBufferHeaders, refreshResponse.headers);
 
           if (refreshResponse.ok) {
+            refreshSucceeded = true;
             let refreshPayload = {};
             try {
               refreshPayload = await refreshResponse.json();
@@ -534,7 +543,8 @@ export async function GET(request) {
   const cookieOptions = getCookieOptions(request);
   const status = Number(upstreamResponse.status || 0);
   const shouldClearAuth =
-    hasAuthCookies &&
+    hasRefreshCookieInRequest &&
+    !refreshSucceeded &&
     ([401, 403, 404, 410].includes(status) || responseMentionsMissingUser(payload));
   if (shouldClearAuth) {
     appendClearAuthCookies(responseHeaders, request, cookieOptions);
@@ -585,6 +595,5 @@ export async function GET(request) {
   } catch {
     // best-effort cookie hydration
   }
-  response.cookies.delete("access_token");
   return response;
 }
