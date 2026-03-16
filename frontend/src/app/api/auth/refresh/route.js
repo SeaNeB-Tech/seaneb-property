@@ -102,6 +102,40 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   }
 };
 
+const getSetCookieList = (headers) => {
+  const getSetCookie = headers?.getSetCookie;
+  if (typeof getSetCookie === "function") {
+    return (getSetCookie.call(headers) || []).filter(Boolean);
+  }
+  const combinedCookieHeader = String(headers?.get("set-cookie") || "").trim();
+  if (!combinedCookieHeader) return [];
+  return combinedCookieHeader
+    .split(/,(?=\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+=)/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const readCookieValueFromSetCookieHeaders = (setCookieHeaders = [], candidateNames = []) => {
+  const loweredCandidates = candidateNames
+    .map((name) => normalizeCookieName(name))
+    .filter(Boolean);
+  for (const raw of setCookieHeaders) {
+    const firstPair = String(raw || "").split(";")[0] || "";
+    const idx = firstPair.indexOf("=");
+    if (idx < 0) continue;
+    const name = normalizeCookieName(firstPair.slice(0, idx));
+    const value = firstPair.slice(idx + 1).trim();
+    if (!name || !value) continue;
+    if (!loweredCandidates.includes(name)) continue;
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+  return "";
+};
+
 const normalizeCookieName = (value) =>
   String(value || "")
     .trim()
@@ -480,11 +514,37 @@ export async function POST(request) {
   // Treat upstream 2xx as success even when token is not exposed in body.
   if (upstreamResponse.ok) {
     const accessToken = readTokenFromPayload(payloadJson, upstreamResponse.headers);
+    const setCookies = getSetCookieList(responseHeaders);
+    const refreshTokenFromPayload = readRefreshTokenFromPayload(payloadJson);
+    const refreshTokenFromCookie = readCookieValueFromSetCookieHeaders(setCookies, [
+      "refresh_token_property",
+      "refresh_token",
+      "refreshToken_property",
+      "refreshToken",
+      "property_refresh_token",
+    ]);
+    const csrfTokenFromCookie = readCookieValueFromSetCookieHeaders(setCookies, [
+      "csrf_token_property",
+      "csrf_token",
+      "csrfToken",
+      "csrfToken_property",
+      "property_csrf_token",
+      "csrf-token",
+      "csrftoken",
+      "xsrf-token",
+      "x-xsrf-token",
+      "XSRF-TOKEN",
+      "X-XSRF-TOKEN",
+      "XSRF_TOKEN",
+      "_csrf",
+    ]);
+    const resolvedRefreshToken = refreshTokenFromPayload || refreshTokenFromCookie;
+    const resolvedCsrfToken = csrfToken || csrfTokenFromCookie;
     const response = NextResponse.json(
       {
         ...(accessToken ? { accessToken } : {}),
         ...(accessToken ? { access_token: accessToken } : {}),
-        ...(csrfToken ? { csrfToken } : {}),
+        ...(resolvedCsrfToken ? { csrfToken: resolvedCsrfToken } : {}),
         ...(expiresIn != null ? { expiresIn } : {}),
         success: true,
       },
@@ -497,11 +557,10 @@ export async function POST(request) {
     if (accessToken) {
       response.headers.set("authorization", `Bearer ${accessToken}`);
     }
-    const refreshToken = readRefreshTokenFromPayload(payloadJson);
-    if (refreshToken) {
+    if (resolvedRefreshToken) {
       response.cookies.set({
         name: "refresh_token_property",
-        value: refreshToken,
+        value: resolvedRefreshToken,
         httpOnly: true,
         sameSite: cookieOptions.sameSite,
         secure: cookieOptions.secure,
@@ -509,10 +568,10 @@ export async function POST(request) {
         ...(cookieOptions?.domain ? { domain: cookieOptions.domain } : {}),
       });
     }
-    if (csrfToken) {
+    if (resolvedCsrfToken) {
       response.cookies.set({
         name: "csrf_token_property",
-        value: csrfToken,
+        value: resolvedCsrfToken,
         httpOnly: false,
         sameSite: cookieOptions.sameSite,
         secure: cookieOptions.secure,

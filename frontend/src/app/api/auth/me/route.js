@@ -324,6 +324,27 @@ const getSetCookieList = (headers) => {
     .filter(Boolean);
 };
 
+const readCookieValueFromSetCookieHeaders = (setCookieHeaders = [], candidateNames = []) => {
+  const loweredCandidates = candidateNames
+    .map((name) => normalizeCookieName(name))
+    .filter(Boolean);
+  for (const raw of setCookieHeaders) {
+    const firstPair = String(raw || "").split(";")[0] || "";
+    const idx = firstPair.indexOf("=");
+    if (idx < 0) continue;
+    const name = normalizeCookieName(firstPair.slice(0, idx));
+    const value = firstPair.slice(idx + 1).trim();
+    if (!name || !value) continue;
+    if (!loweredCandidates.includes(name)) continue;
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+  return "";
+};
+
 const mergeCookieHeaderWithSetCookie = (cookieHeader, setCookieHeaders = []) => {
   const cookieMap = new Map();
   const incoming = String(cookieHeader || "");
