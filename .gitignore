@@ -1,3 +1,17 @@
+<<<<<<< HEAD
 node_modules
 .env
 .next
+=======
+# Next.js
+.next/
+
+# Node
+node_modules/
+
+# Env
+.env
+
+# Logs
+npm-debug.log*
+>>>>>>> main
