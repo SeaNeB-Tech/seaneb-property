@@ -276,7 +276,36 @@ export function ListingAuthProvider({ children }) {
   }, [applyAccessToken, restoreSession]);
 
   useEffect(() => {
-    void restoreSession({ force: true });
+    let isMounted = true;
+    let timer = null;
+
+    const isSsoCallback = () => {
+      try {
+        return (
+          typeof window !== "undefined" &&
+          (new URL(window.location.href).searchParams.has("bridge_token") ||
+            window.location.pathname === "/auth/sso/callback")
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    // Debounce initial restore on mount to avoid refresh-token rotation conflicts
+    // when users spam page refresh (F5). If the page unloads before the timeout,
+    // the timer is cleared and no refresh call is fired.
+    if (isSsoCallback()) {
+      void restoreSession({ force: true });
+    } else {
+      timer = setTimeout(() => {
+        if (isMounted) void restoreSession({ force: true });
+      }, 300);
+    }
+
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [restoreSession]);
 
   useEffect(() => {

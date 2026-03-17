@@ -240,7 +240,21 @@ export async function middleware(request) {
   const hasCsrfSessionHint = hasCsrfCookie(request);
 
   // Phase 1: Validate session with /api/auth/me (which attempts refresh internally)
-  const sessionState = await getValidatedSessionState(request);
+  // Throttle: skip full validation if a recent refresh already occurred (rapid F5 protection)
+  const now = Date.now();
+  const isThrottled = now - _lastMiddlewareRefreshAt < MIDDLEWARE_REFRESH_THROTTLE_MS;
+
+  let sessionState;
+  if (isThrottled && (hasRefreshCookie || hasCsrfSessionHint)) {
+    // Trust that the recent refresh is still valid; let client-side auth handle restoration
+    sessionState = { authenticated: true, hasBusiness: true, setCookies: [] };
+  } else {
+    sessionState = await getValidatedSessionState(request);
+    if (sessionState.authenticated) {
+      _lastMiddlewareRefreshAt = Date.now();
+    }
+  }
+
   let hasSession = sessionState.authenticated;
   const hasBusiness = sessionState.hasBusiness;
   let sessionSetCookies = sessionState.setCookies || [];

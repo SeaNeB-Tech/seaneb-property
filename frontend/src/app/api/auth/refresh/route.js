@@ -431,9 +431,23 @@ export async function POST(request) {
       const entry = _refreshDedup.get(fingerprint);
       if (entry?.completedAt && Date.now() - entry.completedAt < REFRESH_DEDUP_TTL_MS && entry.ok) {
         ssoDebugLog("refresh.deduplicated", { route: "/api/auth/refresh" });
+        const dedupHeaders = new Headers({ "cache-control": "no-store" });
+        if (entry.accessToken) {
+          dedupHeaders.set("authorization", `Bearer ${entry.accessToken}`);
+        }
+        if (entry.csrfToken) {
+          dedupHeaders.set("x-csrf-token", entry.csrfToken);
+          dedupHeaders.set("x-xsrf-token", entry.csrfToken);
+          dedupHeaders.set("csrf-token", entry.csrfToken);
+        }
         return NextResponse.json(
-          { success: true, deduplicated: true },
-          { status: 200, headers: { "cache-control": "no-store" } }
+          {
+            success: true,
+            deduplicated: true,
+            ...(entry.accessToken ? { accessToken: entry.accessToken, access_token: entry.accessToken } : {}),
+            ...(entry.csrfToken ? { csrfToken: entry.csrfToken } : {}),
+          },
+          { status: 200, headers: dedupHeaders }
         );
       }
     }
@@ -445,10 +459,15 @@ export async function POST(request) {
     const _dedupPromise = new Promise((r) => { _dedupResolve = r; });
     _refreshDedup.set(fingerprint, { promise: _dedupPromise, resolve: _dedupResolve, startedAt: Date.now() });
   }
-  const _completeDedup = (ok) => {
+  const _completeDedup = (ok, details = {}) => {
     if (!fingerprint) return;
     const entry = _refreshDedup.get(fingerprint);
-    _refreshDedup.set(fingerprint, { completedAt: Date.now(), ok });
+    _refreshDedup.set(fingerprint, {
+      completedAt: Date.now(),
+      ok: Boolean(ok),
+      ...(details?.accessToken ? { accessToken: details.accessToken } : {}),
+      ...(details?.csrfToken ? { csrfToken: details.csrfToken } : {}),
+    });
     entry?.resolve?.();
     if (ok) _lastSuccessfulRefreshAt = Date.now();
   };
@@ -648,7 +667,10 @@ export async function POST(request) {
       status: 200,
       hasAccessToken: Boolean(accessToken),
     });
-    _completeDedup(true);
+    _completeDedup(true, {
+      ...(accessToken ? { accessToken } : {}),
+      ...(resolvedCsrfToken ? { csrfToken: resolvedCsrfToken } : {}),
+    });
     return response;
   }
 
