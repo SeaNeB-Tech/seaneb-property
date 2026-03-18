@@ -21,8 +21,12 @@ const isUsableUrl = (value) => {
 };
 
 const NEXT_ENV = String(process.env.NEXT_ENV || "").trim().toLowerCase();
-const API_BASE = NEXT_ENV === "development" ? DEV_API_URL : CENTRAL_API_URL;
-const API_FALLBACK = NEXT_ENV === "development" ? CENTRAL_API_URL : DEV_API_URL;
+const API_BASE = NEXT_ENV === "development"
+  ? DEV_API_URL || CENTRAL_API_URL || BACKEND_API_URL
+  : CENTRAL_API_URL || DEV_API_URL || BACKEND_API_URL;
+const API_FALLBACK = NEXT_ENV === "development"
+  ? CENTRAL_API_URL || DEV_API_URL || BACKEND_API_URL
+  : DEV_API_URL || CENTRAL_API_URL || BACKEND_API_URL;
 
 const pushUnique = (list, value) => {
   const normalized = normalizeUrl(value);
