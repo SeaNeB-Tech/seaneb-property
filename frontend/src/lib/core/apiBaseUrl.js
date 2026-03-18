@@ -11,6 +11,20 @@ const CENTRAL_API_URL =
 const DEFAULT_FALLBACK_URL = "https://central-api.seaneb.com/api/v1";
 
 const normalizeUrl = (value) => String(value || "").trim().replace(/\/+$/, "");
+const normalizeApiUrl = (value) => {
+  const raw = normalizeUrl(value);
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    const pathname = String(url.pathname || "").trim();
+    if (!pathname || pathname === "/") {
+      url.pathname = "/api/v1";
+    }
+    return normalizeUrl(url.toString());
+  } catch {
+    return raw;
+  }
+};
 const isUsableUrl = (value) => {
   try {
     const url = new URL(normalizeUrl(value));
@@ -29,7 +43,7 @@ const API_FALLBACK = NEXT_ENV === "development"
   : DEV_API_URL || CENTRAL_API_URL || BACKEND_API_URL;
 
 const pushUnique = (list, value) => {
-  const normalized = normalizeUrl(value);
+  const normalized = normalizeApiUrl(value);
   if (!isUsableUrl(normalized)) return;
   if (!list.includes(normalized)) list.push(normalized);
 };
