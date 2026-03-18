@@ -7,6 +7,7 @@ import { clearAuthFailureArtifacts, shouldClearAuthOnError } from "@/services/au
 
 const AUTH_SSO_RESULT_KEY = "seaneb_sso_exchange_result";
 const AUTH_SSO_MESSAGE_TYPE = "seaneb:sso:exchange";
+const SSO_TOKEN_ONCE_KEY = "seaneb_sso_bridge_token_used";
 
 const resolveSafeSourcePath = (rawValue) => {
   const fallback = "/home";
@@ -78,6 +79,20 @@ const readBridgePayloadFromCurrentUrl = () => {
   ).trim();
   const source = String(queryParams.get("source") || "").trim();
   return { bridgeToken, source };
+};
+
+const markBridgeTokenHandled = (token) => {
+  if (typeof window === "undefined") return false;
+  const safe = String(token || "").trim();
+  if (!safe) return false;
+  try {
+    const prev = window.sessionStorage.getItem(SSO_TOKEN_ONCE_KEY);
+    if (prev && prev === safe) return true;
+    window.sessionStorage.setItem(SSO_TOKEN_ONCE_KEY, safe);
+  } catch {
+    // ignore
+  }
+  return false;
 };
 
 const runSsoExchange = async (bridgeToken) => {
@@ -185,6 +200,12 @@ export default function SsoCallbackPage() {
         source,
         error: "bridge_token missing in callback URL",
       });
+      window.location.replace(source);
+      return;
+    }
+    const alreadyHandled = markBridgeTokenHandled(bridgeToken);
+    if (alreadyHandled) {
+      publishSsoResult({ ok: true, source });
       window.location.replace(source);
       return;
     }
