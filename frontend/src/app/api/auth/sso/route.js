@@ -55,23 +55,37 @@ const resolveCsrfHeaderValue = (incomingHeader, cookieHeader) => {
 
 const buildUpstreamCandidates = (apiBaseUrl) => {
   const normalized = String(apiBaseUrl || "").trim().replace(/\/+$/, "");
+  if (!normalized) return [];
+
+  let hasApiV1 = false;
+  let hasV1 = false;
+  let origin = "";
+
+  try {
+    const parsed = new URL(normalized);
+    origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
+    const path = String(parsed.pathname || "").replace(/\/+$/, "");
+    hasApiV1 = /\/api\/v1$/i.test(path);
+    hasV1 = /\/v1$/i.test(path);
+  } catch {
+    // Non-URL base; fall back to simple candidates.
+  }
+
   const list = [
-    `${normalized}/v1/sso`,
     `${normalized}/auth/sso`,
     `${normalized}/sso`,
   ];
-  try {
-    const parsed = new URL(normalized);
-    const origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
-    if (origin) {
-      list.push(`${origin}/api/v1/sso`);
-      list.push(`${origin}/v1/sso`);
-      list.push(`${origin}/auth/sso`);
-      list.push(`${origin}/sso`);
-    }
-  } catch {
-    // keep normalized candidates only
+  if (!hasApiV1 && !hasV1) {
+    list.push(`${normalized}/v1/sso`);
   }
+
+  if (origin) {
+    list.push(`${origin}/api/v1/sso`);
+    list.push(`${origin}/v1/sso`);
+    list.push(`${origin}/auth/sso`);
+    list.push(`${origin}/sso`);
+  }
+
   return Array.from(new Set(list.filter(Boolean)));
 };
 

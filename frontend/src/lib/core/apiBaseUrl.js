@@ -1,9 +1,9 @@
 const BACKEND_API_URL =
   process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
   "";
 const DEV_API_URL = process.env.NEXT_PUBLIC_DEV_URL || "";
+const API_BASE_ENV_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const CENTRAL_API_URL =
   process.env.NEXT_PUBLIC_CENTRAL_URL ||
   process.env.NEXT_PUBLIC_CENTRAL_API_URL ||
@@ -16,13 +16,14 @@ const normalizeApiUrl = (value) => {
   if (!raw) return "";
   try {
     const url = new URL(raw);
-    const pathname = String(url.pathname || "").trim();
-    if (!pathname || pathname === "/") {
-      url.pathname = "/api/v1";
+    const path = String(url.pathname || "").replace(/\/+$/, "");
+    if (!/\/api\/v1$/i.test(path)) {
+      const nextPath = `${path}/api/v1`.replace(/\/+/g, "/");
+      url.pathname = nextPath;
     }
     return normalizeUrl(url.toString());
   } catch {
-    return raw;
+    return raw.endsWith("/api/v1") ? raw : `${raw}/api/v1`;
   }
 };
 const isUsableUrl = (value) => {
@@ -36,11 +37,11 @@ const isUsableUrl = (value) => {
 
 const NEXT_ENV = String(process.env.NEXT_ENV || "").trim().toLowerCase();
 const API_BASE = NEXT_ENV === "development"
-  ? DEV_API_URL || CENTRAL_API_URL || BACKEND_API_URL
-  : CENTRAL_API_URL || DEV_API_URL || BACKEND_API_URL;
+  ? DEV_API_URL || API_BASE_ENV_URL || CENTRAL_API_URL || BACKEND_API_URL
+  : CENTRAL_API_URL || API_BASE_ENV_URL || DEV_API_URL || BACKEND_API_URL;
 const API_FALLBACK = NEXT_ENV === "development"
-  ? CENTRAL_API_URL || DEV_API_URL || BACKEND_API_URL
-  : DEV_API_URL || CENTRAL_API_URL || BACKEND_API_URL;
+  ? API_BASE_ENV_URL || CENTRAL_API_URL || DEV_API_URL || BACKEND_API_URL
+  : DEV_API_URL || BACKEND_API_URL || API_BASE_ENV_URL;
 
 const pushUnique = (list, value) => {
   const normalized = normalizeApiUrl(value);
@@ -51,10 +52,10 @@ const pushUnique = (list, value) => {
 const candidateBaseUrls = [];
 pushUnique(candidateBaseUrls, BACKEND_API_URL);
 pushUnique(candidateBaseUrls, API_BASE);
+pushUnique(candidateBaseUrls, API_BASE_ENV_URL);
 pushUnique(candidateBaseUrls, API_FALLBACK);
 pushUnique(candidateBaseUrls, CENTRAL_API_URL);
 pushUnique(candidateBaseUrls, DEV_API_URL);
-pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_API_BASE_URL);
 pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_CENTRAL_API_URL);
 pushUnique(candidateBaseUrls, process.env.NEXT_PUBLIC_DEV_URL);
 

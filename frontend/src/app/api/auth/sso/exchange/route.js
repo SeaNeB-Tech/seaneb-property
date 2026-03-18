@@ -152,22 +152,34 @@ const buildUpstreamCandidates = () => {
 
   const urls = [];
   for (const base of bases) {
-    const normalized = String(base).trim().replace(/\/+$/, "");
+    const normalized = String(base || "").trim().replace(/\/+$/, "");
     if (!normalized) continue;
-    urls.push(`${normalized}/sso/exchange`);
-    urls.push(`${normalized}/auth/sso/exchange`);
-    urls.push(`${normalized}/v1/sso/exchange`);
+
+    let hasApiV1 = false;
+    let hasV1 = false;
+    let origin = "";
+
     try {
       const parsed = new URL(normalized);
-      const origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
-      if (origin) {
-        urls.push(`${origin}/api/v1/sso/exchange`);
-        urls.push(`${origin}/v1/sso/exchange`);
-        urls.push(`${origin}/auth/sso/exchange`);
-        urls.push(`${origin}/sso/exchange`);
-      }
+      origin = String(parsed.origin || "").trim().replace(/\/+$/, "");
+      const path = String(parsed.pathname || "").replace(/\/+$/, "");
+      hasApiV1 = /\/api\/v1$/i.test(path);
+      hasV1 = /\/v1$/i.test(path);
     } catch {
-      // keep normalized candidates only
+      // Non-URL base; fall back to simple candidates.
+    }
+
+    urls.push(`${normalized}/sso/exchange`);
+    urls.push(`${normalized}/auth/sso/exchange`);
+    if (!hasApiV1 && !hasV1) {
+      urls.push(`${normalized}/v1/sso/exchange`);
+    }
+
+    if (origin) {
+      urls.push(`${origin}/api/v1/sso/exchange`);
+      urls.push(`${origin}/v1/sso/exchange`);
+      urls.push(`${origin}/auth/sso/exchange`);
+      urls.push(`${origin}/sso/exchange`);
     }
   }
 
@@ -189,6 +201,10 @@ const tryExchangeUpstream = async ({ headers, body }) => {
       });
       lastResponse = response;
       const status = Number(response.status || 0);
+      if (status >= 500) {
+        // Try next candidate if upstream is unhealthy.
+        continue;
+      }
       if (status !== 404 && status !== 405) {
         return response;
       }
