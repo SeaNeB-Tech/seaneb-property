@@ -2,6 +2,7 @@ import "../styles/globals.css"
 import GlobalFooter from "@/components/ui/GlobalFooter"
 import { SITE_URL, isUsableUrl } from "@/lib/siteUrl"
 import { Noto_Sans } from "next/font/google"
+import { Suspense } from "react"
 import ListingAuthProviderClient from "@/components/providers/ListingAuthProviderClient"
 import { GTMScript, GTMNoScript, GTMAnalytics } from "@/components/GoogleTagManager"
 
@@ -106,7 +107,9 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${notoSans.variable} min-h-screen bg-[var(--layout-body-bg)]`}>
         <GTMNoScript />
-        <GTMAnalytics />
+        <Suspense fallback={null}>
+          <GTMAnalytics />
+        </Suspense>
         <ListingAuthProviderClient>
           <div className="min-h-screen flex flex-col">
             <main className="flex-1">{children}</main>
