@@ -173,7 +173,7 @@ export function ListingAuthProvider({ children }) {
       const configured = String(process.env.NEXT_PUBLIC_AUTH_ORIGIN || "").trim();
       if (configured) return configured;
 
-      const authAppUrl = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+      const authAppUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
       if (authAppUrl) {
         try {
           return new URL(authAppUrl).origin;

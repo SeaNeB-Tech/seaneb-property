@@ -1,4 +1,4 @@
-const RAW_SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "";
+const RAW_SITE_URL = process.env.NEXT_PUBLIC_LISTING_URL || "";
 
 export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, "");
 

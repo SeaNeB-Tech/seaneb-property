@@ -79,8 +79,27 @@ const hasSessionCookie = (request) => hasAnyCookie(request, REFRESH_COOKIE_KEYS)
 const hasCsrfCookie = (request) => hasAnyCookie(request, CSRF_COOKIE_KEYS);
 
 // Throttle refresh attempts to prevent rapid-fire token consumption on multiple hard refreshes
-let _lastMiddlewareRefreshAt = 0;
-const MIDDLEWARE_REFRESH_THROTTLE_MS = 3000;
+const MIDDLEWARE_REFRESH_THROTTLE_MS = Number(
+  process.env.NEXT_PUBLIC_AUTH_REFRESH_TIMEOUT_MS || 3000
+);
+const SESSION_FETCH_TIMEOUT_MS = 4000;
+
+// Per-request throttle via cookie (safe for serverless and multi-instance)
+const isRecentlyValidated = (request) => {
+  const lastAt = Number(request.cookies.get("_mw_refresh_at")?.value || 0);
+  return Date.now() - lastAt < MIDDLEWARE_REFRESH_THROTTLE_MS;
+};
+
+const setValidatedCookie = (response) => {
+  response.cookies.set({
+    name: "_mw_refresh_at",
+    value: String(Date.now()),
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: Math.ceil(MIDDLEWARE_REFRESH_THROTTLE_MS / 1000),
+  });
+};
 
 const getSetCookieLines = (headers) => {
   const getSetCookie = headers?.getSetCookie;
@@ -170,9 +189,21 @@ const appendSetCookieHeaders = (targetResponse, sourceHeaders) => {
   }
 };
 
+const fetchWithTimeout = async (url, options = {}, timeoutMs = SESSION_FETCH_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const getValidatedSessionState = async (request) => {
   try {
-    const response = await fetch(new URL("/api/auth/me", request.url), {
+    const response = await fetchWithTimeout(new URL("/api/auth/me", request.url), {
       method: "GET",
       headers: {
         cookie: String(request.headers.get("cookie") || ""),
@@ -180,6 +211,9 @@ const getValidatedSessionState = async (request) => {
       },
       cache: "no-store",
     });
+    if (!response) {
+      return { authenticated: false, hasBusiness: false, setCookies: [] };
+    }
 
     const setCookies = getSetCookieLines(response.headers);
 
@@ -223,7 +257,7 @@ const tryRefreshSession = async (request) => {
 };
 
 const redirectToAuthLogin = (request) => {
-  const authAppBaseUrl = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim().replace(/\/+$/, "");
+  const authAppBaseUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
   if (!authAppBaseUrl) {
     const fallbackLoginUrl = new URL("/auth/login", request.url);
     fallbackLoginUrl.searchParams.set("returnTo", request.nextUrl.href);
@@ -239,10 +273,14 @@ export async function middleware(request) {
   const hasRefreshCookie = hasSessionCookie(request);
   const hasCsrfSessionHint = hasCsrfCookie(request);
 
+  // Fast-path: if no session hints, avoid calling /api/auth/me
+  if (!hasRefreshCookie && !hasCsrfSessionHint) {
+    return redirectToAuthLogin(request);
+  }
+
   // Phase 1: Validate session with /api/auth/me (which attempts refresh internally)
   // Throttle: skip full validation if a recent refresh already occurred (rapid F5 protection)
-  const now = Date.now();
-  const isThrottled = now - _lastMiddlewareRefreshAt < MIDDLEWARE_REFRESH_THROTTLE_MS;
+  const isThrottled = isRecentlyValidated(request);
 
   let sessionState;
   if (isThrottled && (hasRefreshCookie || hasCsrfSessionHint)) {
@@ -250,9 +288,6 @@ export async function middleware(request) {
     sessionState = { authenticated: true, hasBusiness: true, setCookies: [] };
   } else {
     sessionState = await getValidatedSessionState(request);
-    if (sessionState.authenticated) {
-      _lastMiddlewareRefreshAt = Date.now();
-    }
   }
 
   let hasSession = sessionState.authenticated;
@@ -271,7 +306,7 @@ export async function middleware(request) {
   }
 
   if (!response && !hasBusiness) {
-    const authAppBaseUrl = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim().replace(/\/+$/, "");
+    const authAppBaseUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
     if (authAppBaseUrl) {
       const registerUrl = new URL(`${authAppBaseUrl}/auth/business-register`);
       registerUrl.searchParams.set("returnTo", request.nextUrl.href);
@@ -284,6 +319,10 @@ export async function middleware(request) {
 
   if (!response) {
     response = NextResponse.next();
+  }
+
+  if (hasSession) {
+    setValidatedCookie(response);
   }
 
   // Phase 4: Propagate Set-Cookie headers from /api/auth/me response,

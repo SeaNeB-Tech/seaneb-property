@@ -16,7 +16,7 @@ const getAllowedOrigins = () => {
     .split(",")
     .map((v) => String(v || "").trim())
     .filter(Boolean);
-  const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+  const appUrl = String(process.env.NEXT_PUBLIC_LISTING_URL || "").trim();
   const merged = Array.from(new Set([...fromEnv, ...(appUrl ? [appUrl] : [])]));
   const parsed = [];
   for (const value of merged) {

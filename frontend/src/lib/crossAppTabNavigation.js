@@ -83,10 +83,10 @@ const mintBridgeToken = async () => {
 export function openBusinessRegisterFlow() {
   if (typeof window === "undefined") return;
 
-  const authAppUrl = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+  const authAppUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
 
   if (!authAppUrl) {
-    console.warn("[cross-tab] NEXT_PUBLIC_AUTH_APP_URL is missing; cannot redirect to business register.");
+    console.warn("[cross-tab] NEXT_PUBLIC_APP_URL is missing; cannot redirect to business register.");
     return;
   }
 
@@ -110,9 +110,9 @@ export function openBusinessRegisterFlow() {
 export const openAuthLoginTab = () => {
   if (typeof window === "undefined") return false;
 
-  const authBase = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+  const authBase = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
   if (!authBase) {
-    console.warn("[cross-tab] NEXT_PUBLIC_AUTH_APP_URL is missing; cannot open auth login tab.");
+    console.warn("[cross-tab] NEXT_PUBLIC_APP_URL is missing; cannot open auth login tab.");
     return false;
   }
 

@@ -1,9 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+const baseURL = String(process.env.NEXT_PUBLIC_LISTING_URL || "").trim();
 
 if (!baseURL) {
-  throw new Error("NEXT_PUBLIC_APP_URL is required for Playwright baseURL.");
+  throw new Error("NEXT_PUBLIC_LISTING_URL is required for Playwright baseURL.");
 }
 
 export default defineConfig({

@@ -3,6 +3,7 @@ import GlobalFooter from "@/components/ui/GlobalFooter"
 import { SITE_URL, isUsableUrl } from "@/lib/siteUrl"
 import { Noto_Sans } from "next/font/google"
 import ListingAuthProviderClient from "@/components/providers/ListingAuthProviderClient"
+import { GTMScript, GTMNoScript, GTMAnalytics } from "@/components/GoogleTagManager"
 
 const siteUrl = SITE_URL
 const hasSiteUrl = isUsableUrl(siteUrl)
@@ -86,6 +87,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <GTMScript />
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -103,6 +105,8 @@ export default function RootLayout({ children }) {
         <link rel="mask-icon" href="/logos/light-logo.svg" color={THEME_COLOR} />
       </head>
       <body className={`${notoSans.variable} min-h-screen bg-[var(--layout-body-bg)]`}>
+        <GTMNoScript />
+        <GTMAnalytics />
         <ListingAuthProviderClient>
           <div className="min-h-screen flex flex-col">
             <main className="flex-1">{children}</main>

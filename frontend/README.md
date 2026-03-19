@@ -14,16 +14,16 @@ pnpm dev
 bun dev
 ```
 
-`npm run dev` uses the port from `NEXT_PUBLIC_APP_URL` in `.env`.
-Open the URL configured in `NEXT_PUBLIC_APP_URL` with your browser to see the result.
+`npm run dev` uses the port from `NEXT_PUBLIC_LISTING_URL` in `.env`.
+Open the URL configured in `NEXT_PUBLIC_LISTING_URL` with your browser to see the result.
 
 ## Environment
 
 Set these variables for production-safe cookie and service-worker behavior:
 
 ```env
-NEXT_PUBLIC_APP_URL=https://your-app-domain
-NEXT_PUBLIC_AUTH_APP_URL=https://your-auth-domain
+NEXT_PUBLIC_LISTING_URL=https://your-app-domain
+NEXT_PUBLIC_APP_URL=https://your-auth-domain
 NEXT_PUBLIC_COOKIE_DOMAIN=property.seaneb.com
 NEXT_PUBLIC_COOKIE_PATH=/
 NEXT_PUBLIC_COOKIE_SAMESITE=None

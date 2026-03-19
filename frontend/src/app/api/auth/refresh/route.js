@@ -7,8 +7,20 @@ import {
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 import { getCookieOptions, sanitizeCookieDomain } from "@/lib/auth/cookieOptions";
 
-const PRODUCT_KEY =
-  String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
+// ✅ ENV driven — no hardcoded fallbacks
+const PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim();
+if (!PRODUCT_KEY) {
+  console.warn("[refresh] NEXT_PUBLIC_PRODUCT_KEY is not set");
+}
+
+// ✅ ENV driven — no hardcoded .seaneb.com fallback
+const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
+const COOKIE_DOMAIN = String(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "").trim() || undefined;
+
+// ✅ ENV driven TTL
+const REFRESH_DEDUP_TTL_MS = Number(
+  process.env.NEXT_PUBLIC_AUTH_REFRESH_TIMEOUT_MS || 5000
+);
 
 const REFRESH_COOKIE_KEYS = [
   "refresh_token_property",
@@ -47,7 +59,6 @@ const CLEAR_AUTH_COOKIE_KEYS = Array.from(
 
 // --- Server-side refresh deduplication to prevent race conditions on hard refresh ---
 const _refreshDedup = new Map();
-const REFRESH_DEDUP_TTL_MS = 5000;
 let _lastSuccessfulRefreshAt = 0;
 
 const getRefreshFingerprint = (cookieHeader) => {
@@ -58,7 +69,7 @@ const getRefreshFingerprint = (cookieHeader) => {
   return "";
 };
 
-// Periodic cleanup of stale dedup entries
+// ✅ Periodic cleanup with max size guard to prevent memory leaks
 if (typeof globalThis !== "undefined") {
   const _dedupCleanup = setInterval(() => {
     const now = Date.now();
@@ -67,7 +78,12 @@ if (typeof globalThis !== "undefined") {
         _refreshDedup.delete(key);
       }
     }
-  }, 60000);
+    // ✅ Safety cap — prevent unbounded map growth
+    if (_refreshDedup.size > 500) {
+      const keys = [..._refreshDedup.keys()];
+      keys.slice(0, 100).forEach((k) => _refreshDedup.delete(k));
+    }
+  }, 30000); // ✅ shorter interval than before
   if (_dedupCleanup?.unref) _dedupCleanup.unref();
 }
 
@@ -80,17 +96,14 @@ const isValidAuthorizationHeader = (value) => {
   const lowered = token.toLowerCase();
   return !["cookie_session", "null", "undefined", "invalid", "sentinel"].includes(lowered);
 };
-const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
-const COOKIE_DOMAIN = String(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "").trim() || (IS_PRODUCTION ? ".seaneb.com" : undefined);
+
 const normalizeSameSite = (value) => {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "none") return "none";
   if (normalized === "lax") return "lax";
   if (normalized === "strict") return "strict";
-  return "lax"; // Safe default: Lax works over HTTP; None requires Secure
+  return "lax";
 };
-// Cookie policy is now resolved per-request via getCookieOptions(request)
-// to ensure SameSite and Secure are always consistent (Lax for HTTP, None+Secure for HTTPS).
 
 const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   const getSetCookie = upstreamHeaders?.getSetCookie;
@@ -106,8 +119,6 @@ const appendSetCookieHeaders = (targetHeaders, upstreamHeaders) => {
   const combinedCookieHeader = String(upstreamHeaders.get("set-cookie") || "").trim();
   if (!combinedCookieHeader) return;
 
-  // Fallback for runtimes where getSetCookie() is unavailable and multiple
-  // Set-Cookie headers can arrive as a single comma-joined string.
   const splitCookies = combinedCookieHeader
     .split(/,(?=\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+=)/g)
     .map((item) => item.trim())
@@ -168,7 +179,7 @@ const normalizeHost = (host) => String(host || "").trim().replace(/:\d+$/, "").t
 const isIpHost = (host) => {
   const value = normalizeHost(host);
   if (!value) return false;
-  if (value.includes(":")) return true; // IPv6
+  if (value.includes(":")) return true;
   return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(value);
 };
 
@@ -365,7 +376,7 @@ const readCsrfFromPayload = (payload = {}, headers = null) => {
   const token = String(
     payload?.csrf_token_property ||
       data?.csrf_token_property ||
-    payload?.csrfToken ||
+      payload?.csrfToken ||
       payload?.csrf_token ||
       data?.csrfToken ||
       data?.csrf_token ||
@@ -393,14 +404,34 @@ const readRefreshTokenFromPayload = (payload = {}) => {
   ).trim();
 };
 
+// ✅ GET handler — prevents 405 error
+export async function GET() {
+  return NextResponse.json(
+    { error: { code: "METHOD_NOT_ALLOWED", message: "Use POST for token refresh" } },
+    { status: 405 }
+  );
+}
+
 export async function POST(request) {
+  // ✅ Validate API_REMOTE_BASE_URL before using
+  if (!API_REMOTE_BASE_URL) {
+    console.error("[refresh] API_REMOTE_BASE_URL is not configured in .env");
+    return NextResponse.json(
+      { error: { code: "CONFIG_ERROR", message: "API base URL not configured" } },
+      { status: 500 }
+    );
+  }
+
   const cookieOptions = getCookieOptions(request);
+
+  // ✅ Log upstream URL for easier debugging
   const upstreamUrl = `${API_REMOTE_BASE_URL}/auth/refresh`;
-  ssoDebugLog("refresh.attempt", { route: "/api/auth/refresh" });
+  ssoDebugLog("refresh.attempt", { route: "/api/auth/refresh", upstreamUrl });
 
   const incomingCookie = String(request.headers.get("cookie") || "").trim();
   const hasAuthCookies = hasAuthCookiesInHeader(incomingCookie);
   const hasRefreshCookieInRequest = hasRefreshCookie(incomingCookie);
+
   if (!hasRefreshCookie(incomingCookie)) {
     ssoDebugLog("refresh.failure", { route: "/api/auth/refresh", status: 401 });
     const responseHeaders = new Headers();
@@ -424,7 +455,6 @@ export async function POST(request) {
   if (fingerprint) {
     const existing = _refreshDedup.get(fingerprint);
     if (existing) {
-      // Wait for in-flight request if it exists and isn't too old
       if (existing.promise && existing.startedAt && Date.now() - existing.startedAt < 30000) {
         try { await existing.promise; } catch {}
       }
@@ -453,12 +483,12 @@ export async function POST(request) {
     }
   }
 
-  // Register this request as in-flight for dedup
   let _dedupResolve;
   if (fingerprint) {
     const _dedupPromise = new Promise((r) => { _dedupResolve = r; });
     _refreshDedup.set(fingerprint, { promise: _dedupPromise, resolve: _dedupResolve, startedAt: Date.now() });
   }
+
   const _completeDedup = (ok, details = {}) => {
     if (!fingerprint) return;
     const entry = _refreshDedup.get(fingerprint);
@@ -501,10 +531,11 @@ export async function POST(request) {
       parsedBody = {};
     }
   }
-  const productKey = PRODUCT_KEY;
 
+  const productKey = PRODUCT_KEY;
   let upstreamResponse = null;
   let networkError = null;
+
   const headers = new Headers();
   headers.set("content-type", "application/json");
   headers.set("x-product-key", productKey);
@@ -529,7 +560,7 @@ export async function POST(request) {
     upstreamResponse = null;
   }
 
-  // CSRF may be stale; retry refresh once without CSRF before failing.
+  // CSRF may be stale — retry once without CSRF before failing
   if (
     upstreamResponse &&
     [401, 403].includes(Number(upstreamResponse.status || 0)) &&
@@ -548,13 +579,14 @@ export async function POST(request) {
         upstreamResponse = noCsrfResponse;
       }
     } catch {
-      // Keep original response if no-CSRF retry fails.
+      // Keep original response if no-CSRF retry fails
     }
   }
 
   if (!upstreamResponse) {
     _completeDedup(false);
-    ssoDebugLog("refresh.failure", { route: "/api/auth/refresh", status: 502 });
+    // ✅ Log upstream URL on failure for easier debugging
+    ssoDebugLog("refresh.failure", { route: "/api/auth/refresh", upstreamUrl, status: 502 });
     return NextResponse.json(
       {
         error: {
@@ -592,8 +624,6 @@ export async function POST(request) {
   const expiresIn = readExpiresInFromPayload(payloadJson);
   const csrfToken = readCsrfFromPayload(payloadJson, upstreamResponse.headers);
 
-  // Cookie-based auth: backend may set access token only via Set-Cookie.
-  // Treat upstream 2xx as success even when token is not exposed in body.
   if (upstreamResponse.ok) {
     const accessToken = readTokenFromPayload(payloadJson, upstreamResponse.headers);
     const setCookies = getSetCookieList(responseHeaders);
@@ -622,6 +652,7 @@ export async function POST(request) {
     ]);
     const resolvedRefreshToken = refreshTokenFromPayload || refreshTokenFromCookie;
     const resolvedCsrfToken = csrfToken || csrfTokenFromCookie;
+
     const response = NextResponse.json(
       {
         ...(accessToken ? { accessToken } : {}),
@@ -630,10 +661,7 @@ export async function POST(request) {
         ...(expiresIn != null ? { expiresIn } : {}),
         success: true,
       },
-      {
-        status: 200,
-        headers: responseHeaders,
-      }
+      { status: 200, headers: responseHeaders }
     );
 
     if (accessToken) {
@@ -664,6 +692,7 @@ export async function POST(request) {
 
     ssoDebugLog("refresh.success", {
       route: "/api/auth/refresh",
+      upstreamUrl,
       status: 200,
       hasAccessToken: Boolean(accessToken),
     });
@@ -676,33 +705,29 @@ export async function POST(request) {
 
   const status = Number(upstreamResponse.status || 0);
   const invalidRefresh = [401, 403].includes(status);
-  // Guard: don't clear cookies if a recent refresh just succeeded (likely race condition)
   const isRecentSuccessfulRefresh = Date.now() - _lastSuccessfulRefreshAt < REFRESH_DEDUP_TTL_MS;
   const shouldClear = hasRefreshCookieInRequest && [401, 403, 404, 410].includes(status) && !isRecentSuccessfulRefresh;
+
   if (shouldClear) {
     appendClearAuthCookies(responseHeaders, request, cookieOptions);
     validateSetCookieHeadersRuntime(responseHeaders);
   }
-  const upstreamErrorCode = String(
-    payloadJson?.error?.code || payloadJson?.code || ""
-  ).trim();
-  const upstreamErrorMessage = String(
-    payloadJson?.error?.message || payloadJson?.message || ""
-  ).trim();
+
+  const upstreamErrorCode = String(payloadJson?.error?.code || payloadJson?.code || "").trim();
+  const upstreamErrorMessage = String(payloadJson?.error?.message || payloadJson?.message || "").trim();
+
   ssoDebugLog("refresh.failure", {
     route: "/api/auth/refresh",
+    upstreamUrl,
     status: invalidRefresh ? 401 : Number(upstreamResponse.status || 0),
   });
   _completeDedup(false);
+
   return NextResponse.json(
     {
       error: {
-        code:
-          upstreamErrorCode ||
-          (invalidRefresh ? "INVALID_REFRESH_TOKEN" : "REFRESH_FAILED"),
-        message:
-          upstreamErrorMessage ||
-          (invalidRefresh ? "Invalid refresh session" : "Refresh failed"),
+        code: upstreamErrorCode || (invalidRefresh ? "INVALID_REFRESH_TOKEN" : "REFRESH_FAILED"),
+        message: upstreamErrorMessage || (invalidRefresh ? "Invalid refresh session" : "Refresh failed"),
       },
     },
     {
@@ -711,8 +736,3 @@ export async function POST(request) {
     }
   );
 }
-
-
-
-
-

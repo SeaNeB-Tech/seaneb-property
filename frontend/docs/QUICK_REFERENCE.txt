@@ -6,7 +6,7 @@
 🚀 GETTING STARTED:
 
 npm install          # Install dependencies
-npm run dev         # Start development server (URL from NEXT_PUBLIC_APP_URL)
+npm run dev         # Start development server (URL from NEXT_PUBLIC_LISTING_URL)
 npm run build       # Build for production
 npm start           # Start production server
 

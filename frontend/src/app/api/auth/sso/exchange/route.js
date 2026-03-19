@@ -140,7 +140,7 @@ const readExpiresInFromPayload = (payload = {}) => {
 };
 
 const readAuthAppBaseUrl = () => {
-  const raw = String(process.env.NEXT_PUBLIC_AUTH_APP_URL || "").trim();
+  const raw = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
   if (!raw) return "";
   return raw.replace(/\/+$/, "");
 };
