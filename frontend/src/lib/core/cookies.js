@@ -2,9 +2,9 @@
 const isBrowser = typeof window !== "undefined";
 const isProduction = String(process.env.NODE_ENV || "").trim() === "production";
 
-const envCookiePath = process.env.NEXT_PUBLIC_COOKIE_PATH || "/";
-const envCookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || (isProduction ? ".seaneb.com" : "");
-const envSameSite = process.env.NEXT_PUBLIC_COOKIE_SAMESITE || "None";
+const envCookiePath = "/";
+const envCookieDomain = isProduction ? ".seaneb.com" : "";
+const envSameSite = "None";
 const COOKIE_CHANGE_EVENT = "property:cookie-change";
 const STORAGE_PREFIX = "property:volatile:";
 const volatileMemoryStore = new Map();

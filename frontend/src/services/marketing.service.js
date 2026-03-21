@@ -1,12 +1,12 @@
-/**
- * Example API layer for marketing pages.
- * Replace NEXT_PUBLIC_MARKETING_API_BASE with your backend URL.
- */
-const API_BASE = process.env.NEXT_PUBLIC_MARKETING_API_BASE;
+import { API_REMOTE_BASE_URL, API_REMOTE_FALLBACK_BASE_URL } from "@/lib/core/apiBaseUrl";
+
+const API_BASE = String(API_REMOTE_BASE_URL || API_REMOTE_FALLBACK_BASE_URL || "")
+  .trim()
+  .replace(/\/+$/, "");
 
 async function fetchFromMarketingAPI(path) {
   if (!API_BASE) {
-    throw new Error("NEXT_PUBLIC_MARKETING_API_BASE is not configured");
+    throw new Error("Marketing API base URL is not configured");
   }
 
   const response = await fetch(`${API_BASE}${path}`, {

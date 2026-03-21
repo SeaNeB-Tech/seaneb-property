@@ -100,20 +100,6 @@ export const hasBusinessFromProfile = (profile) => {
     }
   }
 
-  const roleHint = String(
-    data.role || data.user_role || data.user_type || data.account_type || ""
-  )
-    .trim()
-    .toLowerCase();
-  if (
-    roleHint.includes("broker") ||
-    roleHint.includes("business") ||
-    roleHint.includes("builder") ||
-    roleHint.includes("agent")
-  ) {
-    return true;
-  }
-
   return false;
 };
 

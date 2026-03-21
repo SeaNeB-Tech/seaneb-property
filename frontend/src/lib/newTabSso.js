@@ -12,12 +12,8 @@ const AUTH_TAB_LOCK_TTL_MS = 2500;
 let authTabRef = null;
 
 const getAllowedOrigins = () => {
-  const fromEnv = String(process.env.NEXT_PUBLIC_ALLOWED_RETURN_ORIGINS || "")
-    .split(",")
-    .map((v) => String(v || "").trim())
-    .filter(Boolean);
   const appUrl = String(process.env.NEXT_PUBLIC_LISTING_URL || "").trim();
-  const merged = Array.from(new Set([...fromEnv, ...(appUrl ? [appUrl] : [])]));
+  const merged = appUrl ? [appUrl] : [];
   const parsed = [];
   for (const value of merged) {
     try {

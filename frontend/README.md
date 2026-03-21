@@ -24,12 +24,10 @@ Set these variables for production-safe cookie and service-worker behavior:
 ```env
 NEXT_PUBLIC_LISTING_URL=https://your-app-domain
 NEXT_PUBLIC_APP_URL=https://your-auth-domain
-NEXT_PUBLIC_COOKIE_DOMAIN=property.seaneb.com
-NEXT_PUBLIC_COOKIE_PATH=/
-NEXT_PUBLIC_COOKIE_SAMESITE=None
-NEXT_PUBLIC_API_BASE_URL=https://dev.seaneb.com/api/v1
-NEXT_PUBLIC_ENABLE_SW=false
-NEXT_PUBLIC_SW_SCOPE=/
+NEXT_ENV=development
+NEXT_PUBLIC_DEV_URL=https://dev.seaneb.com
+NEXT_PUBLIC_CENTRAL_URL=https://central-api.seaneb.com
+NEXT_PUBLIC_PRODUCT_KEY=property
 ```
 
 - Keep `NEXT_PUBLIC_ENABLE_SW=false` if another app is mounted on the same host.

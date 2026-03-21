@@ -35,9 +35,8 @@ const parseHostList = (value) =>
     .map((item) => String(item || "").trim().toLowerCase())
     .filter(Boolean);
 
-const LOCAL_HOSTS = parseHostList(
-  process.env.COOKIE_LOCAL_HOSTS || process.env.NEXT_PUBLIC_COOKIE_LOCAL_HOSTS
-);
+const isProduction = String(process.env.NODE_ENV || "").trim() === "production";
+const LOCAL_HOSTS = parseHostList("localhost,127.0.0.1,::1");
 
 const isHostInLocalAllowlist = (host) => {
   if (!host) return false;
@@ -62,7 +61,7 @@ const isValidCookieDomain = (domain) => {
 };
 
 const resolveCookieDomain = (request) => {
-  const envDomain = sanitizeCookieDomain(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "");
+  const envDomain = sanitizeCookieDomain(isProduction ? ".seaneb.com" : "");
   if (!isValidCookieDomain(envDomain)) return "";
 
   const host = readHost(request);

@@ -15,12 +15,10 @@ if (!PRODUCT_KEY) {
 
 // ✅ ENV driven — no hardcoded .seaneb.com fallback
 const IS_PRODUCTION = String(process.env.NODE_ENV || "").trim() === "production";
-const COOKIE_DOMAIN = String(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "").trim() || undefined;
+const COOKIE_DOMAIN = IS_PRODUCTION ? ".seaneb.com" : undefined;
 
 // ✅ ENV driven TTL
-const REFRESH_DEDUP_TTL_MS = Number(
-  process.env.NEXT_PUBLIC_AUTH_REFRESH_TIMEOUT_MS || 5000
-);
+const REFRESH_DEDUP_TTL_MS = 5000;
 
 const REFRESH_COOKIE_KEYS = [
   "refresh_token_property",
@@ -214,7 +212,7 @@ const getClearCookieDomains = (request, cookieOptions) => {
     if (maybeParent) domains.add(maybeParent);
   }
 
-  const configuredDomain = sanitizeCookieDomain(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "");
+  const configuredDomain = sanitizeCookieDomain(COOKIE_DOMAIN || "");
   if (configuredDomain && domainMatchesHost(configuredDomain, host)) {
     domains.add(configuredDomain);
   }

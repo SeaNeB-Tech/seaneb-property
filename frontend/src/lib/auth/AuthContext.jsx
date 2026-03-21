@@ -42,6 +42,13 @@ const hasAuthHint = () => {
   return Boolean(token);
 };
 
+const isPanelAccessRestrictedPayload = (payload = null) => {
+  const message = String(
+    payload?.error?.message || payload?.message || ""
+  ).trim();
+  return /no active branch associated/i.test(message);
+};
+
 export function ListingAuthProvider({ children }) {
   const [status, setStatus] = useState("unauthenticated");
   const [user, setUser] = useState(null);
@@ -57,6 +64,15 @@ export function ListingAuthProvider({ children }) {
     setAuthUserLoggedOut();
     setIsReady(true);
     return false;
+  }, []);
+
+  const applyRestrictedSession = useCallback(() => {
+    setAccessTokenState(String(getAccessToken() || "").trim());
+    setUser(null);
+    setStatus("authenticated");
+    setAuthUserAuthenticated(null);
+    setIsReady(true);
+    return true;
   }, []);
 
   const applyUserProfile = useCallback((profilePayload) => {
@@ -101,6 +117,10 @@ export function ListingAuthProvider({ children }) {
           const status = Number(error?.status || 0);
           if (status !== 401 && status !== 403) throw error;
 
+          if (status === 403 && isPanelAccessRestrictedPayload(error?.data)) {
+            return applyRestrictedSession();
+          }
+
           if (!hasSessionSignal) {
             return resetUnauthenticated();
           }
@@ -113,7 +133,17 @@ export function ListingAuthProvider({ children }) {
             return resetUnauthenticated();
           }
 
-          profilePayload = await authApi.me({ retryOn401: false });
+          try {
+            profilePayload = await authApi.me({ retryOn401: false });
+          } catch (retryError) {
+            if (
+              Number(retryError?.status || 0) === 403 &&
+              isPanelAccessRestrictedPayload(retryError?.data)
+            ) {
+              return applyRestrictedSession();
+            }
+            throw retryError;
+          }
         }
 
         if (!profilePayload) {
@@ -132,7 +162,7 @@ export function ListingAuthProvider({ children }) {
 
     sessionSyncInFlightRef.current = run;
     return run;
-  }, [applyUserProfile, resetUnauthenticated]);
+  }, [applyRestrictedSession, applyUserProfile, resetUnauthenticated]);
 
   const applyAccessToken = useCallback((token) => {
     const safeToken = setInMemoryAccessToken(token);
@@ -170,9 +200,6 @@ export function ListingAuthProvider({ children }) {
     if (typeof window === "undefined") return () => {};
 
     const allowedAuthOrigin = (() => {
-      const configured = String(process.env.NEXT_PUBLIC_AUTH_ORIGIN || "").trim();
-      if (configured) return configured;
-
       const authAppUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
       if (authAppUrl) {
         try {

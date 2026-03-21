@@ -5,9 +5,7 @@ import { getAuthDiagnostics, getInMemoryAccessToken, refreshAccessToken } from "
 import { API_BASE_URL } from "@/lib/core/apiBaseUrl";
 const PRODUCT_KEY = String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
 
-const DEBUG_AUTH_ENABLED =
-  process.env.NODE_ENV === "development" &&
-  String(process.env.NEXT_PUBLIC_ENABLE_DEBUG_AUTH || "").trim().toLowerCase() === "true";
+const DEBUG_AUTH_ENABLED = process.env.NODE_ENV === "development";
 
 function readCookies() {
   try {

@@ -142,6 +142,23 @@ const runSsoExchange = async (bridgeToken) => {
 };
 
 const restoreListingSession = async ({ accessToken = "" } = {}) => {
+  const isPanelAccessRestrictedPayload = (payload = null) => {
+    const message = String(
+      payload?.error?.message || payload?.message || ""
+    ).trim();
+    return /no active branch associated/i.test(message);
+  };
+
+  const isAllowedRestrictedResponse = async (response) => {
+    if (Number(response?.status || 0) !== 403) return false;
+    try {
+      const payload = await response.clone().json();
+      return isPanelAccessRestrictedPayload(payload);
+    } catch {
+      return false;
+    }
+  };
+
   const headers = new Headers();
   const bearer = String(accessToken || "").trim();
   if (bearer) {
@@ -156,6 +173,7 @@ const restoreListingSession = async ({ accessToken = "" } = {}) => {
   });
 
   if (response.ok) return true;
+  if (await isAllowedRestrictedResponse(response)) return true;
 
   if ([401, 403].includes(Number(response.status || 0))) {
     await fetch("/api/auth/refresh", {
@@ -176,6 +194,7 @@ const restoreListingSession = async ({ accessToken = "" } = {}) => {
     });
 
     if (response.ok) return true;
+    if (await isAllowedRestrictedResponse(response)) return true;
   }
 
   throw new Error("Session restore failed");

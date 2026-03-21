@@ -80,7 +80,7 @@ const hasCsrfCookie = (request) => hasAnyCookie(request, CSRF_COOKIE_KEYS);
 
 // Throttle refresh attempts to prevent rapid-fire token consumption on multiple hard refreshes
 const MIDDLEWARE_REFRESH_THROTTLE_MS = Number(
-  process.env.NEXT_PUBLIC_AUTH_REFRESH_TIMEOUT_MS || 3000
+  3000
 );
 const SESSION_FETCH_TIMEOUT_MS = 4000;
 

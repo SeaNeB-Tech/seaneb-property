@@ -4,6 +4,8 @@ import { getCookieOptions, sanitizeCookieDomain } from "@/lib/auth/cookieOptions
 
 const PRODUCT_KEY =
   String(process.env.NEXT_PUBLIC_PRODUCT_KEY || "").trim() || "property";
+const DEFAULT_COOKIE_DOMAIN =
+  String(process.env.NODE_ENV || "").trim() === "production" ? ".seaneb.com" : "";
 const normalizeProductKey = (value) =>
   String(value || "").trim() || PRODUCT_KEY;
 
@@ -102,7 +104,7 @@ const getClearCookieDomains = (request, cookieOptions) => {
     if (maybeParent) domains.add(maybeParent);
   }
 
-  const configuredDomain = sanitizeCookieDomain(process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "");
+  const configuredDomain = sanitizeCookieDomain(DEFAULT_COOKIE_DOMAIN);
   if (configuredDomain && domainMatchesHost(configuredDomain, host)) {
     domains.add(configuredDomain);
   }
