@@ -1,7 +1,7 @@
 "use client";
 
 import { openSsoAuthTab } from "@/lib/newTabSso";
-import { getAuthAppUrl } from "@/lib/core/appUrls";
+import { getAuthAppBaseUrl, getAuthAppUrl } from "@/lib/core/appUrls";
 import { getAccessToken } from "@/lib/auth/tokenStorage";
 
 const CROSS_TAB_LOGIN_SOURCE = "main-app";
@@ -83,14 +83,14 @@ const mintBridgeToken = async () => {
 export function openBusinessRegisterFlow() {
   if (typeof window === "undefined") return;
 
-  const authAppUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+  const authAppUrl = getAuthAppBaseUrl();
 
   if (!authAppUrl) {
     console.warn("[cross-tab] NEXT_PUBLIC_APP_URL is missing; cannot redirect to business register.");
     return;
   }
 
-  const businessRegisterUrl = new URL(BUSINESS_REGISTER_PATH, authAppUrl);
+  const businessRegisterUrl = new URL(getAuthAppUrl(BUSINESS_REGISTER_PATH), window.location.origin);
   businessRegisterUrl.searchParams.set("source", CROSS_TAB_REGISTER_SOURCE);
   businessRegisterUrl.searchParams.set("returnTo", window.location.href);
   businessRegisterUrl.searchParams.set("force", "1");
@@ -110,7 +110,7 @@ export function openBusinessRegisterFlow() {
 export const openAuthLoginTab = () => {
   if (typeof window === "undefined") return false;
 
-  const authBase = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+  const authBase = getAuthAppBaseUrl();
   if (!authBase) {
     console.warn("[cross-tab] NEXT_PUBLIC_APP_URL is missing; cannot open auth login tab.");
     return false;

@@ -1,6 +1,6 @@
 "use client";
 
-import { getAuthAppUrl } from "@/lib/core/appUrls";
+import { getAuthAppUrl, getListingAppOrigin } from "@/lib/core/appUrls";
 import { ssoDebugLog } from "@/lib/observability/ssoDebug";
 
 const AUTH_LOGIN_PATH = "/auth/login";
@@ -12,8 +12,8 @@ const AUTH_TAB_LOCK_TTL_MS = 2500;
 let authTabRef = null;
 
 const getAllowedOrigins = () => {
-  const appUrl = String(process.env.NEXT_PUBLIC_LISTING_URL || "").trim();
-  const merged = appUrl ? [appUrl] : [];
+  const listingOrigin = getListingAppOrigin();
+  const merged = listingOrigin ? [listingOrigin] : [];
   const parsed = [];
   for (const value of merged) {
     try {

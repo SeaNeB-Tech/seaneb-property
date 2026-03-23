@@ -4,10 +4,28 @@ const normalizedBasePath =
     ? `/${rawBasePath.replace(/^\/+|\/+$/g, "")}`
     : "";
 const normalizeUrl = (value) => String(value || "").replace(/\/+$/, "");
+const normalizeHost = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/^\[|\]$/g, "")
+    .replace(/:\d+$/, "")
+    .toLowerCase();
+const IPV4_HOSTNAME_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$/;
 const isUsableUrl = (value) => {
   try {
     const url = new URL(normalizeUrl(value));
     return Boolean(url.protocol && url.host);
+  } catch {
+    return false;
+  }
+};
+const isLoopbackOrIpUrl = (value) => {
+  try {
+    const hostname = normalizeHost(new URL(normalizeUrl(value)).hostname);
+    if (!hostname) return false;
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
+    if (IPV4_HOSTNAME_PATTERN.test(hostname)) return true;
+    return hostname.includes(":");
   } catch {
     return false;
   }
@@ -21,6 +39,7 @@ const toOrigin = (value) => {
 };
 const appBaseUrl = normalizeUrl(process.env.NEXT_PUBLIC_LISTING_URL || "");
 const authAppBaseUrl = normalizeUrl(process.env.NEXT_PUBLIC_APP_URL || "");
+const useStaticAuthRedirects = Boolean(authAppBaseUrl) && !isLoopbackOrIpUrl(authAppBaseUrl);
 const directApiBaseUrl = "";
 const devApiUrl = process.env.NEXT_PUBLIC_DEV_URL || "";
 const centralApiUrl = process.env.NEXT_PUBLIC_CENTRAL_URL || "";
@@ -108,7 +127,7 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      ...(authAppBaseUrl
+      ...(useStaticAuthRedirects
         ? [
             {
               source: "/auth/login",

@@ -83,6 +83,12 @@ const MIDDLEWARE_REFRESH_THROTTLE_MS = Number(
   3000
 );
 const SESSION_FETCH_TIMEOUT_MS = 4000;
+const AUTH_APP_PROXY_PATHS = new Set([
+  "/auth/login",
+  "/auth/business-register",
+  "/auth/business-reg",
+  "/auth/complete-profile",
+]);
 
 // Per-request throttle via cookie (safe for serverless and multi-instance)
 const isRecentlyValidated = (request) => {
@@ -128,6 +134,39 @@ const isLoopbackOrIp = (host) => {
   if (value === "localhost" || value === "::1" || /^127(?:\.\d{1,3}){3}$/.test(value)) return true;
   if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(value)) return true;
   return value.includes(":"); // IPv6
+};
+
+const normalizeBaseUrl = (value) => String(value || "").trim().replace(/\/+$/, "");
+
+const resolveCrossAppBaseUrl = (rawUrl, request) => {
+  const normalized = normalizeBaseUrl(rawUrl);
+  if (!normalized) return "";
+
+  try {
+    const targetUrl = new URL(normalized);
+    const requestHost = normalizeHost(request?.nextUrl?.hostname || request?.headers?.get("host") || "");
+    const targetHost = normalizeHost(targetUrl.hostname);
+
+    if (requestHost && requestHost !== targetHost && isLoopbackOrIp(targetHost)) {
+      targetUrl.protocol = request?.nextUrl?.protocol || targetUrl.protocol;
+      targetUrl.hostname = requestHost;
+    }
+
+    return normalizeBaseUrl(targetUrl.toString());
+  } catch {
+    return normalized;
+  }
+};
+
+const buildCrossAppUrl = (rawUrl, request, path = "/") => {
+  const baseUrl = resolveCrossAppBaseUrl(rawUrl, request);
+  if (!baseUrl) return "";
+  const safePath = String(path || "").trim() || "/";
+  try {
+    return new URL(safePath, `${baseUrl}/`).toString();
+  } catch {
+    return "";
+  }
 };
 
 const rewriteSetCookieForMiddleware = (cookie, request) => {
@@ -257,19 +296,31 @@ const tryRefreshSession = async (request) => {
 };
 
 const redirectToAuthLogin = (request) => {
-  const authAppBaseUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
-  if (!authAppBaseUrl) {
+  const authLoginTarget = buildCrossAppUrl(process.env.NEXT_PUBLIC_APP_URL, request, "/auth/login");
+  if (!authLoginTarget) {
     const fallbackLoginUrl = new URL("/auth/login", request.url);
     fallbackLoginUrl.searchParams.set("returnTo", request.nextUrl.href);
     return NextResponse.redirect(fallbackLoginUrl, { status: 307 });
   }
 
-  const loginUrl = new URL(`${authAppBaseUrl}/auth/login`);
+  const loginUrl = new URL(authLoginTarget);
   loginUrl.searchParams.set("returnTo", request.nextUrl.href);
   return NextResponse.redirect(loginUrl, { status: 307 });
 };
 
 export async function middleware(request) {
+  const pathname = request.nextUrl.pathname;
+  if (AUTH_APP_PROXY_PATHS.has(pathname)) {
+    const proxyTarget = buildCrossAppUrl(
+      process.env.NEXT_PUBLIC_APP_URL,
+      request,
+      `${pathname}${request.nextUrl.search}`
+    );
+    if (proxyTarget && proxyTarget !== request.nextUrl.href) {
+      return NextResponse.redirect(proxyTarget, { status: 307 });
+    }
+  }
+
   const hasRefreshCookie = hasSessionCookie(request);
   const hasCsrfSessionHint = hasCsrfCookie(request);
 
@@ -306,9 +357,13 @@ export async function middleware(request) {
   }
 
   if (!response && !hasBusiness) {
-    const authAppBaseUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/+$/, "");
-    if (authAppBaseUrl) {
-      const registerUrl = new URL(`${authAppBaseUrl}/auth/business-register`);
+    const registerTarget = buildCrossAppUrl(
+      process.env.NEXT_PUBLIC_APP_URL,
+      request,
+      "/auth/business-register"
+    );
+    if (registerTarget) {
+      const registerUrl = new URL(registerTarget);
       registerUrl.searchParams.set("returnTo", request.nextUrl.href);
       response = NextResponse.redirect(registerUrl, { status: 307 });
     } else {
@@ -337,5 +392,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/auth/:path*"],
 };

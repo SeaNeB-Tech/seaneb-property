@@ -20,6 +20,7 @@ import {
   setAuthUserAuthenticated,
   setAuthUserLoggedOut,
 } from "@/services/user.service";
+import { getAuthAppOrigin } from "@/lib/core/appUrls";
 
 const AuthContext = createContext(null);
 const AUTH_SSO_RESULT_KEY = "seaneb_sso_exchange_result";
@@ -200,14 +201,8 @@ export function ListingAuthProvider({ children }) {
     if (typeof window === "undefined") return () => {};
 
     const allowedAuthOrigin = (() => {
-      const authAppUrl = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
-      if (authAppUrl) {
-        try {
-          return new URL(authAppUrl).origin;
-        } catch {
-          // ignore invalid auth URL
-        }
-      }
+      const authOrigin = getAuthAppOrigin();
+      if (authOrigin) return authOrigin;
 
       console.warn("[auth] Auth origin is missing; cross-tab listener disabled.");
       return "";

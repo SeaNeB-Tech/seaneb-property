@@ -11,8 +11,6 @@ const volatileMemoryStore = new Map();
 const REAL_COOKIE_KEYS = new Set([
   "refresh_token_property",
   "csrf_token_property",
-  // Server-visible marker to allow profile completion right after OTP verification.
-  "post_otp_verified",
 ]);
 if (isBrowser) {
   try {

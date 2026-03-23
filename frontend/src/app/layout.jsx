@@ -95,8 +95,6 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="SeaNeB" />
         <meta name="msapplication-TileColor" content={THEME_COLOR} />
-        <meta name="msapplication-config" content="/browserconfig.xml" />
-        
         {/* Manifest Link */}
         <link rel="manifest" href="/manifest.json" />
         
